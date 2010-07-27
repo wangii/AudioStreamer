@@ -1,9 +1,11 @@
 //
-//  iPhoneStreamingPlayerViewController.m
-//  iPhoneStreamingPlayer
+//  TAStreamingPlayerViewController.m
+//  TAStreamingPlayer
 //
 //  Created by Matt Gallagher on 28/10/08.
-//  Copyright Matt Gallagher 2008. All rights reserved.
+//  Portions copyright Matt Gallagher 2008. All rights reserved.
+//	Adapted for TapLynx by Walter Tyree on 26/07/2010
+//	Copyright Tyree Apps 2010. All rights reserved.
 //
 //  Permission is given to use this source code file, free of charge, in any
 //  project, commercial or otherwise, entirely at your risk, with the condition
