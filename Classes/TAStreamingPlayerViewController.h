@@ -16,21 +16,32 @@
 
 @class AudioStreamer;
 
-@interface iPhoneStreamingPlayerViewController : UIViewController
+@interface TAStreamingPlayerViewController : UIViewController <UIPickerViewDelegate, UIPickerViewDataSource>
 {
-	IBOutlet UITextField *downloadSourceField;
+
 	IBOutlet UIButton *button;
 	IBOutlet UIView *volumeSlider;
 	IBOutlet UILabel *positionLabel;
 	IBOutlet UISlider *progressSlider;
+	IBOutlet UITextView *streamTitle;
 	AudioStreamer *streamer;
 	NSTimer *progressUpdateTimer;
+	NSArray *streams;
+	
+	double streamDuration;
+	NSString *currentStream;
 }
+
+
+@property (nonatomic,retain) NSArray *streams;
+
 
 - (IBAction)buttonPressed:(id)sender;
 - (void)spinButton;
 - (void)updateProgress:(NSTimer *)aNotification;
 - (IBAction)sliderMoved:(UISlider *)aSlider;
+
+-(id)initWithTabInfo:(NSDictionary *)tabInfo topLevelTab:(NSDictionary *)topLevelTab;
 
 @end
 
