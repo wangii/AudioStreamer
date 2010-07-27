@@ -31,7 +31,8 @@ then find the folder for the repository and click add.
 4) Use Interface Builder to change the TAStreamingPlayer.xib if you want to change the look.
 
 Notes:
-I have tested this with .mp3 and .m4a streams only. A number of people have forked Matt's original project to
+I have tested this with .mp3 streams only. Note well that the simulator will handle file types that a device
+will not handle! You must test your streams on a device! A number of people have forked Matt's original project to
 add support for other types of media. This library only makes calls to the AudioStreamer files so it is possible
 that you can incorporate someone else's fork without a lot of work on your part.
 

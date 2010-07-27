@@ -311,22 +311,7 @@
 
 }
 
-//
-// textFieldShouldReturn:
-//
-// Dismiss the text field when done is pressed
-//
-// Parameters:
-//    sender - the text field
-//
-// returns YES
-//
-- (BOOL)textFieldShouldReturn:(UITextField *)sender
-{
-	[sender resignFirstResponder];
-	[self createStreamer];
-	return YES;
-}
+
 
 //
 // dealloc
