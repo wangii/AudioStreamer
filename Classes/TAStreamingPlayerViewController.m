@@ -210,7 +210,7 @@
 	{
 		[self createStreamer];
 		[self setButtonImage:[UIImage imageNamed:@"loadingbutton.png"]];
-		bufferingLabel.hidden = NO;
+		[bufferingActivity startAnimating];
 		[streamer start];
 		
 	}
@@ -247,21 +247,21 @@
 	if ([streamer isWaiting])
 	{
 		[self setButtonImage:[UIImage imageNamed:@"loadingbutton.png"]];
-		bufferingLabel.hidden = NO;
+		[bufferingActivity startAnimating];
 
 	}
 	else if ([streamer isPlaying])
 	{
 		[self setButtonImage:[UIImage imageNamed:@"stopbutton.png"]];
 		streamDuration = streamer.duration;
-		bufferingLabel.hidden = YES;
+		[bufferingActivity stopAnimating];
 
 	}
 	else if ([streamer isIdle])
 	{
 		[self destroyStreamer];
 		[self setButtonImage:[UIImage imageNamed:@"playbutton.png"]];
-		bufferingLabel.hidden = YES;
+		[bufferingActivity stopAnimating];
 
 	}
 }

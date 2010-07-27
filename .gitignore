@@ -1,4 +1,5 @@
 build
+extras
 .DS_Store
 *.xcodeproj/*.mode*
 *.xcodeproj/*.pbxuser

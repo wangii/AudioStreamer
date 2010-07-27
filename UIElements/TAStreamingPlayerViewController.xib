@@ -12,7 +12,7 @@
 		</object>
 		<object class="NSMutableArray" key="IBDocument.EditedObjectIDs">
 			<bool key="EncodedWithXMLCoder">YES</bool>
-			<integer value="52"/>
+			<integer value="6"/>
 		</object>
 		<object class="NSArray" key="IBDocument.PluginDependencies">
 			<bool key="EncodedWithXMLCoder">YES</bool>
@@ -139,34 +139,14 @@
 							<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 						</object>
 					</object>
-					<object class="IBUILabel" id="451146303">
+					<object class="IBUIActivityIndicatorView" id="73764519">
 						<reference key="NSNextResponder" ref="774585933"/>
 						<int key="NSvFlags">-2147483356</int>
-						<string key="NSFrame">{{107, 250}, {106, 21}}</string>
+						<string key="NSFrame">{{142, 242}, {37, 37}}</string>
 						<reference key="NSSuperview" ref="774585933"/>
 						<bool key="IBUIOpaque">NO</bool>
-						<bool key="IBUIClipsSubviews">YES</bool>
-						<int key="IBUIContentMode">7</int>
-						<bool key="IBUIUserInteractionEnabled">NO</bool>
-						<object class="IBUIAccessibilityConfiguration" key="IBUIAccessibilityConfiguration">
-							<integer value="320" key="IBUIAccessibilityTraits"/>
-						</object>
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
-						<string key="IBUIText">BUFFERING</string>
-						<object class="NSColor" key="IBUITextColor">
-							<int key="NSColorSpace">1</int>
-							<bytes key="NSRGB">MC45NjcxNTMyODQ3IDAuMzQ2NzE1MzI4NSAwAA</bytes>
-						</object>
-						<nil key="IBUIHighlightedColor"/>
-						<object class="NSColor" key="IBUIShadowColor">
-							<int key="NSColorSpace">1</int>
-							<bytes key="NSRGB">MC44ODY4NjEzMTM5IDEgMAA</bytes>
-						</object>
-						<string key="IBUIShadowOffset">{1, 1}</string>
-						<int key="IBUIBaselineAdjustment">1</int>
-						<bool key="IBUIAdjustsFontSizeToFit">NO</bool>
-						<float key="IBUIMinimumFontSize">10</float>
-						<int key="IBUITextAlignment">1</int>
+						<int key="IBUIStyle">0</int>
 					</object>
 				</object>
 				<string key="NSFrameSize">{320, 460}</string>
@@ -251,11 +231,11 @@
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
-						<string key="label">bufferingLabel</string>
+						<string key="label">bufferingActivity</string>
 						<reference key="source" ref="372490531"/>
-						<reference key="destination" ref="451146303"/>
+						<reference key="destination" ref="73764519"/>
 					</object>
-					<int key="connectionID">53</int>
+					<int key="connectionID">55</int>
 				</object>
 			</object>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -288,7 +268,7 @@
 							<reference ref="335228063"/>
 							<reference ref="842916847"/>
 							<reference ref="650664856"/>
-							<reference ref="451146303"/>
+							<reference ref="73764519"/>
 						</object>
 						<reference key="parent" ref="0"/>
 					</object>
@@ -321,8 +301,8 @@
 						<reference key="parent" ref="774585933"/>
 					</object>
 					<object class="IBObjectRecord">
-						<int key="objectID">52</int>
-						<reference key="object" ref="451146303"/>
+						<int key="objectID">54</int>
+						<reference key="object" ref="73764519"/>
 						<reference key="parent" ref="774585933"/>
 					</object>
 				</object>
@@ -338,7 +318,7 @@
 					<string>35.IBPluginDependency</string>
 					<string>46.IBPluginDependency</string>
 					<string>50.IBPluginDependency</string>
-					<string>52.IBPluginDependency</string>
+					<string>54.IBPluginDependency</string>
 					<string>6.IBEditorWindowLastContentRect</string>
 					<string>6.IBPluginDependency</string>
 				</object>
@@ -372,7 +352,7 @@
 				</object>
 			</object>
 			<nil key="sourceID"/>
-			<int key="maxID">53</int>
+			<int key="maxID">55</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<object class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -416,7 +396,7 @@
 						<bool key="EncodedWithXMLCoder">YES</bool>
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<string>bufferingLabel</string>
+							<string>bufferingActivity</string>
 							<string>button</string>
 							<string>positionLabel</string>
 							<string>progressSlider</string>
@@ -425,7 +405,7 @@
 						</object>
 						<object class="NSMutableArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<string>UILabel</string>
+							<string>UIActivityIndicatorView</string>
 							<string>UIButton</string>
 							<string>UILabel</string>
 							<string>UISlider</string>
@@ -437,7 +417,7 @@
 						<bool key="EncodedWithXMLCoder">YES</bool>
 						<object class="NSArray" key="dict.sortedKeys">
 							<bool key="EncodedWithXMLCoder">YES</bool>
-							<string>bufferingLabel</string>
+							<string>bufferingActivity</string>
 							<string>button</string>
 							<string>positionLabel</string>
 							<string>progressSlider</string>
@@ -447,8 +427,8 @@
 						<object class="NSMutableArray" key="dict.values">
 							<bool key="EncodedWithXMLCoder">YES</bool>
 							<object class="IBToOneOutletInfo">
-								<string key="name">bufferingLabel</string>
-								<string key="candidateClassName">UILabel</string>
+								<string key="name">bufferingActivity</string>
+								<string key="candidateClassName">UIActivityIndicatorView</string>
 							</object>
 							<object class="IBToOneOutletInfo">
 								<string key="name">button</string>
@@ -583,6 +563,14 @@
 					<object class="IBClassDescriptionSource" key="sourceIdentifier" id="36998061">
 						<string key="majorKey">IBFrameworkSource</string>
 						<string key="minorKey">UIKit.framework/Headers/UIResponder.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">UIActivityIndicatorView</string>
+					<string key="superclassName">UIView</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBFrameworkSource</string>
+						<string key="minorKey">UIKit.framework/Headers/UIActivityIndicatorView.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
