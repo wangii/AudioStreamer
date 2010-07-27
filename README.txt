@@ -1,32 +1,45 @@
 README for TyreeApps Streaming Player TapLynx Plugin
 
-This project is a repackaging of the AudioStreamer project as a TapLynx plugin. 
+This project is a repackaging of Matt Gallagher's AudioStreamer project as a TapLynx plugin. 
 
-The player is configured via the regular TapLynx configuration file (NGConfig.plist). Configuration parameters are:
-"Title": The title of the player
-"ShortTitle": The title to put on the tab
-"TabImageName": The image to use for the tab
+The player is configured via the regular TapLynx configuration file (NGConfig.plist). This means
+that you can use all of the regular NGConfig settings for title, tab icon, color, etc.
+
+Configuration parameters specific to this plugin are:
 "customViewControllerClass": "TAStreamingPlayer"
 "Streams": An array of dictionaries of streams. Each dictionary contains:
 - "url": a string of the url of the stream
 - "Title": a string of the title of the stream
+There is a sample file in this plugin called sample.plist which you can copy and paste into
+an existing NGConfig tab entry.
 
+Before you Install:
+This is not a complete application it will not stand alone. You need to download and install a TapLynx
+application first. You can find out all about TapLynx and download the library from www.taplynx.com
 
 To Install:
-1) Add CFNetwork.framework and AudioToolbox.framework frameworks to your iPhone project.
+1) Add CFNetwork.framework and AudioToolbox.framework frameworks to your TapLynx iPhone project.
 To add an existing framework, right click on the Groups & Files tree and select Add -> Existing Frameworks...
 then choose from the list.
 
-2) Add the contents of the TAAudioStreamer folder to the project.
+2) Add the contents of the this repository folder to the project.
 To add existing files to a framework, right click on the Groups & files tree and select Add -> Existing Files...
-then find the TAAudioStreamer folder and click add.
+then find the folder for the repository and click add.
 
 3) Modify the NGConfig to add keys to hook in the View
 
 4) Use Interface Builder to change the TAStreamingPlayer.xib if you want to change the look.
 
 Notes:
+I have tested this with .mp3 and .m4a streams only. A number of people have forked Matt's original project to
+add support for other types of media. This library only makes calls to the AudioStreamer files so it is possible
+that you can incorporate someone else's fork without a lot of work on your part.
 
+The UIPicker only appears when there are multiple streams. If you only specify one stream then the UIPicker will
+not appear and the title of the stream will be visible in the UITextView that is in the .xib file.
+
+The scrubber and time only appear when you are streaming a file with a finite end. When streaming something
+that goes on forever (like a radio station) the scrubber and time hide themselves since they are irrelevant.
 
 Internationalization:
 There is only one string in the plug in. It is called Time Played:. If you want to change that string or internationalize 

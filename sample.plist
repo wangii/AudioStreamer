@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Sample</key>
+	<dict>
+		<key>Title</key>
+		<string>Streaming Player</string>
+		<key>ShortTitle</key>
+		<string>Audio</string>
+		<key>TabImageName</key>
+		<string>tab_placeholder.png</string>
+		<key>customViewControllerClass</key>
+		<string>TAStreamingPlayerViewController</string>
+		<key>Streams</key>
+		<array>
+			<dict>
+				<key>Title</key>
+				<string>Looking Ahead at Social Learning: 10 Predictions</string>
+				<key>url</key>
+				<string>http://www.astd.org/NR/rdonlyres/D0FDBBAA-3EBB-4D1F-A5D2-E4C6B286242D/0/LookingAheadatSocialLearning.mp3</string>
+			</dict>
+			<dict>
+				<key>Title</key>
+				<string>The MDN Show Episode 13</string>
+				<key>url</key>
+				<string>http://media.libsyn.com/media/mdn/mdnshow013.m4a</string>
+			</dict>
+			<dict>
+				<key>Title</key>
+				<string>AudioStreamer&apos;s Default</string>
+				<key>url</key>
+				<string>http://202.6.74.107:8060/triplej.mp3</string>
+			</dict>
+		</array>
+	</dict>
+</dict>
+</plist>
