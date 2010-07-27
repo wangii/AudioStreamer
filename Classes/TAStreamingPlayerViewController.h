@@ -22,6 +22,7 @@
 	IBOutlet UIButton *button;
 	IBOutlet UIView *volumeSlider;
 	IBOutlet UILabel *positionLabel;
+	IBOutlet UILabel *bufferingLabel;
 	IBOutlet UISlider *progressSlider;
 	IBOutlet UITextView *streamTitle;
 	AudioStreamer *streamer;
