@@ -6,6 +6,8 @@
 //  Portions copyright Matt Gallagher 2008. All rights reserved.
 //	Adapted for TapLynx by Walter Tyree on 26/07/2010
 //	Copyright Tyree Apps 2010. All rights reserved.
+//	Updated with code from Ken Edwards of kje.ca on 11 Oct 2010
+//	Ken's Code is in the pickerView didSelectRow method
 //
 //  Permission is given to use this source code file, free of charge, in any
 //  project, commercial or otherwise, entirely at your risk, with the condition
@@ -45,6 +47,28 @@
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component {
 	
 	currentStream = [[self.streams objectAtIndex:row] objectAtIndex:0];
+
+	/* Ken's code to automatically switch streams when one is playing */
+	//if we are currently playing we want to stop and then start the new stream
+	// there might be a better way to test if we have a stream playing, but this works for now
+	if ([button.currentImage isEqual:[UIImage imageNamed:@"playbutton.png"]])
+	{
+		// if we have the play button, we dont do anything, cause we aren't playing
+	}
+	else
+	{
+		// if we don't have a play button, we are playing, so kill the streamer and restart
+		[streamer stop];
+		[self destroyStreamer];
+	
+		[self createStreamer];
+		[self setButtonImage:[UIImage imageNamed:@"loadingbutton.png"]];
+		[bufferingActivity startAnimating];
+		[streamer start];
+		
+	}
+	/* END OF KEN'S CODE */
+
 	
 }
 
