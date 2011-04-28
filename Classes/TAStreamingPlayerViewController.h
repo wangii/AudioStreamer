@@ -38,6 +38,10 @@
 
 @property (nonatomic,retain) NSArray *streams;
 
+-(void)destroyStreamer;
+-(void)createStreamer;
+-(void)setButtonImage:(UIImage *)image;
+
 
 - (IBAction)buttonPressed:(id)sender;
 - (void)updateProgress:(NSTimer *)aNotification;
