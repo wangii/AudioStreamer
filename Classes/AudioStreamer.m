@@ -5,15 +5,24 @@
 //  Created by Matt Gallagher on 27/09/08.
 //  Copyright 2008 Matt Gallagher. All rights reserved.
 //
-//  Permission is given to use this source code file, free of charge, in any
-//  project, commercial or otherwise, entirely at your risk, with the condition
-//  that any redistribution (in part or whole) of source code must retain
-//  this copyright and permission notice. Attribution in compiled projects is
-//  appreciated but not required.
+//  This software is provided 'as-is', without any express or implied
+//  warranty. In no event will the authors be held liable for any damages
+//  arising from the use of this software. Permission is granted to anyone to
+//  use this software for any purpose, including commercial applications, and to
+//  alter it and redistribute it freely, subject to the following restrictions:
+//
+//  1. The origin of this software must not be misrepresented; you must not
+//     claim that you wrote the original software. If you use this software
+//     in a product, an acknowledgment in the product documentation would be
+//     appreciated but is not required.
+//  2. Altered source versions must be plainly marked as such, and must not be
+//     misrepresented as being the original software.
+//  3. This notice may not be removed or altered from any source
+//     distribution.
 //
 
 #import "AudioStreamer.h"
-#ifdef TARGET_OS_IPHONE			
+#if TARGET_OS_IPHONE			
 #import <CFNetwork/CFNetwork.h>
 #endif
 
@@ -60,7 +69,7 @@ NSString * const AS_AUDIO_BUFFER_TOO_SMALL_STRING = @"Audio packets are larger t
 - (void)handlePropertyChangeForQueue:(AudioQueueRef)inAQ
 	propertyID:(AudioQueuePropertyID)inID;
 
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 - (void)handleInterruptionChangeToState:(AudioQueuePropertyID)inInterruptionState;
 #endif
 
@@ -86,7 +95,7 @@ void MyPacketsProc(				void *							inClientData,
 								AudioStreamPacketDescription	*inPacketDescriptions);
 OSStatus MyEnqueueBuffer(AudioStreamer* myData);
 
-#ifdef TARGET_OS_IPHONE			
+#if TARGET_OS_IPHONE			
 void MyAudioSessionInterruptionListener(void *inClientData, UInt32 inInterruptionState);
 #endif
 
@@ -174,7 +183,7 @@ void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ, AudioQu
 	[streamer handlePropertyChangeForQueue:inAQ propertyID:inID];
 }
 
-#ifdef TARGET_OS_IPHONE			
+#if TARGET_OS_IPHONE			
 //
 // MyAudioSessionInterruptionListener
 //
@@ -359,7 +368,7 @@ void ASReadStreamCallBack
 //
 - (void)presentAlertWithTitle:(NSString*)title message:(NSString*)message
 {
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 	UIAlertView *alert = [
 		[[UIAlertView alloc]
 			initWithTitle:title
@@ -566,7 +575,7 @@ void ASReadStreamCallBack
 //
 + (AudioFileTypeID)hintForFileExtension:(NSString *)fileExtension
 {
-	AudioFileTypeID fileTypeHint = kAudioFileMP3Type;
+	AudioFileTypeID fileTypeHint = kAudioFileAAC_ADTSType;
 	if ([fileExtension isEqual:@"mp3"])
 	{
 		fileTypeHint = kAudioFileMP3Type;
@@ -650,6 +659,13 @@ void ASReadStreamCallBack
 								message:NSLocalizedStringFromTable(@"Unable to configure network read stream.", @"Errors", nil)];
 			return NO;
 		}
+		
+		//
+		// Handle proxies
+		//
+		CFDictionaryRef proxySettings = CFNetworkCopySystemProxySettings();
+		CFReadStreamSetProperty(stream, kCFStreamPropertyHTTPProxy, proxySettings);
+		CFRelease(proxySettings);
 		
 		//
 		// Handle SSL connections
@@ -743,7 +759,7 @@ void ASReadStreamCallBack
 			return;
 		}
 		
-	#ifdef TARGET_OS_IPHONE			
+	#if TARGET_OS_IPHONE			
 		//
 		// Set the audio session category so that we continue to play if the
 		// iPhone/iPod auto-locks.
@@ -850,7 +866,7 @@ cleanup:
 		pthread_mutex_destroy(&queueBuffersMutex);
 		pthread_cond_destroy(&queueBufferReadyCondition);
 
-#ifdef TARGET_OS_IPHONE			
+#if TARGET_OS_IPHONE			
 		AudioSessionSetActive(false);
 #endif
 
@@ -863,8 +879,8 @@ cleanup:
 		packetBufferSize = 0;
 		self.state = AS_INITIALIZED;
 
-		internalThread = nil;
 		[internalThread release];
+		internalThread = nil;
 	}
 
 	[pool release];
@@ -1159,7 +1175,7 @@ cleanup:
 }
 
 //
-// handleReadFromStream:eventType:data:
+// handleReadFromStream:eventType:
 //
 // Reads data from the network file stream into the AudioFileStream
 //
@@ -1731,7 +1747,7 @@ cleanup:
 				// If there was some kind of issue with enqueueBuffer and we didn't
 				// make space for the new audio data then back out
 				//
-				if (bytesFilled + packetSize >= packetBufferSize)
+				if (bytesFilled + packetSize > packetBufferSize)
 				{
 					return;
 				}
@@ -1791,7 +1807,7 @@ cleanup:
 				// If there was some kind of issue with enqueueBuffer and we didn't
 				// make space for the new audio data then back out
 				//
-				if (bytesFilled >= packetBufferSize)
+				if (bytesFilled > packetBufferSize)
 				{
 					return;
 				}
@@ -1911,7 +1927,7 @@ cleanup:
 	[pool release];
 }
 
-#ifdef TARGET_OS_IPHONE
+#if TARGET_OS_IPHONE
 //
 // handleInterruptionChangeForQueue:propertyID:
 //
@@ -1921,16 +1937,25 @@ cleanup:
 //    inAQ - the audio queue
 //    inID - the property ID
 //
-- (void)handleInterruptionChangeToState:(AudioQueuePropertyID)inInterruptionState
+- (void)handleInterruptionChangeToState:(AudioQueuePropertyID)inInterruptionState 
 {
 	if (inInterruptionState == kAudioSessionBeginInterruption)
-	{
-		[self pause];
+	{ 
+		if ([self isPlaying]) {
+			[self pause];
+			
+			pausedByInterruption = YES; 
+		} 
 	}
-	else if (inInterruptionState == kAudioSessionEndInterruption)
+	else if (inInterruptionState == kAudioSessionEndInterruption) 
 	{
 		AudioSessionSetActive( true );
-		[self pause];
+		
+		if ([self isPaused] && pausedByInterruption) {
+			[self pause]; // this is actually resume
+			
+			pausedByInterruption = NO; // this is redundant 
+		}
 	}
 }
 #endif

@@ -21,7 +21,7 @@
 @interface TAStreamingPlayerViewController : UIViewController <UIPickerViewDelegate, UIPickerViewDataSource>
 {
 
-	IBOutlet UIButton *button;
+	
 	IBOutlet UIView *volumeSlider;
 	IBOutlet UILabel *positionLabel;
 	IBOutlet UIActivityIndicatorView *bufferingActivity;
@@ -37,6 +37,8 @@
 
 
 @property (nonatomic,retain) NSArray *streams;
+@property (nonatomic, retain) IBOutlet UIButton *stopButton;
+@property (nonatomic, retain) IBOutlet UIButton *button;
 
 -(void)destroyStreamer;
 -(void)createStreamer;
@@ -44,6 +46,7 @@
 
 
 - (IBAction)buttonPressed:(id)sender;
+- (IBAction)stopPressed:(id)sender;
 - (void)updateProgress:(NSTimer *)aNotification;
 - (IBAction)sliderMoved:(UISlider *)aSlider;
 

@@ -18,13 +18,19 @@ This is not a complete application it will not stand alone. You need to download
 application first. You can find out all about TapLynx and download the library from www.taplynx.com
 
 To Install:
+
 1) Add CFNetwork.framework and AudioToolbox.framework frameworks to your TapLynx iPhone project.
+XCode 3
 To add an existing framework, right click on the Groups & Files tree and select Add -> Existing Frameworks...
 then choose from the list.
 
+XCode 4
+To add an existing framework, right click on the Groups & Files tree and select Add -> Existing Frameworks...
+then choose from the list.
+
+
 2) Add the contents of the this repository folder to the project.
-To add existing files to a framework, right click on the Groups & files tree and select Add -> Existing Files...
-then find the folder for the repository and click add.
+To add existing files to a framework, click the project icon -> Build Phases. Then expand the "Link binary with libraries" option and click the plus to add a new library. Choose from the list and find the folder for the repository and click add.
 
 3) Modify the NGConfig to add keys to hook in the View
 

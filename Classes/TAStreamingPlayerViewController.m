@@ -24,7 +24,7 @@
 
 @implementation TAStreamingPlayerViewController
 
-@synthesize streams;
+@synthesize streams,stopButton,button;
 
 #pragma mark -
 #pragma mark Initialize for TapLynx
@@ -235,17 +235,30 @@
 	if ([button.currentImage isEqual:[UIImage imageNamed:@"playbutton.png"]])
 	{
 		[self createStreamer];
-		[self setButtonImage:[UIImage imageNamed:@"loadingbutton.png"]];
+		[self  setButtonImage:[UIImage imageNamed:@"loadingbutton.png"]];
 		[bufferingActivity startAnimating];
 		[streamer start];
 		
 	}
 	else
 	{
-		[streamer stop];
+		[streamer pause];
 	}
 }
 
+//
+// stopPressed:
+//
+// Toggles the stop button between highlighted and not
+// stops the streamer
+
+- (IBAction)stopPressed:(id)sender
+{
+	//if ([button.currentImage isEqual:[UIImage imageNamed:@"stopbutton.png"]])
+	//{
+		[streamer stop];
+	//}
+}
 //
 // sliderMoved:
 //
@@ -278,11 +291,16 @@
 	}
 	else if ([streamer isPlaying])
 	{
-		[self setButtonImage:[UIImage imageNamed:@"stopbutton.png"]];
+		[self setButtonImage:[UIImage imageNamed:@"pausebutton.png"]];
 		streamDuration = streamer.duration;
 		[bufferingActivity stopAnimating];
 
 	}
+    else if ([streamer isPaused])
+    {
+        [self setButtonImage:[UIImage imageNamed:@"playbutton.png"]];
+        
+    }
 	else if ([streamer isIdle])
 	{
 		[self destroyStreamer];
