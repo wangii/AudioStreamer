@@ -354,9 +354,46 @@
 	}
 
 }
+#pragma mark Remote Control Events
+/* The iPod controls will send these events when the app is in the background */
+- (void)remoteControlReceivedWithEvent:(UIEvent *)event {
+	switch (event.subtype) {
+		case UIEventSubtypeRemoteControlTogglePlayPause:
+			NSLog(@"UIEventSubtypeRemoteControlTogglePlayPause");
+            [self buttonPressed:nil];
+			break;
+		case UIEventSubtypeRemoteControlPlay:
+            NSLog(@"UIEventSubtypeRemoteControlPlay");
+			break;
+		case UIEventSubtypeRemoteControlPause:
+            NSLog(@"UIEventSubtypeRemoteControlPause");
+      break;
+		case UIEventSubtypeRemoteControlStop:
+			NSLog(@"UIEventSubtypeRemoteControlStop:");
+            [streamer stop];
+			break;
+		default:
+			break;
+	}
+}
 
-
-
+- (void) viewDidAppear:(BOOL)animated
+{
+	[super viewDidAppear:animated];
+	UIApplication *application = [UIApplication sharedApplication];
+	if([application respondsToSelector:@selector(beginReceivingRemoteControlEvents)])
+		[application beginReceivingRemoteControlEvents];
+	[self becomeFirstResponder]; // this enables listening for events
+}
+/* Taking this code out because it doesn't work on UIWebViews
+ - (void) viewDidAppear:(BOOL)animated
+ {
+ [[self streamNotes] flashScrollIndicators];
+ }
+ */
+- (BOOL)canBecomeFirstResponder {
+	return YES;
+}
 //
 // dealloc
 //
