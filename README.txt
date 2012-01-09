@@ -36,6 +36,10 @@ To add existing files to a framework, click the project icon -> Build Phases. Th
 
 4) Use Interface Builder to change the TAStreamingPlayer.xib if you want to change the look.
 
+5) [optional] If you want to support background playback you need to add a key to the main Info.plist of the application. This is not the NGConfig.plist but the info.plist that has your app version and app bundle name.
+
+The key to add is "UIBackgroundModes" and it is an Array type. In the Value for Item 0 enter "audio".
+
 Notes:
 I have tested this with .mp3 streams only. Note well that the simulator will handle file types that a device
 will not handle! You must test your streams on a device! A number of people have forked Matt's original project to
