@@ -460,6 +460,17 @@ void ASReadStreamCallBack
 	[[NSNotificationCenter defaultCenter]
 		postNotification:notification];
 }
+// Issue #25 from mattgallagher/AudioStreamer
+- (AudioStreamerState)state
+{
+    AudioStreamerState ret;
+    
+    @synchronized(self) {
+        ret = state;
+    }
+    
+    return ret;
+}
 
 //
 // setState:
@@ -471,6 +482,7 @@ void ASReadStreamCallBack
 // Parameters:
 //    anErrorCode - the error condition
 //
+
 - (void)setState:(AudioStreamerState)aStatus
 {
 	@synchronized(self)
@@ -752,7 +764,7 @@ void ASReadStreamCallBack
 			if (state != AS_STOPPING &&
 				state != AS_STOPPED)
 			{
-				NSLog(@"### Not starting audio thread. State code is: %ld", state);
+				NSLog(@"### Not starting audio thread. State code is: %u", state);
 			}
 			self.state = AS_INITIALIZED;
 			[pool release];

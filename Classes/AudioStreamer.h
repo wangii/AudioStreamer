@@ -21,12 +21,8 @@
 //     distribution.
 //
 
-#if TARGET_OS_IPHONE			
+		
 #import <UIKit/UIKit.h>
-#else
-#import <Cocoa/Cocoa.h>
-#endif TARGET_OS_IPHONE			
-
 #include <pthread.h>
 #include <AudioToolbox/AudioToolbox.h>
 
