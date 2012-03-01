@@ -102,10 +102,19 @@ typedef enum
 } AudioStreamerErrorCode;
 
 extern NSString * const ASStatusChangedNotification;
+extern NSString * const ASMetadataChangedNotification;
+extern NSString * const ASStreamTitleMetadata;
 
 @interface AudioStreamer : NSObject
 {
 	NSURL *url;
+	
+	BOOL extractMetadata;
+	size_t metadataInterval;
+	CFIndex metadataOffset;
+	CFIndex metadataRemainingLength;
+	size_t totalBytesRead;
+	NSMutableString *metadata;
 
 	//
 	// Special threading consideration:
@@ -165,14 +174,19 @@ extern NSString * const ASStatusChangedNotification;
 #endif
 }
 
+@property (readonly) NSString *metadata;
 @property AudioStreamerErrorCode errorCode;
 @property (readonly) AudioStreamerState state;
+@property (readonly) UInt32 numberOfChannels;
+@property (readonly) double averagePower;
+@property (readonly) double peakPower;
 @property (readonly) double progress;
 @property (readonly) double duration;
 @property (readwrite) UInt32 bitRate;
 @property (readonly) NSDictionary *httpHeaders;
 
 - (id)initWithURL:(NSURL *)aURL;
+- (id)initWithURL:(NSURL *)aURL extractMetadata:(BOOL)anExtractMetadata;
 - (void)start;
 - (void)stop;
 - (void)pause;
@@ -182,7 +196,7 @@ extern NSString * const ASStatusChangedNotification;
 - (BOOL)isIdle;
 - (void)seekToTime:(double)newSeekTime;
 - (double)calculatedBitRate;
-
+- (NSDictionary *)parseMetadata;
 @end
 
 
