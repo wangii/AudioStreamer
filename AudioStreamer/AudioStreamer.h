@@ -150,6 +150,7 @@ struct queued_packet;
 @property (readonly) AudioStreamerState state;
 @property (readonly) NSDictionary *httpHeaders;
 @property (readonly) NSError *networkError;
+@property (readonly) NSURL *url;
 
 + (NSString*) stringForErrorCode:(AudioStreamerErrorCode)anErrorCode;
 

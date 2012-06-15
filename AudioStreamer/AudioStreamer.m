@@ -165,10 +165,8 @@ NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 /* Woohoo, actual implementation now! */
 @implementation AudioStreamer
 
-@synthesize errorCode;
-@synthesize networkError;
+@synthesize errorCode, networkError, httpHeaders, url;
 @synthesize state = state_;
-@synthesize httpHeaders;
 
 /* AudioFileStream callback when properties are available */
 void MyPropertyListenerProc(void *inClientData,
