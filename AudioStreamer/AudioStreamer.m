@@ -44,6 +44,98 @@ typedef struct queued_packet {
 
 NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 
+/**
+ * @brief Class for streaming audio over an HTTP stream
+ *
+ * This class is implemented on top of Apple's AudioQueue framework. This
+ * framework is much too low-level for must use cases, so this class
+ * encapsulates the functionality to provide a nicer interface. The interface
+ * still requires some management, but it is far more sane than dealing with the
+ * AudioQueue structures yourself.
+ *
+ * This class is essentially a pipeline of three components to get audio to the
+ * speakers:
+ *
+ *      CFReadStream -> AudioFileStream -> AudioQueue
+ *
+ * CFReadStream:
+ *  The method of reading HTTP data is using the low-level CFReadStream class
+ *  because it allows configuration of proxies and scheduling/rescheduling on the
+ *  event loop. All data read from the HTTP stream is piped into the
+ *  AudioFileStream which then parses all of the data. This stage of the
+ *  pipeline also flags that events are happening to prevent a timeout. All
+ *  network activity occurs on the thread which started the audio stream.
+ *
+ * AudioFileStream:
+ *  This stage is implemented by Apple frameworks, and parses all audio data. It
+ *  is composed of two callbacks which receive data. The first callback invoked
+ *  in series is one which is notified whenever a new property is known about
+ *  the audio stream being received. Once all properties have been read, the
+ *  second callback beings to be invoked, and this callback is responsible for
+ *  dealing with packets.
+ *
+ *  The second callback is invoked whenever complete "audio packets" are
+ *  available to send to the audio queue. This stage is invoked on the call
+ *  stack of the stream which received the data (synchronously with receiving
+ *  the data).
+ *
+ *  Packets received are buffered in a static set of buffers allocated by the
+ *  audio queue instance. When a buffer is full, it is committed to the audio
+ *  queue, and then the next buffer is moved on to. Multiple packets can
+ *  possibly fit in one buffer. When committing a buffer, if there are no more
+ *  buffers available, then the http read stream is unscheduled from the run
+ *  loop and all currently received data is stored aside for later processing.
+ *
+ * AudioQueue:
+ *  This final stage is also implemented by Apple, and receives all of the full
+ *  buffers of data from the AudioFileStream's parsed packets. The
+ *  implementation manages its own set of threads, and callbacks are invoked on
+ *  the internal threads, not the main thread. The two callbacks that the audio
+ *  stream is interested in are playback state changing and audio buffers being
+ *  freed. In both cases, a message is queued for delivery on the main thread to
+ *  prevent synchronization issues.
+ *
+ *  When a buffer is freed, then it is marked as so, and if the stream was
+ *  waiting for a buffer to be freed a message to empty the queue as much as
+ *  possible is sent to the main thread's run loop. Otherwise no extra action
+ *  need be performed.
+ *
+ *  The main purpose of knowing when the playback state changes is to change the
+ *  state of the player accordingly.
+ *
+ * =============================================================================
+ *
+ * Errors
+ *  There are a large number of places where error can happen, and the stream
+ *  can bail out at any time with an error. Each error has its own code and
+ *  corresponding string representation. Any error will halt the entire audio
+ *  stream and cease playback.
+ *
+ *  Some errors might want to be handled by the manager of the AudioStreamer
+ *  class, but others normally indicate that the remote stream just won't work.
+ *  Occasionally errors might reflect a lack of local resources.
+ *
+ * =============================================================================
+ *
+ * Seeking
+ *  To seek inside an audio stream, the bit rate must be known along with some
+ *  other metadata, but this is not known until after the stream has started.
+ *  For this reason the seek can fail if not enough data is known yet.
+ *
+ *  If a seek succeeds, however, the actual method of doing so is as follows.
+ *  First, open a stream at position 0 and collect data about the stream, when
+ *  the seek is requested, cancel the stream and re-open the connection with the
+ *  proper byte offset. This second stream is then used to put data through the
+ *  pipelines.
+ *
+ * =============================================================================
+ *
+ * General notes
+ *  An audio stream is a one-shot thing. Once initialized, the source cannot be
+ *  changed and a single audio stream cannot be re-used. To do this, multiple
+ *  AudioStreamer objects need to be created/managed.
+ *
+ */
 @interface AudioStreamer ()
 
 - (void)handlePropertyChangeForFileStream:(AudioFileStreamID)inAudioFileStream
@@ -58,11 +150,18 @@ NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 - (void)handlePropertyChangeForQueue:(AudioQueueRef)inAQ
                           propertyID:(AudioQueuePropertyID)inID;
 
-- (int)enqueueBuffer;
 - (void)handleReadFromStream:(CFReadStreamRef)aStream
                    eventType:(CFStreamEventType)eventType;
 
 @end
+
+/* Woohoo, actual implementation now! */
+@implementation AudioStreamer
+
+@synthesize errorCode;
+@synthesize networkError;
+@synthesize state = state_;
+@synthesize httpHeaders;
 
 /* AudioFileStream callback when properties are available */
 void MyPropertyListenerProc(void *inClientData,
@@ -109,12 +208,6 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
   [streamer handleReadFromStream:aStream eventType:eventType];
 }
 
-@implementation AudioStreamer
-
-@synthesize errorCode;
-@synthesize networkError;
-@synthesize state = state_;
-@synthesize httpHeaders;
 
 //
 // initWithURL
