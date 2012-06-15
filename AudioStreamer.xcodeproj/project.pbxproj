@@ -23,10 +23,31 @@
 		97B9D058158AD7470085BC63 /* stopbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D054158AD7470085BC63 /* stopbutton.png */; };
 		97B9D05D158AD8F60085BC63 /* AudioStreamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */; };
 		97B9D05F158AD9300085BC63 /* AudioStreamer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */; };
+		97B9D06A158ADD910085BC63 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D069158ADD910085BC63 /* UIKit.framework */; };
+		97B9D06C158ADD910085BC63 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D06B158ADD910085BC63 /* Foundation.framework */; };
+		97B9D06E158ADD910085BC63 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D06D158ADD910085BC63 /* CoreGraphics.framework */; };
+		97B9D08A158ADDB20085BC63 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D042158AD6300085BC63 /* main.m */; };
+		97B9D08B158ADDBA0085BC63 /* iPhoneStreamingPlayerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D033158AD53B0085BC63 /* iPhoneStreamingPlayerAppDelegate.m */; };
+		97B9D08C158ADDBA0085BC63 /* iPhoneStreamingPlayerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D035158AD53B0085BC63 /* iPhoneStreamingPlayerViewController.m */; };
+		97B9D08D158ADDC30085BC63 /* AudioStreamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */; };
+		97B9D08E158ADDD00085BC63 /* iPhoneStreamingPlayerViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D061158ADD6C0085BC63 /* iPhoneStreamingPlayerViewController.xib */; };
+		97B9D08F158ADDD00085BC63 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D062158ADD6C0085BC63 /* MainWindow.xib */; };
+		97B9D090158ADDD00085BC63 /* loadingbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D051158AD7470085BC63 /* loadingbutton.png */; };
+		97B9D091158ADDD00085BC63 /* pausebutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D052158AD7470085BC63 /* pausebutton.png */; };
+		97B9D092158ADDD00085BC63 /* playbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D053158AD7470085BC63 /* playbutton.png */; };
+		97B9D093158ADDD00085BC63 /* stopbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D054158AD7470085BC63 /* stopbutton.png */; };
+		97B9D095158ADDE20085BC63 /* AudioStreamer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		97B9D040158AD5A50085BC63 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 973BB664158AD07000A7D459 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 97B9CFE0158AD09B0085BC63;
+			remoteInfo = AudioStreamer;
+		};
+		97B9D096158ADDFF0085BC63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 973BB664158AD07000A7D459 /* Project object */;
 			proxyType = 1;
@@ -43,6 +64,16 @@
 			dstSubfolderSpec = 10;
 			files = (
 				97B9D05F158AD9300085BC63 /* AudioStreamer.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		97B9D094158ADDD40085BC63 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				97B9D095158ADDE20085BC63 /* AudioStreamer.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -75,6 +106,12 @@
 		97B9D053158AD7470085BC63 /* playbutton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = playbutton.png; sourceTree = "<group>"; };
 		97B9D054158AD7470085BC63 /* stopbutton.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stopbutton.png; sourceTree = "<group>"; };
 		97B9D05B158AD7D40085BC63 /* MacInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = MacInfo.plist; sourceTree = "<group>"; };
+		97B9D061158ADD6C0085BC63 /* iPhoneStreamingPlayerViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = iPhoneStreamingPlayerViewController.xib; sourceTree = "<group>"; };
+		97B9D062158ADD6C0085BC63 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
+		97B9D067158ADD910085BC63 /* iPhone Streaming Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iPhone Streaming Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		97B9D069158ADD910085BC63 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		97B9D06B158ADD910085BC63 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		97B9D06D158ADD910085BC63 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +134,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		97B9D064158ADD910085BC63 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				97B9D08D158ADDC30085BC63 /* AudioStreamer.framework in Frameworks */,
+				97B9D06A158ADD910085BC63 /* UIKit.framework in Frameworks */,
+				97B9D06C158ADD910085BC63 /* Foundation.framework in Frameworks */,
+				97B9D06E158ADD910085BC63 /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -116,6 +164,7 @@
 			children = (
 				97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */,
 				97B9D019158AD5190085BC63 /* Mac Streaming Player.app */,
+				97B9D067158ADD910085BC63 /* iPhone Streaming Player.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -128,6 +177,9 @@
 				97B9D00F158AD1EB0085BC63 /* Cocoa.framework */,
 				97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */,
 				97B9CFE4158AD09B0085BC63 /* Cocoa.framework */,
+				97B9D069158ADD910085BC63 /* UIKit.framework */,
+				97B9D06B158ADD910085BC63 /* Foundation.framework */,
+				97B9D06D158ADD910085BC63 /* CoreGraphics.framework */,
 				97B9CFE6158AD09B0085BC63 /* Other Frameworks */,
 			);
 			name = Frameworks;
@@ -169,6 +221,7 @@
 		97B9D049158AD6DD0085BC63 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				97B9D060158ADD6C0085BC63 /* iPhone */,
 				97B9D051158AD7470085BC63 /* loadingbutton.png */,
 				97B9D052158AD7470085BC63 /* pausebutton.png */,
 				97B9D053158AD7470085BC63 /* playbutton.png */,
@@ -186,6 +239,15 @@
 				97B9D04D158AD6DD0085BC63 /* MainMenu.xib */,
 			);
 			path = Mac;
+			sourceTree = "<group>";
+		};
+		97B9D060158ADD6C0085BC63 /* iPhone */ = {
+			isa = PBXGroup;
+			children = (
+				97B9D061158ADD6C0085BC63 /* iPhoneStreamingPlayerViewController.xib */,
+				97B9D062158ADD6C0085BC63 /* MainWindow.xib */,
+			);
+			path = iPhone;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -239,6 +301,25 @@
 			productReference = 97B9D019158AD5190085BC63 /* Mac Streaming Player.app */;
 			productType = "com.apple.product-type.application";
 		};
+		97B9D066158ADD910085BC63 /* iPhone Streaming Player */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 97B9D087158ADD910085BC63 /* Build configuration list for PBXNativeTarget "iPhone Streaming Player" */;
+			buildPhases = (
+				97B9D063158ADD910085BC63 /* Sources */,
+				97B9D064158ADD910085BC63 /* Frameworks */,
+				97B9D065158ADD910085BC63 /* Resources */,
+				97B9D094158ADDD40085BC63 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				97B9D097158ADDFF0085BC63 /* PBXTargetDependency */,
+			);
+			name = "iPhone Streaming Player";
+			productName = "iPhone Streaming Player";
+			productReference = 97B9D067158ADD910085BC63 /* iPhone Streaming Player.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -262,6 +343,7 @@
 			targets = (
 				97B9CFE0158AD09B0085BC63 /* AudioStreamer */,
 				97B9D018158AD5190085BC63 /* Mac Streaming Player */,
+				97B9D066158ADD910085BC63 /* iPhone Streaming Player */,
 			);
 		};
 /* End PBXProject section */
@@ -287,6 +369,19 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		97B9D065158ADD910085BC63 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				97B9D08E158ADDD00085BC63 /* iPhoneStreamingPlayerViewController.xib in Resources */,
+				97B9D08F158ADDD00085BC63 /* MainWindow.xib in Resources */,
+				97B9D090158ADDD00085BC63 /* loadingbutton.png in Resources */,
+				97B9D091158ADDD00085BC63 /* pausebutton.png in Resources */,
+				97B9D092158ADDD00085BC63 /* playbutton.png in Resources */,
+				97B9D093158ADDD00085BC63 /* stopbutton.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -307,6 +402,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		97B9D063158ADD910085BC63 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				97B9D08B158ADDBA0085BC63 /* iPhoneStreamingPlayerAppDelegate.m in Sources */,
+				97B9D08C158ADDBA0085BC63 /* iPhoneStreamingPlayerViewController.m in Sources */,
+				97B9D08A158ADDB20085BC63 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -314,6 +419,11 @@
 			isa = PBXTargetDependency;
 			target = 97B9CFE0158AD09B0085BC63 /* AudioStreamer */;
 			targetProxy = 97B9D040158AD5A50085BC63 /* PBXContainerItemProxy */;
+		};
+		97B9D097158ADDFF0085BC63 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 97B9CFE0158AD09B0085BC63 /* AudioStreamer */;
+			targetProxy = 97B9D096158ADDFF0085BC63 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -476,6 +586,63 @@
 			};
 			name = Release;
 		};
+		97B9D088158ADD910085BC63 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Developer/Library/Frameworks\"",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "iPhone Streaming Player/iPhone Streaming Player-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				INFOPLIST_FILE = "iPhone Streaming Player/iPhone Streaming Player-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		97B9D089158ADD910085BC63 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SYSTEM_APPS_DIR)/Xcode.app/Contents/Developer/Library/Frameworks\"",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "iPhone Streaming Player/iPhone Streaming Player-Prefix.pch";
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				INFOPLIST_FILE = "iPhone Streaming Player/iPhone Streaming Player-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -502,6 +669,14 @@
 			buildConfigurations = (
 				97B9D02F158AD5190085BC63 /* Debug */,
 				97B9D030158AD5190085BC63 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		97B9D087158ADD910085BC63 /* Build configuration list for PBXNativeTarget "iPhone Streaming Player" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				97B9D088158ADD910085BC63 /* Debug */,
+				97B9D089158ADD910085BC63 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
