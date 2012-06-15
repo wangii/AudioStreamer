@@ -169,7 +169,8 @@ NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 /* Woohoo, actual implementation now! */
 @implementation AudioStreamer
 
-@synthesize errorCode, networkError, httpHeaders, url, bufferCnt, bufferSize;
+@synthesize errorCode, networkError, httpHeaders, url, bufferCnt, bufferSize,
+            fileType;
 @synthesize state = state_;
 
 /* AudioFileStream callback when properties are available */
@@ -266,18 +267,6 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
   proxyHost = host;
   proxyPort = port;
   proxyType = PROXY_SOCKS;
-}
-
-/**
- * @brief Set the file type of the stream so it doesn't need to be guessed
- *
- * Normally the file type is guessed from the extension of the URL, but this can
- * be used to explicitly set the file type
- *
- * @param type the file type to use for the stream
- */
-- (void) setFileType:(AudioFileTypeID) type {
-  fileType = type;
 }
 
 /**

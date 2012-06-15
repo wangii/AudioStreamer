@@ -151,6 +151,7 @@ struct queued_packet;
 @property (readonly) NSURL *url;
 @property (readwrite) UInt32 bufferCnt;
 @property (readwrite) UInt32 bufferSize;
+@property (readwrite) AudioFileTypeID fileType;
 
 + (NSString*) stringForErrorCode:(AudioStreamerErrorCode)anErrorCode;
 
@@ -158,7 +159,6 @@ struct queued_packet;
 + (AudioStreamer*) streamWithURL:(NSURL*)url;
 - (void) setHTTPProxy:(NSString*)host port:(int)port;
 - (void) setSOCKSProxy:(NSString*)host port:(int)port;
-- (void) setFileType:(AudioFileTypeID)type;
 
 /* Management of the stream and testing state */
 - (BOOL) start;
