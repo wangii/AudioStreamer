@@ -97,7 +97,6 @@
 		97B9D036158AD53B0085BC63 /* MacStreamingPlayerController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MacStreamingPlayerController.h; sourceTree = "<group>"; };
 		97B9D037158AD53B0085BC63 /* MacStreamingPlayerController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MacStreamingPlayerController.m; sourceTree = "<group>"; };
 		97B9D042158AD6300085BC63 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = SOURCE_ROOT; };
-		97B9D045158AD6690085BC63 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/CoreAudio.framework; sourceTree = DEVELOPER_DIR; };
 		97B9D047158AD69A0085BC63 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/Quartz.framework; sourceTree = DEVELOPER_DIR; };
 		97B9D04C158AD6DD0085BC63 /* English */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		97B9D04E158AD6DD0085BC63 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
@@ -173,7 +172,6 @@
 			isa = PBXGroup;
 			children = (
 				97B9D047158AD69A0085BC63 /* Quartz.framework */,
-				97B9D045158AD6690085BC63 /* CoreAudio.framework */,
 				97B9D00F158AD1EB0085BC63 /* Cocoa.framework */,
 				97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */,
 				97B9CFE4158AD09B0085BC63 /* Cocoa.framework */,
@@ -671,6 +669,7 @@
 				97B9D030158AD5190085BC63 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		97B9D087158ADD910085BC63 /* Build configuration list for PBXNativeTarget "iPhone Streaming Player" */ = {
 			isa = XCConfigurationList;
@@ -679,6 +678,7 @@
 				97B9D089158ADD910085BC63 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
