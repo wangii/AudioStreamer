@@ -53,7 +53,7 @@
 	else
 	{
 		[button setImage:image];
-		
+
 		if ([button.image isEqual:[NSImage imageNamed:@"loadingbutton"]])
 		{
 			[self spinButton];
@@ -76,7 +76,7 @@
 			object:streamer];
 		[progressUpdateTimer invalidate];
 		progressUpdateTimer = nil;
-		
+
 		[streamer stop];
 		streamer = nil;
 	}
@@ -95,7 +95,7 @@
 	}
 
 	[self destroyStreamer];
-	
+
 	NSString *escapedValue =
 		(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(
 			nil,
@@ -106,7 +106,7 @@
 
 	NSURL *url = [NSURL URLWithString:escapedValue];
 	streamer = [[AudioStreamer alloc] initWithURL:url];
-	
+
 	progressUpdateTimer =
 		[NSTimer
 			scheduledTimerWithTimeInterval:0.1
@@ -184,7 +184,7 @@
 	if ([button.image isEqual:[NSImage imageNamed:@"playbutton"]])
 	{
 		[downloadSourceField resignFirstResponder];
-		
+
 		[self createStreamer];
 		[self setButtonImage:[NSImage imageNamed:@"loadingbutton"]];
 		[streamer start];
@@ -228,9 +228,10 @@
 //
 - (IBAction)sliderMoved:(NSSlider *)aSlider
 {
-	if (streamer.duration)
+  double duration;
+	if ([streamer duration:&duration])
 	{
-		double newSeekTime = ([aSlider doubleValue] / 100.0) * streamer.duration;
+		double newSeekTime = ([aSlider doubleValue] / 100.0) * duration;
 		[streamer seekToTime:newSeekTime];
 	}
 }
@@ -243,12 +244,13 @@
 //
 - (void)updateProgress:(NSTimer *)updatedTimer
 {
-	if ([streamer calculatedBitRate] != 0.0)
+  double bitrate;
+	if ([streamer calculatedBitRate:&bitrate])
 	{
-		double progress = streamer.progress;
-		double duration = streamer.duration;
-		
-		if (duration > 0)
+		double progress;
+		double duration;
+
+		if ([streamer progress:&progress] && [streamer duration:&duration])
 		{
 			[positionLabel setStringValue:
 				[NSString stringWithFormat:@"Time Played: %.1f/%.1f seconds",
