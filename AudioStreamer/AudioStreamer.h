@@ -81,11 +81,11 @@ struct queued_packet;
 /* Compact description of what the AudioStreamer can do, for a detailed
    description of all methods, see the source, AudioStreamer.m */
 @interface AudioStreamer : NSObject {
-  /* Properties specified at creation */
-  NSURL *url;
-  int proxyType;
-  NSString *proxyHost;
-  int proxyPort;
+  /* Properties specified before the stream starts */
+  NSURL           *url;
+  int             proxyType;  /* defaults to whatever the system says */
+  NSString        *proxyHost;
+  int             proxyPort;
   AudioFileTypeID fileType;
 
   /* Creates as part of the [start] method */
@@ -139,11 +139,11 @@ struct queued_packet;
 
   /* Miscellaneous metadata */
   bool discontinuous;        /* flag to indicate the middle of a stream */
-  UInt64 seekByteOffset;  /* position with the file to seek */
+  UInt64 seekByteOffset;     /* position with the file to seek */
   double seekTime;
-  UInt64 processedPacketsCount;
-  UInt64 processedPacketsSizeTotal;
   double lastProgress;       /* last calculated progress point */
+  UInt64 processedPacketsCount;     /* bit rate calculation utility */
+  UInt64 processedPacketsSizeTotal; /* helps calculate the bit rate */
 }
 
 @property AudioStreamerErrorCode errorCode;
