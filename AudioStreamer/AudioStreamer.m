@@ -170,7 +170,7 @@ NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 @implementation AudioStreamer
 
 @synthesize errorCode, networkError, httpHeaders, url, bufferCnt, bufferSize,
-            fileType;
+            fileType, bufferInfinite;
 @synthesize state = state_;
 
 /* AudioFileStream callback when properties are available */
@@ -868,7 +868,7 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 - (void)handleReadFromStream:(CFReadStreamRef)aStream
                    eventType:(CFStreamEventType)eventType {
   assert(aStream == stream);
-  assert(!waitingOnBuffer);
+  assert(!waitingOnBuffer || bufferInfinite);
   events++;
 
   switch (eventType) {
@@ -880,6 +880,8 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 
     case kCFStreamEventEndEncountered:
       LOG(@"end");
+      [timeout invalidate];
+      timeout = nil;
 
       /* Flush out extra data if necessary */
       if (bytesFilled) {
@@ -891,16 +893,6 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
       /* If we never received any packets, then we fail */
       if (state_ == AS_WAITING_FOR_DATA) {
         [self failWithErrorCode:AS_AUDIO_DATA_NOT_FOUND];
-
-      /* Flush an asynchronously stop the audio queue now that it won't be
-         receiving any more data */
-      } else {
-        if (audioQueue) {
-          err = AudioQueueFlush(audioQueue);
-          CHECK_ERR(err, AS_AUDIO_QUEUE_FLUSH_FAILED);
-          err = AudioQueueStop(audioQueue, false);
-          CHECK_ERR(err, AS_AUDIO_QUEUE_STOP_FAILED);
-        }
       }
       return;
 
@@ -1012,14 +1004,36 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
   bytesFilled   = 0;    // reset bytes filled
   packetsFilled = 0;    // reset packets filled
 
+  /* If we have no more queued data, and the stream has reached its end, then
+     we're not going to be enqueueing any more buffers to the audio stream. In
+     this case flush it out and asynchronously stop it */
+  if (queued_head == NULL &&
+      CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
+    err = AudioQueueFlush(audioQueue);
+    if (err) {
+      [self failWithErrorCode:AS_AUDIO_QUEUE_FLUSH_FAILED];
+      return -1;
+    }
+    err = AudioQueueStop(audioQueue, false);
+    if (err) {
+      [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED];
+      return -1;
+    }
+  }
+
+  /* The inuse array is also managed by a separate AudioQueue internal thread,
+     so we need to synchronize around unscheduling the read stream to ensure
+     that our state is always coherent */
   @synchronized(self) {
     if (inuse[fillBufferIndex]) {
       LOG(@"waiting for buffer %d", fillBufferIndex);
-      CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(),
-                                        kCFRunLoopCommonModes);
-      /* Make sure we don't have ourselves marked as rescheduled */
-      unscheduled = YES;
-      rescheduled = NO;
+      if (!bufferInfinite) {
+        CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(),
+                                          kCFRunLoopCommonModes);
+        /* Make sure we don't have ourselves marked as rescheduled */
+        unscheduled = YES;
+        rescheduled = NO;
+      }
       waitingOnBuffer = true;
       return 0;
 
@@ -1337,8 +1351,10 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
   if (cur == NULL) {
     queued_tail = NULL;
     rescheduled = YES;
-    CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
-                                    kCFRunLoopCommonModes);
+    if (!bufferInfinite) {
+      CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
+                                      kCFRunLoopCommonModes);
+    }
   }
 }
 

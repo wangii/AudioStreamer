@@ -85,6 +85,7 @@ struct queued_packet;
   AudioFileTypeID fileType;
   UInt32          bufferSize; /* attempted to be guessed, but fallback here */
   UInt32          bufferCnt;
+  BOOL            bufferInfinite;
 
   /* Creates as part of the [start] method */
   CFReadStreamRef stream;
@@ -152,6 +153,7 @@ struct queued_packet;
 @property (readwrite) UInt32 bufferCnt;
 @property (readwrite) UInt32 bufferSize;
 @property (readwrite) AudioFileTypeID fileType;
+@property (readwrite) BOOL bufferInfinite;
 
 + (NSString*) stringForErrorCode:(AudioStreamerErrorCode)anErrorCode;
 
