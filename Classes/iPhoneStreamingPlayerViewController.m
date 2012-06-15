@@ -102,7 +102,7 @@
 			kCFStringEncodingUTF8);
 
 	NSURL *url = [NSURL URLWithString:escapedValue];
-	streamer = [[AudioStreamer alloc] initWithURL:url];
+	streamer = [AudioStreamer streamWithURL:url];
 
 	progressUpdateTimer =
 		[NSTimer

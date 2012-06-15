@@ -154,7 +154,7 @@ struct queued_packet;
 + (NSString*) stringForErrorCode:(AudioStreamerErrorCode)anErrorCode;
 
 /* Creating an audio stream and managing properties before starting */
-- (AudioStreamer*) initWithURL:(NSURL*)url;
++ (AudioStreamer*) streamWithURL:(NSURL*)url;
 - (void) setHTTPProxy:(NSString*)host port:(int)port;
 - (void) setSOCKSProxy:(NSString*)host port:(int)port;
 - (void) setFileType:(AudioFileTypeID)type;

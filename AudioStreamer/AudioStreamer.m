@@ -37,8 +37,11 @@
     if (err) { [self failWithErrorCode:code]; return; }                        \
   }
 
+#ifdef DEBUG
 #define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
-//#define LOG(...)
+#else
+#define LOG(...)
+#endif
 
 typedef struct queued_packet {
   AudioStreamPacketDescription desc;
@@ -212,16 +215,20 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
   [streamer handleReadFromStream:aStream eventType:eventType];
 }
 
-
-//
-// initWithURL
-//
-// Init method for the object.
-//
-- (id)initWithURL:(NSURL *)aURL {
-  url = aURL;
-  LOG(@"created with %@", aURL);
-  return self;
+/**
+ * @brief Allocate a new audio stream with the specified url
+ *
+ * Thre created stream has not started playback. This gives an opportunity to
+ * configure the rest of the stream as necessary. To start playback, send the
+ * stream an explicit 'start' message.
+ *
+ * @param url the remote source of audio
+ * @return the stream to configure and being playback with
+ */
++ (AudioStreamer*) streamWithURL:(NSURL*)url{
+  AudioStreamer *stream = [[AudioStreamer alloc] init];
+  stream->url = url;
+  return stream;
 }
 
 //
@@ -666,7 +673,6 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 
 - (void)setState:(AudioStreamerState)aStatus {
   LOG(@"transitioning to state:%d", aStatus);
-  LOG("%d %d", AS_DONE, AS_STOPPED);
 
   if (state_ == aStatus) return;
   state_ = aStatus;
