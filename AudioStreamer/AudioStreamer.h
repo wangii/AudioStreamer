@@ -83,6 +83,9 @@ struct queued_packet;
 @interface AudioStreamer : NSObject {
   /* Properties specified at creation */
   NSURL *url;
+  int proxyType;
+  NSString *proxyHost;
+  int proxyPort;
 
   /* Creates as part of the [start] method */
   CFReadStreamRef stream;
@@ -147,21 +150,28 @@ struct queued_packet;
 @property (readonly) NSDictionary *httpHeaders;
 @property (readonly) NSError *networkError;
 
-+ (NSString *)stringForErrorCode:(AudioStreamerErrorCode)anErrorCode;
++ (NSString*) stringForErrorCode:(AudioStreamerErrorCode)anErrorCode;
 
-- (id)initWithURL:(NSURL *)aURL;
-- (void)start;
-- (void)stop;
-- (void)pause;
-- (void)play;
-- (BOOL)isPlaying;
-- (BOOL)isPaused;
-- (BOOL)isWaiting;
-- (BOOL)isDone;
-- (BOOL)seekToTime:(double)newSeekTime;
-- (double)calculatedBitRate;
-- (BOOL)setVolume:(double)volume;
-- (double)duration;
-- (double)progress;
+/* Creating an audio stream and managing properties before starting */
+- (AudioStreamer*) initWithURL:(NSURL*)url;
+- (void) setHTTPProxy:(NSString*)host port:(int)port;
+- (void) setSOCKSProxy:(NSString*)host port:(int)port;
+
+/* Management of the stream and testing state */
+- (BOOL) start;
+- (void) stop;
+- (BOOL) pause;
+- (BOOL) play;
+- (BOOL) isPlaying;
+- (BOOL) isPaused;
+- (BOOL) isWaiting;
+- (BOOL) isDone;
+
+/* Calculated properties and modifying the stream (all can fail) */
+- (BOOL) seekToTime:(double)newSeekTime;
+- (BOOL) calculatedBitRate:(double*)ret;
+- (BOOL) setVolume:(double)volume;
+- (BOOL) duration:(double*)ret;
+- (BOOL) progress:(double*)ret;
 
 @end
