@@ -631,6 +631,8 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
     assert(!err);
     audioQueue = nil;
   }
+  if (buffers != NULL) free(buffers);
+  if (inuse != NULL)   free(inuse);
 
   httpHeaders      = nil;
   bytesFilled      = 0;
