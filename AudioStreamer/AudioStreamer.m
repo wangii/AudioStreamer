@@ -1067,7 +1067,7 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 
   /* Place each packet into a buffer and then send each buffer into the audio
      queue */
-  int i;
+  UInt32 i;
   for (i = 0; i < inNumberPackets && !waitingOnBuffer && queued_head == NULL; i++) {
     AudioStreamPacketDescription *desc = &inPacketDescriptions[i];
     int ret = [self handlePacket:(inInputData + desc->mStartOffset)
@@ -1102,7 +1102,7 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 - (int) handlePacket:(const void*)data
                 desc:(AudioStreamPacketDescription*)desc{
   assert(audioQueue != NULL);
-  SInt64 packetSize = desc->mDataByteSize;
+  UInt64 packetSize = desc->mDataByteSize;
 
   /* This shouldn't happen because most of the time we read the packet buffer
      size from the file stream, but if we restored to guessing it we could
