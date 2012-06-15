@@ -78,7 +78,6 @@
 		progressUpdateTimer = nil;
 		
 		[streamer stop];
-		[streamer release];
 		streamer = nil;
 	}
 }
@@ -98,13 +97,12 @@
 	[self destroyStreamer];
 	
 	NSString *escapedValue =
-		[(NSString *)CFURLCreateStringByAddingPercentEscapes(
+		(__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(
 			nil,
-			(CFStringRef)[downloadSourceField stringValue],
+			(__bridge CFStringRef)[downloadSourceField stringValue],
 			NULL,
 			NULL,
-			kCFStringEncodingUTF8)
-		autorelease];
+            kCFStringEncodingUTF8);
 
 	NSURL *url = [NSURL URLWithString:escapedValue];
 	streamer = [[AudioStreamer alloc] initWithURL:url];
@@ -213,7 +211,7 @@
 	{
 		[self setButtonImage:[NSImage imageNamed:@"stopbutton"]];
 	}
-	else if ([streamer isIdle])
+	else if ([streamer isDone])
 	{
 		[self destroyStreamer];
 		[self setButtonImage:[NSImage imageNamed:@"playbutton"]];
@@ -245,7 +243,7 @@
 //
 - (void)updateProgress:(NSTimer *)updatedTimer
 {
-	if (streamer.bitRate != 0.0)
+	if ([streamer calculatedBitRate] != 0.0)
 	{
 		double progress = streamer.progress;
 		double duration = streamer.duration;
@@ -300,7 +298,6 @@
 		[progressUpdateTimer invalidate];
 		progressUpdateTimer = nil;
 	}
-	[super dealloc];
 }
 
 @end
