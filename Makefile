@@ -2,13 +2,10 @@ XCB           = xcodebuild
 CONFIGURATION = Release
 XCBFLAGS      = -configuration $(CONFIGURATION)
 
-all: framework library
+all: framework
 
 framework:
 	$(XCB) $(XCBFLAGS) -target AudioStreamer
-
-library:
-	$(XCB) $(XCBFLAGS) -target libAudioStreamer
 
 archive:
 	$(XCB) -configuration Release -target 'Build sparkle metadata'

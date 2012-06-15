@@ -7,11 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		97B9CFFD158AD0B00085BC63 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9CFE4158AD09B0085BC63 /* Cocoa.framework */; };
 		97B9D009158AD12F0085BC63 /* AudioStreamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 97B9D007158AD12F0085BC63 /* AudioStreamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		97B9D00A158AD12F0085BC63 /* AudioStreamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D008158AD12F0085BC63 /* AudioStreamer.m */; };
-		97B9D00B158AD1630085BC63 /* AudioStreamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D008158AD12F0085BC63 /* AudioStreamer.m */; };
-		97B9D00D158AD16C0085BC63 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */; };
 		97B9D00E158AD1DF0085BC63 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */; };
 		97B9D010158AD1EB0085BC63 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D00F158AD1EB0085BC63 /* Cocoa.framework */; };
 /* End PBXBuildFile section */
@@ -22,7 +19,6 @@
 		97B9CFE7158AD09B0085BC63 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		97B9CFE8158AD09B0085BC63 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		97B9CFE9158AD09B0085BC63 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		97B9CFFC158AD0B00085BC63 /* liblibAudioStreamer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liblibAudioStreamer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		97B9D007158AD12F0085BC63 /* AudioStreamer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioStreamer.h; sourceTree = "<group>"; };
 		97B9D008158AD12F0085BC63 /* AudioStreamer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioStreamer.m; sourceTree = "<group>"; };
 		97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
@@ -36,15 +32,6 @@
 			files = (
 				97B9D010158AD1EB0085BC63 /* Cocoa.framework in Frameworks */,
 				97B9D00E158AD1DF0085BC63 /* AudioToolbox.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		97B9CFF9158AD0B00085BC63 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				97B9D00D158AD16C0085BC63 /* AudioToolbox.framework in Frameworks */,
-				97B9CFFD158AD0B00085BC63 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -67,7 +54,6 @@
 			isa = PBXGroup;
 			children = (
 				97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */,
-				97B9CFFC158AD0B00085BC63 /* liblibAudioStreamer.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -118,13 +104,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		97B9CFFA158AD0B00085BC63 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -145,23 +124,6 @@
 			productName = AudioStreamer;
 			productReference = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */;
 			productType = "com.apple.product-type.framework";
-		};
-		97B9CFFB158AD0B00085BC63 /* libAudioStreamer */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 97B9D004158AD0B10085BC63 /* Build configuration list for PBXNativeTarget "libAudioStreamer" */;
-			buildPhases = (
-				97B9CFF8158AD0B00085BC63 /* Sources */,
-				97B9CFF9158AD0B00085BC63 /* Frameworks */,
-				97B9CFFA158AD0B00085BC63 /* Headers */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = libAudioStreamer;
-			productName = libAudioStreamer.a;
-			productReference = 97B9CFFC158AD0B00085BC63 /* liblibAudioStreamer.a */;
-			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
 
@@ -184,7 +146,6 @@
 			projectRoot = "";
 			targets = (
 				97B9CFE0158AD09B0085BC63 /* AudioStreamer */,
-				97B9CFFB158AD0B00085BC63 /* libAudioStreamer */,
 			);
 		};
 /* End PBXProject section */
@@ -205,14 +166,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				97B9D00A158AD12F0085BC63 /* AudioStreamer.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		97B9CFF8158AD0B00085BC63 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				97B9D00B158AD1630085BC63 /* AudioStreamer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,53 +269,6 @@
 			};
 			name = Release;
 		};
-		97B9D005158AD0B10085BC63 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-			};
-			name = Debug;
-		};
-		97B9D006158AD0B10085BC63 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = YES;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -382,14 +288,7 @@
 				97B9CFF5158AD09B0085BC63 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-		};
-		97B9D004158AD0B10085BC63 /* Build configuration list for PBXNativeTarget "libAudioStreamer" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				97B9D005158AD0B10085BC63 /* Debug */,
-				97B9D006158AD0B10085BC63 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
