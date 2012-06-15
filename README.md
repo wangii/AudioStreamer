@@ -61,8 +61,11 @@ All files related to the AudioStreamer library are located in the
 directory. These just need to be copied into your project and added to the
 compiled sources list.
 
-You must then also link against the AudioToolbox and Cocoa frameworks for the
-project to build.
+You must also link against some frameworks to build:
+
+* Mac - AudioToolbox, CoreServices, and Foundation (last 2 can be replaced with
+  Cocoa)
+* iPhone - AudioToolbox, CFNetwork, and Foundation
 
 ## Problems/Question?
 

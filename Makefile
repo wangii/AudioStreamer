@@ -10,6 +10,7 @@ framework:
 mac:
 	$(XCB) $(XCBFLAGS) -target 'Mac Streaming Player'
 
+iphone: XCBFLAGS += -sdk iphonesimulator5.0
 iphone:
 	$(XCB) $(XCBFLAGS) -target 'iPhone Streaming Player'
 

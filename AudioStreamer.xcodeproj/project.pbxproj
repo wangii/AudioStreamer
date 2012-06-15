@@ -10,7 +10,6 @@
 		97B9D009158AD12F0085BC63 /* AudioStreamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 97B9D007158AD12F0085BC63 /* AudioStreamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		97B9D00A158AD12F0085BC63 /* AudioStreamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D008158AD12F0085BC63 /* AudioStreamer.m */; };
 		97B9D00E158AD1DF0085BC63 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */; };
-		97B9D010158AD1EB0085BC63 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D00F158AD1EB0085BC63 /* Cocoa.framework */; };
 		97B9D01B158AD5190085BC63 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9CFE4158AD09B0085BC63 /* Cocoa.framework */; };
 		97B9D03E158AD5880085BC63 /* MacStreamingPlayerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D037158AD53B0085BC63 /* MacStreamingPlayerController.m */; };
 		97B9D044158AD63D0085BC63 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D042158AD6300085BC63 /* main.m */; };
@@ -23,31 +22,29 @@
 		97B9D058158AD7470085BC63 /* stopbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D054158AD7470085BC63 /* stopbutton.png */; };
 		97B9D05D158AD8F60085BC63 /* AudioStreamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */; };
 		97B9D05F158AD9300085BC63 /* AudioStreamer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */; };
-		97B9D06A158ADD910085BC63 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D069158ADD910085BC63 /* UIKit.framework */; };
-		97B9D06C158ADD910085BC63 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D06B158ADD910085BC63 /* Foundation.framework */; };
-		97B9D06E158ADD910085BC63 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9D06D158ADD910085BC63 /* CoreGraphics.framework */; };
 		97B9D08A158ADDB20085BC63 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D042158AD6300085BC63 /* main.m */; };
 		97B9D08B158ADDBA0085BC63 /* iPhoneStreamingPlayerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D033158AD53B0085BC63 /* iPhoneStreamingPlayerAppDelegate.m */; };
 		97B9D08C158ADDBA0085BC63 /* iPhoneStreamingPlayerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D035158AD53B0085BC63 /* iPhoneStreamingPlayerViewController.m */; };
-		97B9D08D158ADDC30085BC63 /* AudioStreamer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */; };
 		97B9D08E158ADDD00085BC63 /* iPhoneStreamingPlayerViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D061158ADD6C0085BC63 /* iPhoneStreamingPlayerViewController.xib */; };
 		97B9D08F158ADDD00085BC63 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D062158ADD6C0085BC63 /* MainWindow.xib */; };
 		97B9D090158ADDD00085BC63 /* loadingbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D051158AD7470085BC63 /* loadingbutton.png */; };
 		97B9D091158ADDD00085BC63 /* pausebutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D052158AD7470085BC63 /* pausebutton.png */; };
 		97B9D092158ADDD00085BC63 /* playbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D053158AD7470085BC63 /* playbutton.png */; };
 		97B9D093158ADDD00085BC63 /* stopbutton.png in Resources */ = {isa = PBXBuildFile; fileRef = 97B9D054158AD7470085BC63 /* stopbutton.png */; };
-		97B9D095158ADDE20085BC63 /* AudioStreamer.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 97B9CFE1158AD09B0085BC63 /* AudioStreamer.framework */; };
+		97E48C03158AF605007288FB /* AudioStreamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D008158AD12F0085BC63 /* AudioStreamer.m */; };
+		97E48C08158AF6BB007288FB /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C07158AF6BB007288FB /* UIKit.framework */; };
+		97E48C13158AF926007288FB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C12158AF926007288FB /* Foundation.framework */; };
+		97E48C15158AF929007288FB /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C14158AF929007288FB /* AudioToolbox.framework */; };
+		97E48C1A158AFBA0007288FB /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C16158AF938007288FB /* MobileCoreServices.framework */; };
+		97E48C20158AFC63007288FB /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C1F158AFC63007288FB /* CFNetwork.framework */; };
+		97E48C22158AFC6C007288FB /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C21158AFC6C007288FB /* QuartzCore.framework */; };
+		97E48C26158AFC94007288FB /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C25158AFC94007288FB /* MediaPlayer.framework */; };
+		97E48C29158AFD26007288FB /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C0F158AF8D1007288FB /* CoreServices.framework */; };
+		97E48C2A158AFD32007288FB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 97E48C0A158AF89A007288FB /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		97B9D040158AD5A50085BC63 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 973BB664158AD07000A7D459 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 97B9CFE0158AD09B0085BC63;
-			remoteInfo = AudioStreamer;
-		};
-		97B9D096158ADDFF0085BC63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 973BB664158AD07000A7D459 /* Project object */;
 			proxyType = 1;
@@ -67,16 +64,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		97B9D094158ADDD40085BC63 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				97B9D095158ADDE20085BC63 /* AudioStreamer.framework in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -88,7 +75,6 @@
 		97B9D007158AD12F0085BC63 /* AudioStreamer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioStreamer.h; sourceTree = "<group>"; };
 		97B9D008158AD12F0085BC63 /* AudioStreamer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioStreamer.m; sourceTree = "<group>"; };
 		97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
-		97B9D00F158AD1EB0085BC63 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
 		97B9D019158AD5190085BC63 /* Mac Streaming Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Mac Streaming Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		97B9D032158AD53B0085BC63 /* iPhoneStreamingPlayerAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iPhoneStreamingPlayerAppDelegate.h; sourceTree = "<group>"; };
 		97B9D033158AD53B0085BC63 /* iPhoneStreamingPlayerAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iPhoneStreamingPlayerAppDelegate.m; sourceTree = "<group>"; };
@@ -108,9 +94,19 @@
 		97B9D061158ADD6C0085BC63 /* iPhoneStreamingPlayerViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = iPhoneStreamingPlayerViewController.xib; sourceTree = "<group>"; };
 		97B9D062158ADD6C0085BC63 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		97B9D067158ADD910085BC63 /* iPhone Streaming Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "iPhone Streaming Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		97B9D069158ADD910085BC63 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
-		97B9D06B158ADD910085BC63 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		97B9D06D158ADD910085BC63 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C05158AF6A9007288FB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/Cocoa.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C07158AF6BB007288FB /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/UIKit.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C0A158AF89A007288FB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C0F158AF8D1007288FB /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/CoreServices.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C12158AF926007288FB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C14158AF929007288FB /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/AudioToolbox.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C16158AF938007288FB /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/MobileCoreServices.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C18158AFB91007288FB /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/CoreFoundation.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C1B158AFBEC007288FB /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.7.sdk/System/Library/Frameworks/CoreFoundation.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C1F158AFC63007288FB /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/CFNetwork.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C21158AFC6C007288FB /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/QuartzCore.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C23158AFC77007288FB /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/CoreMedia.framework; sourceTree = DEVELOPER_DIR; };
+		97E48C25158AFC94007288FB /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS5.1.sdk/System/Library/Frameworks/MediaPlayer.framework; sourceTree = DEVELOPER_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,7 +114,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				97B9D010158AD1EB0085BC63 /* Cocoa.framework in Frameworks */,
+				97E48C2A158AFD32007288FB /* Foundation.framework in Frameworks */,
+				97E48C29158AFD26007288FB /* CoreServices.framework in Frameworks */,
 				97B9D00E158AD1DF0085BC63 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -137,10 +134,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				97B9D08D158ADDC30085BC63 /* AudioStreamer.framework in Frameworks */,
-				97B9D06A158ADD910085BC63 /* UIKit.framework in Frameworks */,
-				97B9D06C158ADD910085BC63 /* Foundation.framework in Frameworks */,
-				97B9D06E158ADD910085BC63 /* CoreGraphics.framework in Frameworks */,
+				97E48C26158AFC94007288FB /* MediaPlayer.framework in Frameworks */,
+				97E48C22158AFC6C007288FB /* QuartzCore.framework in Frameworks */,
+				97E48C20158AFC63007288FB /* CFNetwork.framework in Frameworks */,
+				97E48C1A158AFBA0007288FB /* MobileCoreServices.framework in Frameworks */,
+				97E48C15158AF929007288FB /* AudioToolbox.framework in Frameworks */,
+				97E48C13158AF926007288FB /* Foundation.framework in Frameworks */,
+				97E48C08158AF6BB007288FB /* UIKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -171,13 +171,8 @@
 		97B9CFE3158AD09B0085BC63 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				97B9D047158AD69A0085BC63 /* Quartz.framework */,
-				97B9D00F158AD1EB0085BC63 /* Cocoa.framework */,
-				97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */,
-				97B9CFE4158AD09B0085BC63 /* Cocoa.framework */,
-				97B9D069158ADD910085BC63 /* UIKit.framework */,
-				97B9D06B158ADD910085BC63 /* Foundation.framework */,
-				97B9D06D158ADD910085BC63 /* CoreGraphics.framework */,
+				97E48C09158AF6BF007288FB /* iPhone Frameworks */,
+				97E48C04158AF693007288FB /* Mac Frameworks */,
 				97B9CFE6158AD09B0085BC63 /* Other Frameworks */,
 			);
 			name = Frameworks;
@@ -248,6 +243,36 @@
 			path = iPhone;
 			sourceTree = "<group>";
 		};
+		97E48C04158AF693007288FB /* Mac Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				97E48C0F158AF8D1007288FB /* CoreServices.framework */,
+				97E48C0A158AF89A007288FB /* Foundation.framework */,
+				97B9D00C158AD16C0085BC63 /* AudioToolbox.framework */,
+				97E48C05158AF6A9007288FB /* Cocoa.framework */,
+				97B9D047158AD69A0085BC63 /* Quartz.framework */,
+				97B9CFE4158AD09B0085BC63 /* Cocoa.framework */,
+			);
+			name = "Mac Frameworks";
+			sourceTree = "<group>";
+		};
+		97E48C09158AF6BF007288FB /* iPhone Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				97E48C25158AFC94007288FB /* MediaPlayer.framework */,
+				97E48C23158AFC77007288FB /* CoreMedia.framework */,
+				97E48C21158AFC6C007288FB /* QuartzCore.framework */,
+				97E48C1F158AFC63007288FB /* CFNetwork.framework */,
+				97E48C1B158AFBEC007288FB /* CoreFoundation.framework */,
+				97E48C18158AFB91007288FB /* CoreFoundation.framework */,
+				97E48C16158AF938007288FB /* MobileCoreServices.framework */,
+				97E48C14158AF929007288FB /* AudioToolbox.framework */,
+				97E48C12158AF926007288FB /* Foundation.framework */,
+				97E48C07158AF6BB007288FB /* UIKit.framework */,
+			);
+			name = "iPhone Frameworks";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -306,12 +331,10 @@
 				97B9D063158ADD910085BC63 /* Sources */,
 				97B9D064158ADD910085BC63 /* Frameworks */,
 				97B9D065158ADD910085BC63 /* Resources */,
-				97B9D094158ADDD40085BC63 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				97B9D097158ADDFF0085BC63 /* PBXTargetDependency */,
 			);
 			name = "iPhone Streaming Player";
 			productName = "iPhone Streaming Player";
@@ -404,6 +427,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				97E48C03158AF605007288FB /* AudioStreamer.m in Sources */,
 				97B9D08B158ADDBA0085BC63 /* iPhoneStreamingPlayerAppDelegate.m in Sources */,
 				97B9D08C158ADDBA0085BC63 /* iPhoneStreamingPlayerViewController.m in Sources */,
 				97B9D08A158ADDB20085BC63 /* main.m in Sources */,
@@ -417,11 +441,6 @@
 			isa = PBXTargetDependency;
 			target = 97B9CFE0158AD09B0085BC63 /* AudioStreamer */;
 			targetProxy = 97B9D040158AD5A50085BC63 /* PBXContainerItemProxy */;
-		};
-		97B9D097158ADDFF0085BC63 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 97B9CFE0158AD09B0085BC63 /* AudioStreamer */;
-			targetProxy = 97B9D096158ADDFF0085BC63 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -599,15 +618,15 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "iPhone Streaming Player/iPhone Streaming Player-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				INFOPLIST_FILE = "iPhone Streaming Player/iPhone Streaming Player-Info.plist";
+				INFOPLIST_FILE = Resources/iPhone/iPhoneInfo.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
+				OTHER_CFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -628,11 +647,13 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = "iPhone Streaming Player/iPhone Streaming Player-Prefix.pch";
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
-				INFOPLIST_FILE = "iPhone Streaming Player/iPhone Streaming Player-Info.plist";
+				INFOPLIST_FILE = Resources/iPhone/iPhoneInfo.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.1;
-				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				OTHER_CFLAGS = (
+					"-DNS_BLOCK_ASSERTIONS=1",
+					"-DTARGET_OS_IPHONE",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
