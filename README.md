@@ -31,12 +31,44 @@ It is NOT the job of the AudioStreamer to:
 * Play multiple songs
 * Automatically perform actions in response to playback events
 
+## Sample Usage
+
+```objc
+- (void) play {
+  NSURL *url = ...;
+  AudioStreamer *stream = [AudioStreamer streamWithUrl:url];
+
+  /* Set some properties like proxies, buffer sizes, formats, etc. on stream */
+
+  [stream start];
+  [[NSNotificationCenter defaultNotificationCenter]
+      addObserver:self
+         selector:@selector(stateChanged)
+             name:ASStatusChangedNotification
+           object:stream];
+}
+
+- (void) stateChanged:(NSNotification*) not {
+  AudioStreamer *stream = [not object];
+  if ([stream errorCode] != AS_NO_ERROR) {
+    // handle the error via a UI, retrying the stream, etc.
+  } else if ([stream isPlaying]) {
+    [self setIcon:pause];
+  } else if ([stream isPaused]) {
+    [self setIcon:play];
+  } else if ([stream isDone]) {
+    [self playNextSong];
+  } else {
+    // stream is waiting for data, probably nothing to do
+  }
+}
+```
+
 ## Changes
 
 The AudioStreamer class has heavily changed from the original version, and all
 of the methods and whatnot can be found in the source files. The source also
-contains a large amount of documentation for usage. This README will discuss
-installation/building of the project.
+contains a large amount of documentation for usage.
 
 * [Header](https://github.com/alexcrichton/AudioStreamer/blob/master/AudioStreamer/AudioStreamer.h)
 * [Implementation](https://github.com/alexcrichton/AudioStreamer/blob/master/AudioStreamer/AudioStreamer.m)
