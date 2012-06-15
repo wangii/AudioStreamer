@@ -77,7 +77,8 @@ struct queued_packet;
 @interface AudioStreamer : NSObject {
   /* Properties specified before the stream starts. None of these properties
    * should be changed after the stream has started or otherwise it could cause
-   * internal inconsistencies in the stream */
+   * internal inconsistencies in the stream. Detail explanations of each
+   * property can be found in the source */
   NSURL           *url;
   int             proxyType;  /* defaults to whatever the system says */
   NSString        *proxyHost;
@@ -146,7 +147,6 @@ struct queued_packet;
 }
 
 @property AudioStreamerErrorCode errorCode;
-@property (readonly) AudioStreamerState state;
 @property (readonly) NSDictionary *httpHeaders;
 @property (readonly) NSError *networkError;
 @property (readonly) NSURL *url;

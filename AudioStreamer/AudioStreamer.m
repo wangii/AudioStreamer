@@ -169,9 +169,90 @@ NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 /* Woohoo, actual implementation now! */
 @implementation AudioStreamer
 
-@synthesize errorCode, networkError, httpHeaders, url, bufferCnt, bufferSize,
-            fileType, bufferInfinite;
-@synthesize state = state_;
+/**
+ * @brief If an error occurs on the stream, then this variable is set with the
+ *        code corresponding to the error
+ *
+ * By default this is AS_NO_ERROR.
+ */
+@synthesize errorCode;
+
+/* TODO: make this go away */
+@synthesize networkError;
+
+/**
+ * @brief Headers received from the remote source
+ *
+ * Used to determine file size, but other information may be useful as well
+ */
+@synthesize httpHeaders;
+
+/**
+ * @brief The remote resource that this stream is playing, this is a read-only
+ *        property and cannot be changed after creation
+ */
+@synthesize url;
+
+/**
+ * @brief The file type of this audio stream
+ *
+ * This is an optional parameter. If not specified, then the file type will be
+ * attempted to be inferred from the extension on the url specified. If your URL
+ * doesn't conform to what AudioStreamer internally detects, then use this to
+ * explicitly mark the file type. If marked, then no inferring is done.
+ */
+@synthesize fileType;
+
+/**
+ * @brief The number of audio buffers to have
+ *
+ * Each audio buffer contains one or more packets of audio data. This amount is
+ * only relevant if infinite buffering is turned off. This is the amount of data
+ * which is stored in memory while playing. Once this memory is full, the remote
+ * connection will not be read and will not receive any more data until one of
+ * the buffers becomes available.
+ *
+ * With infinite buffering turned on, this number should be at least 3 or so to
+ * make sure that there's always data to be read. With infinite buffering turned
+ * off, this should be a number to not consume too much memory, but to also keep
+ * up with the remote data stream. The incoming data should always be able to
+ * stay ahead of these buffers being filled
+ */
+@synthesize bufferCnt;
+
+/**
+ * @brief The default size for each buffer allocated
+ *
+ * Each buffer's size is attempted to be guessed from the audio stream being
+ * received. This way each buffer is tuned for the audio stream itself. If this
+ * inferring of the buffer size fails, however, this is used as a fallback as
+ * how large each buffer should be.
+ *
+ * If you find that this is being used, then it should be coordinated with
+ * bufferCnt above to make sure that the audio stays responsive and slightly
+ * behind the HTTP stream
+ */
+@synthesize bufferSize;
+
+/**
+ * @brief Flag if to infinitely buffer data
+ *
+ * If this flag is set to NO, then a statically sized buffer is used as
+ * determined by bufferCnt and bufferSize above and the read stream will be
+ * descheduled when those fill up. This limits the bandwidth consumed to the
+ * remote source and also limits memory usage.
+ *
+ * If, however, you wish to hold the entire stream in memory, then you can set
+ * this flag to YES. In this state, the stream will be entirely downloaded,
+ * regardless if the buffers are full or not. This way if the network stream
+ * cuts off halfway through a song, the rest of the song will be downloaded
+ * locally to finish off. The next song might still be in trouble, however...
+ * With this turned on, memory usage will be higher because the entire stream
+ * will be downloaded as fast as possible, and the bandwidth to the remote will
+ * also be consumed. Depending on the situtation, this might not be that bad of
+ * a problem.
+ */
+@synthesize bufferInfinite;
 
 /* AudioFileStream callback when properties are available */
 void MyPropertyListenerProc(void *inClientData,
