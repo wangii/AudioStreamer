@@ -4,3 +4,4 @@ build
 *.xcodeproj/*.pbxuser
 *.xcodeproj/xcuserdata
 *.xcodeproj/*.xcworkspace
+doc
