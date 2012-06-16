@@ -11,6 +11,12 @@ no longer maintained, however, and I've decided to actively maintain it for a
 project that I'm using this library for,
 [Hermes](https://github.com/alexcrichton/hermes).
 
+## Documentation
+
+Documentation can either be found
+[here](http://alexcrichton.com/AudioStreamer/Classes/AudioStreamer.html) in an
+Apple-like format or in this README.
+
 ## The `AudioStreamer` class
 
 The AudioStreamer class is a wrapper around the AudioQueue, AudioFileStream, and
