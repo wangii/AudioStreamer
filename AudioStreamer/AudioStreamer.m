@@ -133,6 +133,7 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 }
 
 + (AudioStreamer*) streamWithURL:(NSURL*)url{
+  assert(url != nil);
   AudioStreamer *stream = [[AudioStreamer alloc] init];
   stream->url = url;
   stream->bufferCnt  = kDefaultNumAQBufs;

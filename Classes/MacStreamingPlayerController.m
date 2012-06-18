@@ -29,7 +29,7 @@
 
 - (void)awakeFromNib
 {
-	[downloadSourceField setStringValue:@"http://192.168.1.2/~matt/inside.m4a"];
+  [NSApp activateIgnoringOtherApps:YES];
 }
 
 //
