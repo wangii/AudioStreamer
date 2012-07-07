@@ -118,11 +118,9 @@ struct queued_packet;
  *
  * This final stage is also implemented by Apple, and receives all of the full
  * buffers of data from the AudioFileStream's parsed packets. The implementation
- * manages its own set of threads, and callbacks are invoked on the internal
- * threads, not the main thread. The two callbacks that the audio stream is
- * interested in are playback state changing and audio buffers being freed. In
- * both cases, a message is queued for delivery on the main thread to prevent
- * synchronization issues.
+ * manages its own set of threads, but callbacks are invoked on the main thread.
+ * The two callbacks that the audio stream is interested in are playback state
+ * changing and audio buffers being freed.
  *
  * When a buffer is freed, then it is marked as so, and if the stream was
  * waiting for a buffer to be freed a message to empty the queue as much as
