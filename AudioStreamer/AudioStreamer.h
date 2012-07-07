@@ -320,10 +320,13 @@ struct queued_packet;
 /**
  * The file type of this audio stream
  *
- * This is an optional parameter. If not specified, then the file type will be
- * attempted to be inferred from the extension on the url specified. If your URL
- * doesn't conform to what AudioStreamer internally detects, then use this to
- * explicitly mark the file type. If marked, then no inferring is done.
+ * This is an optional parameter. If not specified, then then the file type will
+ * be guessed. First, the MIME type of the response is used to guess the file
+ * type, and if that fails the extension on the url is used. If that fails as
+ * well, then the default is an MP3 stream.
+ *
+ * If this property is set, then no inferring is done and that file type is
+ * always used.
  *
  * Default: (guess)
  */

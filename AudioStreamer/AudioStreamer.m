@@ -503,25 +503,50 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 // returns a file type hint that can be passed to the AudioFileStream
 //
 + (AudioFileTypeID)hintForFileExtension:(NSString *)fileExtension {
-  AudioFileTypeID fileTypeHint = kAudioFileAAC_ADTSType;
   if ([fileExtension isEqual:@"mp3"]) {
-    fileTypeHint = kAudioFileMP3Type;
+    return kAudioFileMP3Type;
   } else if ([fileExtension isEqual:@"wav"]) {
-    fileTypeHint = kAudioFileWAVEType;
+    return kAudioFileWAVEType;
   } else if ([fileExtension isEqual:@"aifc"]) {
-    fileTypeHint = kAudioFileAIFCType;
+    return kAudioFileAIFCType;
   } else if ([fileExtension isEqual:@"aiff"]) {
-    fileTypeHint = kAudioFileAIFFType;
+    return kAudioFileAIFFType;
   } else if ([fileExtension isEqual:@"m4a"]) {
-    fileTypeHint = kAudioFileM4AType;
+    return kAudioFileM4AType;
   } else if ([fileExtension isEqual:@"mp4"]) {
-    fileTypeHint = kAudioFileMPEG4Type;
+    return kAudioFileMPEG4Type;
   } else if ([fileExtension isEqual:@"caf"]) {
-    fileTypeHint = kAudioFileCAFType;
+    return kAudioFileCAFType;
   } else if ([fileExtension isEqual:@"aac"]) {
-    fileTypeHint = kAudioFileAAC_ADTSType;
+    return kAudioFileAAC_ADTSType;
   }
-  return fileTypeHint;
+  return 0;
+}
+
+/**
+ * @brief Guess the file type based on the listed MIME type in the http response
+ *
+ * Code from:
+ * https://github.com/DigitalDJ/AudioStreamer/blob/master/Classes/AudioStreamer.m
+ */
++ (AudioFileTypeID) hintForMIMEType:(NSString*)mimeType {
+  if ([mimeType isEqual:@"audio/mpeg"]) {
+    return kAudioFileMP3Type;
+  } else if ([mimeType isEqual:@"audio/x-wav"]) {
+    return kAudioFileWAVEType;
+  } else if ([mimeType isEqual:@"audio/x-aiff"]) {
+    return kAudioFileAIFFType;
+  } else if ([mimeType isEqual:@"audio/x-m4a"]) {
+    return kAudioFileM4AType;
+  } else if ([mimeType isEqual:@"audio/mp4"]) {
+    return kAudioFileMPEG4Type;
+  } else if ([mimeType isEqual:@"audio/x-caf"]) {
+    return kAudioFileCAFType;
+  } else if ([mimeType isEqual:@"audio/aac"] ||
+             [mimeType isEqual:@"audio/aacp"]) {
+    return kAudioFileAAC_ADTSType;
+  }
+  return 0;
 }
 
 /**
@@ -548,7 +573,7 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
      remote server */
   if (fileLength > 0 && seekByteOffset > 0) {
    NSString *str = [NSString stringWithFormat:@"bytes=%ld-%ld",
-                                              seekByteOffset, fileLength];
+                                              seekByteOffset, fileLength - 1];
     CFHTTPMessageSetHeaderFieldValue(message,
                                      CFSTR("Range"),
                                      (__bridge CFStringRef) str);
@@ -704,12 +729,21 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
   /* If we haven't yet opened up a file stream, then do so now */
   if (!audioFileStream) {
     /* If a file type wasn't specified, we have to guess */
-    AudioFileTypeID fileTypeHint = fileType != 0 ? fileType :
-      [AudioStreamer hintForFileExtension:[[url path] pathExtension]];
+    if (fileType == 0) {
+      fileType = [AudioStreamer hintForMIMEType:
+                    [httpHeaders objectForKey:@"Content-Type"]];
+      if (fileType == 0) {
+        fileType = [AudioStreamer hintForFileExtension:
+                      [[url path] pathExtension]];
+        if (fileType == 0) {
+          fileType = kAudioFileMP3Type;
+        }
+      }
+    }
 
     // create an audio file stream parser
     err = AudioFileStreamOpen((__bridge void*) self, MyPropertyListenerProc,
-                              MyPacketsProc, fileTypeHint, &audioFileStream);
+                              MyPacketsProc, fileType, &audioFileStream);
     CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED);
   }
 
