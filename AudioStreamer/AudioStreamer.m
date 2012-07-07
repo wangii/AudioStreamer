@@ -715,7 +715,10 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 
   UInt8 bytes[2048];
   CFIndex length;
-  while (state_ != AS_STOPPED && CFReadStreamHasBytesAvailable(stream)) {
+  int i;
+  for (i = 0;
+       i < 3 && state_ != AS_STOPPED && CFReadStreamHasBytesAvailable(stream);
+       i++) {
     length = CFReadStreamRead(stream, bytes, sizeof(bytes));
 
     if (length < 0) {
@@ -801,23 +804,17 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
     }
   }
 
-  /* The inuse array is also managed by a separate AudioQueue internal thread,
-     so we need to synchronize around unscheduling the read stream to ensure
-     that our state is always coherent */
-  @synchronized(self) {
-    if (inuse[fillBufferIndex]) {
-      LOG(@"waiting for buffer %d", fillBufferIndex);
-      if (!bufferInfinite) {
-        CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(),
-                                          kCFRunLoopCommonModes);
-        /* Make sure we don't have ourselves marked as rescheduled */
-        unscheduled = YES;
-        rescheduled = NO;
-      }
-      waitingOnBuffer = true;
-      return 0;
-
+  if (inuse[fillBufferIndex]) {
+    LOG(@"waiting for buffer %d", fillBufferIndex);
+    if (!bufferInfinite) {
+      CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(),
+                                        kCFRunLoopCommonModes);
+      /* Make sure we don't have ourselves marked as rescheduled */
+      unscheduled = YES;
+      rescheduled = NO;
     }
+    waitingOnBuffer = true;
+    return 0;
   }
   return 1;
 }
@@ -837,7 +834,8 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 
   // create the audio queue
   err = AudioQueueNewOutput(&asbd, MyAudioQueueOutputCallback,
-                            (__bridge void*) self, NULL, NULL, 0, &audioQueue);
+                            (__bridge void*) self, CFRunLoopGetCurrent(), NULL,
+                            0, &audioQueue);
   CHECK_ERR(err, AS_AUDIO_QUEUE_CREATION_FAILED);
 
   // start the queue if it has not been started already
@@ -1151,9 +1149,8 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
                               buffer:(AudioQueueBufferRef)inBuffer {
   /* we're only registered for one audio queue... */
   assert(inAQ == audioQueue);
-  /* Sanity check to make sure we're on one of the AudioQueue's internal threads
-     for processing data */
-  assert([NSThread currentThread] != [NSThread mainThread]);
+  /* Sanity check to make sure we're on the right thread */
+  assert([NSThread currentThread] == [NSThread mainThread]);
 
   /* Figure out which buffer just became free, and it had better damn well be
      one of our own buffers */
@@ -1166,27 +1163,23 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 
   LOG(@"buffer %d finished", idx);
 
-  // signal waiting thread that the buffer is free.
-  @synchronized(self) {
-    inuse[idx] = false;
-    buffersUsed--;
-    if (buffersUsed == 0 && queued_head == NULL && stream != nil &&
-        CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
-      assert(!waitingOnBuffer);
-      [self performSelectorOnMainThread:@selector(setStateObj:)
-                             withObject:[NSNumber numberWithInt:AS_DONE]
-                          waitUntilDone:NO];
-    } else if (waitingOnBuffer) {
-      waitingOnBuffer = false;
-      [self performSelectorOnMainThread:@selector(enqueueCachedData)
-                             withObject:nil
-                          waitUntilDone:NO];
-    }
-  }
-}
+  /* Signal the buffer is no longer in use */
+  inuse[idx] = false;
+  buffersUsed--;
 
-- (void) setStateObj:(NSNumber*) num {
-  [self setState:[num intValue]];
+  /* If there is absolutely no more data which will ever come into the stream,
+   * then we're done with the audio */
+  if (buffersUsed == 0 && queued_head == NULL && stream != nil &&
+      CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
+    assert(!waitingOnBuffer);
+    [self setState:AS_DONE];
+
+  /* Otherwise we just opened up a buffer so try to fill it with some cached
+   * data if there is any available */
+  } else if (waitingOnBuffer) {
+    waitingOnBuffer = false;
+    [self enqueueCachedData];
+  }
 }
 
 //
@@ -1200,19 +1193,12 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
 //
 - (void)handlePropertyChangeForQueue:(AudioQueueRef)inAQ
                           propertyID:(AudioQueuePropertyID)inID {
-  /* Sanity check to make sure we're on one of the AudioQueue's internal threads
-     for processing data */
-  assert([NSThread currentThread] != [NSThread mainThread]);
+  /* Sanity check to make sure we're on the expected thread */
+  assert([NSThread currentThread] == [NSThread mainThread]);
   /* We only asked for one property, so the audio queue had better damn well
      only tell us about this property */
   assert(inID == kAudioQueueProperty_IsRunning);
 
-  [self performSelectorOnMainThread:@selector(queueRunningChanged)
-                         withObject:nil
-                      waitUntilDone:NO];
-}
-
-- (void) queueRunningChanged {
   if (state_ == AS_WAITING_FOR_QUEUE_TO_START) {
     [self setState:AS_PLAYING];
   }
