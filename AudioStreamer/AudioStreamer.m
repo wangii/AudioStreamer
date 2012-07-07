@@ -797,11 +797,6 @@ void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
       [self failWithErrorCode:AS_AUDIO_QUEUE_FLUSH_FAILED];
       return -1;
     }
-    err = AudioQueueStop(audioQueue, false);
-    if (err) {
-      [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED];
-      return -1;
-    }
   }
 
   if (inuse[fillBufferIndex]) {
