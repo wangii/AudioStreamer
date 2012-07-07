@@ -29,11 +29,12 @@ things, the core principals of the AudioStreamer class are:
 * Once an error has been encountered, it is impossible for any more playback to
   occur using this instance of an AudioStreamer
 * All notifications of state and error are sent through the default
-  NSNotificationCenter, and this is how the stream should be managed
+  NSNotificationCenter, and this is how the stream should be managed/watched
 
 It is NOT the job of the AudioStreamer to:
 
 * Resolve errors on the audio or network streams
+* Display errors in any form or fashion
 * Play multiple songs
 * Automatically perform actions in response to playback events
 
@@ -49,7 +50,7 @@ It is NOT the job of the AudioStreamer to:
   [stream start];
   [[NSNotificationCenter defaultNotificationCenter]
       addObserver:self
-         selector:@selector(stateChanged)
+         selector:@selector(stateChanged:)
              name:ASStatusChangedNotification
            object:stream];
 }
