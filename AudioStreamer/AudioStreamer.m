@@ -89,7 +89,7 @@ NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 @synthesize timeoutInterval;
 
 /* AudioFileStream callback when properties are available */
-void MyPropertyListenerProc(void *inClientData,
+static void MyPropertyListenerProc(void *inClientData,
                             AudioFileStreamID inAudioFileStream,
                             AudioFileStreamPropertyID inPropertyID,
                             UInt32 *ioFlags) {
@@ -100,7 +100,7 @@ void MyPropertyListenerProc(void *inClientData,
 }
 
 /* AudioFileStream callback when packets are available */
-void MyPacketsProc(void *inClientData, UInt32 inNumberBytes, UInt32
+static void MyPacketsProc(void *inClientData, UInt32 inNumberBytes, UInt32
                    inNumberPackets, const void *inInputData,
                    AudioStreamPacketDescription  *inPacketDescriptions) {
   AudioStreamer* streamer = (__bridge AudioStreamer *)inClientData;
@@ -112,7 +112,7 @@ void MyPacketsProc(void *inClientData, UInt32 inNumberBytes, UInt32
 
 /* AudioQueue callback notifying that a buffer is done, invoked on AudioQueue's
  * own personal threads, not the main thread */
-void MyAudioQueueOutputCallback(void *inClientData, AudioQueueRef inAQ,
+static void MyAudioQueueOutputCallback(void *inClientData, AudioQueueRef inAQ,
                                 AudioQueueBufferRef inBuffer) {
   AudioStreamer* streamer = (__bridge AudioStreamer*)inClientData;
   [streamer handleBufferCompleteForQueue:inAQ buffer:inBuffer];
@@ -120,14 +120,14 @@ void MyAudioQueueOutputCallback(void *inClientData, AudioQueueRef inAQ,
 
 /* AudioQueue callback that a property has changed, invoked on AudioQueue's own
  * personal threads like above */
-void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
+static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
                                    AudioQueuePropertyID inID) {
   AudioStreamer* streamer = (__bridge AudioStreamer *)inUserData;
   [streamer handlePropertyChangeForQueue:inAQ propertyID:inID];
 }
 
 /* CFReadStream callback when an event has occurred */
-void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
+static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
                           void* inClientInfo) {
   AudioStreamer* streamer = (__bridge AudioStreamer *)inClientInfo;
   [streamer handleReadFromStream:aStream eventType:eventType];
