@@ -793,7 +793,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 // enqueueBuffer
 //
 // Called from MyPacketsProc and connectionDidFinishLoading to pass filled audio
-// bufffers (filled by MyPacketsProc) to the AudioQueue for playback. This
+// buffers (filled by MyPacketsProc) to the AudioQueue for playback. This
 // function does not return until a buffer is idle for further filling or
 // the AudioQueue is stopped.
 //
@@ -921,7 +921,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   /* Some audio formats have a "magic cookie" which needs to be transferred from
      the file stream to the audio queue. If any of this fails it's "OK" because
-     the stream either doesn't have a magic or error will propogate later */
+     the stream either doesn't have a magic or error will propagate later */
 
   // get the cookie size
   UInt32 cookieSize;
@@ -1058,7 +1058,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
              numberPackets:(UInt32)inNumberPackets
         packetDescriptions:(AudioStreamPacketDescription*)inPacketDescriptions {
   if ([self isDone]) return;
-  // we have successfully read the first packests from the audio stream, so
+  // we have successfully read the first packets from the audio stream, so
   // clear the "discontinuous" flag
   if (discontinuous) {
     discontinuous = false;
@@ -1192,7 +1192,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 //
 // handleBufferCompleteForQueue:buffer:
 //
-// Handles the buffer completetion notification from the audio queue
+// Handles the buffer completion notification from the audio queue
 //
 // Parameters:
 //    inAQ - the queue
