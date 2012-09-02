@@ -663,7 +663,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   [self setState:AS_WAITING_FOR_DATA];
 
   if (!CFReadStreamOpen(stream)) {
-    CFRelease(stream);
     [self failWithErrorCode:AS_FILE_STREAM_OPEN_FAILED];
     return NO;
   }
