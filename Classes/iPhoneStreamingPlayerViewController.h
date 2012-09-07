@@ -22,8 +22,7 @@
 //
 
 #import <UIKit/UIKit.h>
-
-@class AudioStreamer;
+#import "iPhoneStreamer.h"
 
 @interface iPhoneStreamingPlayerViewController : UIViewController
 {
