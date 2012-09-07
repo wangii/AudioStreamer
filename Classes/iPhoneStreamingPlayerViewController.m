@@ -22,7 +22,6 @@
 //
 
 #import "iPhoneStreamingPlayerViewController.h"
-#import "AudioStreamer.h"
 #import <QuartzCore/CoreAnimation.h>
 #import <MediaPlayer/MediaPlayer.h>
 #import <CFNetwork/CFNetwork.h>
@@ -102,7 +101,7 @@
 			kCFStringEncodingUTF8);
 
 	NSURL *url = [NSURL URLWithString:escapedValue];
-	streamer = [AudioStreamer streamWithURL:url];
+	streamer = [iPhoneStreamer streamWithURL:url];
 
 	progressUpdateTimer =
 		[NSTimer
