@@ -715,9 +715,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         if ([self enqueueBuffer] < 0) return;
       }
 
-      /* If we never received any packets, then we fail */
+      /* If we never received any packets, then we're done now */
       if (state_ == AS_WAITING_FOR_DATA) {
-        [self failWithErrorCode:AS_AUDIO_DATA_NOT_FOUND];
+        [self setState:AS_DONE];
       }
       return;
 
