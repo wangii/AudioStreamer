@@ -599,7 +599,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                      CFSTR("Range"),
                                      (__bridge CFStringRef) str);
     discontinuous = YES;
-    seekByteOffset = 0;
   }
 
   stream = CFReadStreamCreateForHTTPRequest(NULL, message);
@@ -717,7 +716,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
       /* If we never received any packets, then we're done now */
       if (state_ == AS_WAITING_FOR_DATA) {
-        [self setState:AS_DONE];
+        if (seekByteOffset != 0) {
+          /* If a seek was performed, and no data came back, then we probably
+             seeked to the end or near the end of the stream */
+          [self setState:AS_DONE];
+        } else {
+          /* In other cases then we just hit an error */
+          [self failWithErrorCode:AS_AUDIO_DATA_NOT_FOUND];
+        }
       }
       return;
 
