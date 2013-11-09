@@ -498,6 +498,18 @@ struct queued_packet;
 - (BOOL) seekToTime:(double)newSeekTime;
 
 /**
+ * Seek to a relative time in the audio stream
+ *
+ * This will calculate the current stream progress and seek relative to it
+ * by the specified delta. Useful for seeking.
+ *
+ * @param seekTimeDelta the time interval from current seek time to seek to
+ * @return YES if the stream will be seeking, or NO if the stream did not have
+ *         enough information available to it to seek to the specified time.
+ */
+- (BOOL) seekByDelta:(double)seekTimeDelta;
+
+/**
  * Calculates the bit rate of the stream
  *
  * All packets received so far contribute to the calculation of the bit rate.
@@ -546,5 +558,25 @@ struct queued_packet;
  *         progress could not be determined at this time.
  */
 - (BOOL) progress:(double*)ret;
+
+/**
+ * Fade in playback
+ *
+ * The AudioQueue volume is progressively increased from 0 to 1
+ *
+ * @param duration a double which represents the fade-in time span.
+ * @return nothing.
+ */
+- (void) fadeInDuration:(double)duration;
+
+/**
+ * Fade out playback
+ *
+ * The AudioQueue volume is progressively decreased from 1 to 0.
+ *
+ * @param duration a double which represents the fade-in time span.
+ * @return nothing.
+ */
+- (void) fadeOutDuration:(double)duration;
 
 @end

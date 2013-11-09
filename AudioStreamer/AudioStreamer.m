@@ -396,6 +396,15 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return ret;
 }
 
+- (BOOL) seekByDelta:(double)seekTimeDelta {
+    
+    double p = 0;
+    if ([self progress:&p]) {
+        return [self seekToTime:p + seekTimeDelta];
+    }
+    return NO;
+}
+
 - (BOOL) progress:(double*)ret {
   double sampleRate = asbd.mSampleRate;
   if (state_ == AS_STOPPED) {
@@ -1147,7 +1156,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   // copy data to the audio queue buffer
   AudioQueueBufferRef buf = buffers[fillBufferIndex];
-  memcpy(buf->mAudioData + bytesFilled, data, packetSize);
+  memcpy(buf->mAudioData + bytesFilled, data, (unsigned long)packetSize);
 
   // fill out packet description to pass to enqueue() later on
   packetDescs[packetsFilled] = *desc;
@@ -1292,6 +1301,28 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CFRelease(stream);
     stream = nil;
   }
+}
+
+- (BOOL) fadeTo:(double)volume duration:(double)duration {
+
+    if (audioQueue != NULL) {
+        AudioQueueSetParameter(audioQueue, kAudioQueueParam_VolumeRampTime, duration);
+        AudioQueueSetParameter(audioQueue, kAudioQueueParam_Volume, volume);
+        return YES;
+    }
+    return NO;
+}
+
+- (void) fadeInDuration:(double)duration {
+    
+    //-- set the gain to 0.0, so we can call this method just after creating the streamer
+    [self setVolume:0.0];
+    [self fadeTo:1.0 duration:duration];
+}
+
+- (void) fadeOutDuration:(double)duration {
+    
+    [self fadeTo:0.0 duration:duration];
 }
 
 @end
