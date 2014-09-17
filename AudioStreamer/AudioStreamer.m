@@ -164,7 +164,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   proxyType = PROXY_SOCKS;
 }
 
-- (BOOL)setVolume: (double) volume {
+- (BOOL)setVolume: (float) volume {
   if (audioQueue != NULL) {
     AudioQueueSetParameter(audioQueue, kAudioQueueParam_Volume, volume);
     return YES;
@@ -348,7 +348,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   // Calculate the byte offset for seeking
   //
   seekByteOffset = dataOffset +
-    (newSeekTime / duration) * (fileLength - dataOffset);
+    (UInt64)(newSeekTime / duration) * (fileLength - dataOffset);
 
   //
   // Attempt to leave 1 useful packet at the end of the file (although in
@@ -371,12 +371,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (packetDuration > 0 && bitrate > 0) {
     UInt32 ioFlags = 0;
     SInt64 packetAlignedByteOffset;
-    SInt64 seekPacket = floor(newSeekTime / packetDuration);
+    SInt64 seekPacket = (SInt64)floor(newSeekTime / packetDuration);
     err = AudioFileStreamSeek(audioFileStream, seekPacket,
                               &packetAlignedByteOffset, &ioFlags);
     if (!err && !(ioFlags & kAudioFileStreamSeekFlag_OffsetIsEstimated)) {
-      seekTime -= ((seekByteOffset - dataOffset) - packetAlignedByteOffset) * 8.0 / bitrate;
-      seekByteOffset = packetAlignedByteOffset + dataOffset;
+      seekTime -= ((seekByteOffset - dataOffset) - (UInt64)packetAlignedByteOffset) * 8.0 / bitrate;
+      seekByteOffset = (UInt64)packetAlignedByteOffset + dataOffset;
     }
   }
 
@@ -397,7 +397,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (BOOL) seekByDelta:(double)seekTimeDelta {
-    
+
     double p = 0;
     if ([self progress:&p]) {
         return [self seekToTime:p + seekTimeDelta];
@@ -483,7 +483,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (void)setState:(AudioStreamerState)aStatus {
-  LOG(@"transitioning to state:%d", aStatus);
+  LOG(@"transitioning to state:%tu", aStatus);
 
   if (state_ == aStatus) return;
   state_ = aStatus;
@@ -757,7 +757,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     // we only have a subset of the total bytes.
     //
     if (seekByteOffset == 0) {
-      fileLength = [httpHeaders[@"Content-Length"] integerValue];
+      fileLength = (UInt64)[httpHeaders[@"Content-Length"] longLongValue];
     }
   }
 
@@ -997,7 +997,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       err = AudioFileStreamGetProperty(inAudioFileStream,
               kAudioFileStreamProperty_DataOffset, &offsetSize, &offset);
       CHECK_ERR(err, AS_FILE_STREAM_GET_PROPERTY_FAILED);
-      dataOffset = offset;
+      dataOffset = (UInt64)offset;
 
       if (audioDataByteCount) {
         fileLength = dataOffset + audioDataByteCount;
@@ -1125,7 +1125,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (int) handlePacket:(const void*)data
                 desc:(AudioStreamPacketDescription*)desc{
   assert(audioQueue != NULL);
-  UInt64 packetSize = desc->mDataByteSize;
+  UInt32 packetSize = desc->mDataByteSize;
 
   /* This shouldn't happen because most of the time we read the packet buffer
      size from the file stream, but if we restored to guessing it we could
@@ -1232,7 +1232,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(idx >= 0 && idx < bufferCnt);
   assert(inuse[idx]);
 
-  LOG(@"buffer %d finished", idx);
+  LOG(@"buffer %u finished", (unsigned int)idx);
 
   /* Signal the buffer is no longer in use */
   inuse[idx] = false;
@@ -1314,14 +1314,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (void) fadeInDuration:(double)duration {
-    
+
     //-- set the gain to 0.0, so we can call this method just after creating the streamer
     [self setVolume:0.0];
     [self fadeTo:1.0 duration:duration];
 }
 
 - (void) fadeOutDuration:(double)duration {
-    
+
     [self fadeTo:0.0 duration:duration];
 }
 
