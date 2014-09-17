@@ -30,7 +30,7 @@
 /* Maximum number of packets which can be contained in one buffer */
 #define kAQMaxPacketDescs 512
 
-typedef enum {
+typedef NS_ENUM(NSUInteger, AudioStreamerState) {
   AS_INITIALIZED = 0,
   AS_WAITING_FOR_DATA,
   AS_WAITING_FOR_QUEUE_TO_START,
@@ -38,9 +38,9 @@ typedef enum {
   AS_PAUSED,
   AS_DONE,
   AS_STOPPED
-} AudioStreamerState;
+};
 
-typedef enum
+typedef NS_ENUM(NSUInteger, AudioStreamerErrorCode)
 {
   AS_NO_ERROR = 0,
   AS_NETWORK_CONNECTION_FAILED,
@@ -66,14 +66,14 @@ typedef enum
   AS_GET_AUDIO_TIME_FAILED,
   AS_AUDIO_BUFFER_TOO_SMALL,
   AS_TIMED_OUT
-} AudioStreamerErrorCode;
+};
 
-typedef enum {
-  AS_DONE_STOPPED,
+typedef NS_ENUM(NSUInteger, AudioStreamerDoneReason) {
+  AS_DONE_STOPPED = 0,
   AS_DONE_ERROR,
   AS_DONE_EOF,
   AS_NOT_DONE
-} AudioStreamerDoneReason;
+};
 
 extern NSString * const ASStatusChangedNotification;
 extern NSString * const ASBitrateReadyNotification;

@@ -144,20 +144,20 @@
 - (void)spinButton
 {
 	[CATransaction begin];
-	[CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+	[CATransaction setValue:@YES forKey:kCATransactionDisableActions];
 	CGRect frame = [button frame];
 	button.layer.anchorPoint = CGPointMake(0.5, 0.5);
 	button.layer.position = CGPointMake(frame.origin.x + 0.5 * frame.size.width, frame.origin.y + 0.5 * frame.size.height);
 	[CATransaction commit];
 
 	[CATransaction begin];
-	[CATransaction setValue:(id)kCFBooleanFalse forKey:kCATransactionDisableActions];
-	[CATransaction setValue:[NSNumber numberWithFloat:2.0] forKey:kCATransactionAnimationDuration];
+	[CATransaction setValue:@NO forKey:kCATransactionDisableActions];
+	[CATransaction setValue:@2.0 forKey:kCATransactionAnimationDuration];
 
 	CABasicAnimation *animation;
 	animation = [CABasicAnimation animationWithKeyPath:@"transform.rotation.z"];
-	animation.fromValue = [NSNumber numberWithFloat:0.0];
-	animation.toValue = [NSNumber numberWithFloat:2 * M_PI];
+	animation.fromValue = @0.0;
+	animation.toValue = @(2.0 * M_PI);
 	animation.timingFunction = [CAMediaTimingFunction functionWithName: kCAMediaTimingFunctionLinear];
 	animation.delegate = self;
 	[button.layer addAnimation:animation forKey:@"rotationAnimation"];
@@ -276,6 +276,7 @@
 		else
 		{
 			[progressSlider setEnabled:NO];
+			[progressSlider setValue:0];
 		}
 	}
 	else
