@@ -1318,9 +1318,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   inuse[idx] = false;
   buffersUsed--;
 
+  /* If we're done with the buffers because the stream is dying, then there's no
+   * need to call more methods on it */
+  if (state_ == AS_STOPPED) {
+    return;
+
   /* If there is absolutely no more data which will ever come into the stream,
    * then we're done with the audio */
-  if (buffersUsed == 0 && queued_head == NULL && stream != nil &&
+  } else if (buffersUsed == 0 && queued_head == NULL && stream != nil &&
       CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
     assert(!waitingOnBuffer);
     AudioQueueStop(audioQueue, false);
