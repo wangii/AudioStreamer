@@ -133,7 +133,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   [streamer handleReadFromStream:aStream eventType:eventType];
 }
 
-+ (AudioStreamer*) streamWithURL:(NSURL*)url{
++ (instancetype) streamWithURL:(NSURL*)url{
   assert(url != nil);
   AudioStreamer *stream = [[AudioStreamer alloc] init];
   stream->url = url;

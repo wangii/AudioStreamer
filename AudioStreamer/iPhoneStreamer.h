@@ -7,10 +7,9 @@
 //
 
 #import "AudioStreamer.h"
+#import <AVFoundation/AVAudioSession.h>
 
-@interface iPhoneStreamer : AudioStreamer {
+@interface iPhoneStreamer : AudioStreamer <AVAudioSessionDelegate> {
     BOOL pausedByInterruption;
 }
-- (BOOL)start;
-- (void) stop;
 @end

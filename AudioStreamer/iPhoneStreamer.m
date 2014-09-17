@@ -12,90 +12,92 @@
 #define kDefaultNumAQBufs 16
 #define kDefaultAQDefaultBufSize 2048
 
-@interface iPhoneStreamer ()
-- (void)handleInterruptionChangeToState:(AudioQueuePropertyID)inInterruptionState;
-@end
+#if defined(DEBUG) && 0
+#define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
+#else
+#define LOG(...)
+#endif
 
 @implementation iPhoneStreamer
 
-//
-// MyAudioSessionInterruptionListener
-//
-// Invoked if the audio session is interrupted (like when the phone rings)
-//
-static void ASAudioSessionInterruptionListener(void *inClientData, UInt32 inInterruptionState)
-{
-    iPhoneStreamer* streamer = (__bridge iPhoneStreamer *)inClientData;
-    [streamer handleInterruptionChangeToState:inInterruptionState];
-}
-
-+ (iPhoneStreamer *) streamWithURL:(NSURL *)url {
++ (instancetype)streamWithURL:(NSURL *)url {
     assert(url != nil);
     iPhoneStreamer *stream = [[iPhoneStreamer alloc] init];
     stream->url = url;
     stream->bufferCnt = kDefaultNumAQBufs;
     stream->bufferSize = kDefaultAQDefaultBufSize;
     stream->timeoutInterval = 10;
-	return stream;
+    return stream;
 }
 
 - (BOOL)start {
     if (stream != NULL) return NO;
-    [super start];
-    //
-    // Set the audio session category so that we continue to play if the
-    // iPhone/iPod auto-locks.
-    //
-    AudioSessionInitialize (
-                            NULL,                          // 'NULL' to use the default (main) run loop
-                            NULL,                          // 'NULL' to use the default run loop mode
-                            ASAudioSessionInterruptionListener,  // a reference to your interruption callback
-                            (__bridge void*)self                       // data to pass to your interruption listener callback
-                            );
     
-    UInt32 sessionCategory = kAudioSessionCategory_MediaPlayback;
-    AudioSessionSetProperty (
-                             kAudioSessionProperty_AudioCategory,
-                             sizeof (sessionCategory),
-                             &sessionCategory
-                             );
-    AudioSessionSetActive(true);
+    [super start];
+    
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
+    [audioSession setDelegate:self];
+    
+    NSError *error;
+    
+    BOOL success = [audioSession setCategory:AVAudioSessionCategoryPlayback error:&error];
+    if (!success)
+    {
+        LOG(@"Error setting AVAudioSession category: %@", [error localizedDescription]);
+        return YES; // The stream can still continue, but we don't get interruption handling.
+    }
+    
+    success = [audioSession setActive:YES error:&error];
+    if (!success)
+    {
+        LOG(@"Error activating AVAudioSession: %@", [error localizedDescription]);
+    }
+    
     return YES;
 }
 
-- (void) stop {
+- (void)stop {
     [super stop];
-    AudioSessionSetActive(false);
+    
+    NSError *error;
+    
+    BOOL success = [[AVAudioSession sharedInstance] setActive:NO error:&error];
+    if (!success)
+    {
+        LOG(@"Error deactivating AVAudioSession: %@", [error localizedDescription]);
+    }
 }
 
-//
-// handleInterruptionChangeForQueue:propertyID:
-//
-// Implementation for MyAudioQueueInterruptionListener
-//
-// Parameters:
-//    inAQ - the audio queue
-//    inID - the property ID
-//
-- (void)handleInterruptionChangeToState:(AudioQueuePropertyID)inInterruptionState
+- (void)beginInterruption
 {
-    if (inInterruptionState == kAudioSessionBeginInterruption)
+    if ([self isPlaying])
     {
-        if ([self isPlaying]) {
-            [self pause];
-            
-            pausedByInterruption = YES;
-        }
-    }
-    else if (inInterruptionState == kAudioSessionEndInterruption)
-    {
-        AudioSessionSetActive(true);
+        LOG(@"Interrupted");
         
-        if ([self isPaused] && pausedByInterruption) {
+        [self pause];
+        
+        pausedByInterruption = YES;
+    }
+}
+
+- (void)endInterruptionWithFlags:(NSUInteger)flags
+{
+    if ([self isPaused] && pausedByInterruption)
+    {
+        LOG(@"Interruption ended");
+        
+        if (flags & AVAudioSessionInterruptionFlags_ShouldResume)
+        {
+            LOG(@"Resuming after interruption...");
             [self play];
-            
-            pausedByInterruption = NO;
         }
+        else
+        {
+            LOG(@"Not resuming after interruption");
+            [self stop];
+        }
+        
+        pausedByInterruption = NO;
     }
 }
 

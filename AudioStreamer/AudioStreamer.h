@@ -256,7 +256,7 @@ struct queued_packet;
  * @param url the remote source of audio
  * @return the stream to configure and being playback with
  */
-+ (AudioStreamer*) streamWithURL:(NSURL*)url;
++ (instancetype) streamWithURL:(NSURL*)url;
 
 /** @name Properties of the audio stream */
 
