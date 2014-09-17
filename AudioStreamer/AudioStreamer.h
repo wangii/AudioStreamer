@@ -387,7 +387,7 @@ struct queued_packet;
  *
  * A value of 1.0 specifies that the audio should play back at its normal rate.
  *
- * On iOS, this property is only works in iOS 7 and later.
+ * On iOS, this property will only work in iOS 7 and later.
  *
  * Default: 1.0
  */
