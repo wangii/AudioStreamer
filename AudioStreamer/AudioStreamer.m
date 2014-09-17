@@ -302,8 +302,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (void) stop {
-  if (![self isDone]) {
-    [self setState:AS_STOPPED];
+  if (state_ == AS_STOPPED) return; // Already stopped.
+
+  AudioStreamerState prevState = state_;
+  if (state_ != AS_DONE) {
+    // Delay notification to the end to avoid race conditions
+    state_ = AS_STOPPED;
   }
 
   [timeout invalidate];
@@ -336,6 +340,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   packetsFilled    = 0;
   seekByteOffset   = 0;
   packetBufferSize = 0;
+
+  if (prevState != state_) {
+    [[NSNotificationCenter defaultCenter]
+          postNotificationName:ASStatusChangedNotification
+                        object:self];
+  }
 }
 
 - (BOOL)seekToTime:(double)newSeekTime {
@@ -502,9 +512,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   LOG(@"got an error: %@", [AudioStreamer stringForErrorCode:anErrorCode]);
   errorCode = anErrorCode;
 
-  [self setState:AS_DONE];
+  state_ = AS_DONE; // Delay notification to avoid race conditions
 
   [self stop];
+
+  [[NSNotificationCenter defaultCenter]
+        postNotificationName:ASStatusChangedNotification
+                      object:self];
 }
 
 - (void)setState:(AudioStreamerState)aStatus {
