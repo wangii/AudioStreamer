@@ -29,14 +29,14 @@ static void ASAudioSessionInterruptionListener(void *inClientData, UInt32 inInte
     [streamer handleInterruptionChangeToState:inInterruptionState];
 }
 
-+ (iPhoneStreamer *) streamWithURL:(NSURL *)url {
++ (instancetype)streamWithURL:(NSURL *)url {
     assert(url != nil);
     iPhoneStreamer *stream = [[iPhoneStreamer alloc] init];
     stream->url = url;
     stream->bufferCnt = kDefaultNumAQBufs;
     stream->bufferSize = kDefaultAQDefaultBufSize;
     stream->timeoutInterval = 10;
-	return stream;
+    return stream;
 }
 
 - (BOOL)start {
