@@ -276,7 +276,7 @@
 		else
 		{
 			[progressSlider setEnabled:NO];
-            [progressSlider setValue:0];
+			[progressSlider setValue:0];
 		}
 	}
 	else
