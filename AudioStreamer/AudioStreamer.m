@@ -267,11 +267,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(audioQueue == NULL);
   assert(state_ == AS_INITIALIZED);
   [self openReadStream];
-  timeout = [NSTimer scheduledTimerWithTimeInterval:timeoutInterval
-                                             target:self
-                                           selector:@selector(checkTimeout)
-                                           userInfo:nil
-                                            repeats:YES];
+  if (![self isDone]) {
+    timeout = [NSTimer scheduledTimerWithTimeInterval:timeoutInterval
+                                               target:self
+                                             selector:@selector(checkTimeout)
+                                             userInfo:nil
+                                              repeats:YES];
+  }
   return YES;
 }
 
