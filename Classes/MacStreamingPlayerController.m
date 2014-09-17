@@ -262,6 +262,7 @@
 		else
 		{
 			[progressSlider setEnabled:NO];
+			[progressSlider setDoubleValue:0.0];
 		}
 	}
 	else

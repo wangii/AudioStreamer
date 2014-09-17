@@ -27,6 +27,7 @@
     stream->bufferCnt = kDefaultNumAQBufs;
     stream->bufferSize = kDefaultAQDefaultBufSize;
     stream->timeoutInterval = 10;
+    stream->playbackRate = 1.0f;
     return stream;
 }
 

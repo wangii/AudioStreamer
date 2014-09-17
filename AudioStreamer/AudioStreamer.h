@@ -184,6 +184,7 @@ struct queued_packet;
   UInt32          bufferCnt;
   BOOL            bufferInfinite;
   int             timeoutInterval;
+  float           playbackRate;
 
   /* Creates as part of the [start] method */
   CFReadStreamRef stream;
@@ -378,6 +379,19 @@ struct queued_packet;
  * Default: 10
  */
 @property (readwrite) int timeoutInterval;
+
+/**
+ * Rate to playback audio
+ *
+ * This property must be in the range 0.5 through 2.0.
+ *
+ * A value of 1.0 specifies that the audio should play back at its normal rate.
+ *
+ * On iOS, this property is only works in iOS 7 and later.
+ *
+ * Default: 1.0
+ */
+@property (readwrite) float playbackRate;
 
 /**
  * Set an HTTP proxy for this stream

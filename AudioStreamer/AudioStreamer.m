@@ -87,6 +87,7 @@ NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 @synthesize bufferSize;
 @synthesize bufferInfinite;
 @synthesize timeoutInterval;
+@synthesize playbackRate;
 
 /* AudioFileStream callback when properties are available */
 static void MyPropertyListenerProc(void *inClientData,
@@ -140,6 +141,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   stream->bufferCnt  = kDefaultNumAQBufs;
   stream->bufferSize = kDefaultAQDefaultBufSize;
   stream->timeoutInterval = 10;
+  stream->playbackRate = 1.0f;
   return stream;
 }
 
@@ -918,6 +920,19 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     /* Once we have a small amount of queued data, then we can go ahead and
      * start the audio queue and the file stream should remain ahead of it */
     if (bufferCnt < 3 || buffersUsed > 2) {
+      UInt32 propVal = 1;
+      AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
+
+      propVal = kAudioQueueTimePitchAlgorithm_Spectral;
+      AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
+
+      propVal = (playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
+      AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
+
+      if (playbackRate != 1.0f && fileLength > 0) {
+        AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, playbackRate);
+      }
+
       err = AudioQueueStart(audioQueue, NULL);
       if (err) {
         [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED];
