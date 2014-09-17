@@ -1388,7 +1388,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   if (state_ == AS_WAITING_FOR_QUEUE_TO_START) {
     [self setState:AS_PLAYING];
-  } else {
+  } else if (state_ != AS_STOPPED) { // If the user stopped it, we don't care.
     UInt32 running;
     UInt32 output = sizeof(running);
     err = AudioQueueGetProperty(audioQueue, kAudioQueueProperty_IsRunning,
