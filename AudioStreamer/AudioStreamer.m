@@ -1030,8 +1030,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       break;
     }
 
-    /* if AAC or SBR needs to be supported, fix this */
-    /*case kAudioFileStreamProperty_FormatList: {
+    case kAudioFileStreamProperty_FormatList: {
       Boolean outWriteable;
       UInt32 formatListSize;
       err = AudioFileStreamGetPropertyInfo(inAudioFileStream,
@@ -1043,20 +1042,25 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       CHECK_ERR(formatList == NULL, AS_FILE_STREAM_GET_PROPERTY_FAILED);
       err = AudioFileStreamGetProperty(inAudioFileStream,
               kAudioFileStreamProperty_FormatList, &formatListSize, formatList);
-      CHECK_ERR(err, AS_FILE_STREAM_GET_PROPERTY_FAILED);
+      if (err) {
+        free(formatList);
+        [self failWithErrorCode:AS_FILE_STREAM_GET_PROPERTY_FAILED];
+        return;
+      }
 
-      for (int i = 0; i * sizeof(AudioFormatListItem) < formatListSize;
+      for (unsigned long i = 0; i * sizeof(AudioFormatListItem) < formatListSize;
            i += sizeof(AudioFormatListItem)) {
         AudioStreamBasicDescription pasbd = formatList[i].mASBD;
 
-        if (pasbd.mFormatID == kAudioFormatMPEG4AAC_HE)
+        if (pasbd.mFormatID == kAudioFormatMPEG4AAC_HE || pasbd.mFormatID == kAudioFormatMPEG4AAC_HE_V2)
         {
+          asbd = pasbd;
           break;
         }
       }
       free(formatList);
       break;
-    }*/
+    }
   }
 }
 
