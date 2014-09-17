@@ -179,6 +179,7 @@ struct queued_packet;
   NSString        *proxyHost;
   int             proxyPort;
   AudioFileTypeID fileType;
+  BOOL            defaultFileTypeUsed;
   UInt32          bufferSize; /* attempted to be guessed, but fallback here */
   UInt32          bufferCnt;
   BOOL            bufferInfinite;

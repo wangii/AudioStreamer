@@ -771,6 +771,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                       [[url path] pathExtension]];
         if (fileType == 0) {
           fileType = kAudioFileMP3Type;
+          defaultFileTypeUsed = YES;
         }
       }
     }
@@ -794,6 +795,63 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return;
     } else if (length == 0) {
       return;
+    }
+
+    // Shoutcast support.
+    if (defaultFileTypeUsed) {
+      NSUInteger streamStart = 0;
+      NSUInteger lineStart = 0;
+      while (YES)
+      {
+        if (streamStart + 3 > (NSUInteger)length)
+        {
+          break;
+        }
+
+        if (bytes[streamStart] == '\r' && bytes[streamStart+1] == '\n')
+        {
+          NSArray *lineItems = [[[[NSString alloc] initWithBytes:bytes
+                                                            length:streamStart
+                                                          encoding:NSUTF8StringEncoding]
+                                    substringWithRange:NSMakeRange(lineStart,
+                                                                  streamStart-lineStart)]
+                                    componentsSeparatedByString:@":"];
+          if ([lineItems count] >= 2)
+          {
+            if ([lineItems[0] caseInsensitiveCompare:@"Content-Type"] == NSOrderedSame) {
+              LOG(@"Shoutcast Stream Content-Type: %@", lineItems[1]);
+              AudioFileStreamClose(audioFileStream);
+              AudioQueueStop(audioQueue, true);
+              AudioQueueReset(audioQueue);
+              for (UInt32 j = 0; j < packetBufferSize; ++j) {
+                AudioQueueFreeBuffer(audioQueue, buffers[j]);
+              }
+
+              fileType = [AudioStreamer hintForMIMEType:lineItems[1]];
+              if (fileType == 0) {
+                // Okay, we can now default to this now.
+                fileType = kAudioFileMP3Type;
+              }
+              defaultFileTypeUsed = NO;
+
+              err = AudioFileStreamOpen((__bridge void*) self, MyPropertyListenerProc,
+                                            MyPacketsProc, fileType, &audioFileStream);
+              CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED);
+
+              break; // We're not interested in any other metadata here.
+            }
+          }
+
+          if (bytes[streamStart+2] == '\r' && bytes[streamStart+3] == '\n')
+          {
+            break;
+          }
+
+          lineStart = streamStart+2; // c3
+        }
+
+        streamStart++;
+      }
     }
 
     if (discontinuous) {
