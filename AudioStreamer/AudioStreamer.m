@@ -491,7 +491,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (void)failWithErrorCode:(AudioStreamerErrorCode)anErrorCode {
   // Only set the error once.
   if (errorCode != AS_NO_ERROR) {
-    assert(state_ == AS_STOPPED);
+    assert([self isDone]);
     return;
   }
   /* Attempt to save our last point of progress */
