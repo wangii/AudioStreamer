@@ -331,8 +331,8 @@ struct queued_packet;
 /**
  * The file type of this audio stream
  *
- * This is an optional parameter. If not specified, then then the file type will
- * be guessed. First, the MIME type of the response is used to guess the file
+ * This is an optional parameter. If not specified, then the file type will be
+ * guessed. First, the MIME type of the response is used to guess the file
  * type, and if that fails the extension on the url is used. If that fails as
  * well, then the default is an MP3 stream.
  *
@@ -532,7 +532,7 @@ struct queued_packet;
  *         the volume ready to be set. When the state for this audio streamer
  *         changes internally to have a stream, then setVolume: will work
  */
-- (BOOL) setVolume:(double)volume;
+- (BOOL) setVolume:(float)volume;
 
 /**
  * Calculates the duration of the audio stream in seconds
