@@ -568,7 +568,7 @@ struct queued_packet;
  * @param duration a double which represents the fade-in time span.
  * @return nothing.
  */
-- (void) fadeInDuration:(double)duration;
+- (void) fadeInDuration:(float)duration;
 
 /**
  * Fade out playback
@@ -578,6 +578,6 @@ struct queued_packet;
  * @param duration a double which represents the fade-in time span.
  * @return nothing.
  */
-- (void) fadeOutDuration:(double)duration;
+- (void) fadeOutDuration:(float)duration;
 
 @end

@@ -457,7 +457,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return YES;
 }
 
-- (BOOL) fadeTo:(double)volume duration:(double)duration {
+- (BOOL) fadeTo:(float)volume duration:(float)duration {
   if (audioQueue != NULL) {
     AudioQueueSetParameter(audioQueue, kAudioQueueParam_VolumeRampTime, duration);
     AudioQueueSetParameter(audioQueue, kAudioQueueParam_Volume, volume);
@@ -466,14 +466,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return NO;
 }
 
-- (void) fadeInDuration:(double)duration {
+- (void) fadeInDuration:(float)duration {
   //-- set the gain to 0.0, so we can call this method just after creating the streamer
   [self setVolume:0.0];
   [self fadeTo:1.0 duration:duration];
 }
 
-- (void) fadeOutDuration:(double)duration {
-    
+- (void) fadeOutDuration:(float)duration {
   [self fadeTo:0.0 duration:duration];
 }
 
