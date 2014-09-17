@@ -245,14 +245,15 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (AudioStreamerDoneReason)doneReason {
-  if (errorCode) {
-    return AS_DONE_ERROR;
-  }
   switch (state_) {
     case AS_STOPPED:
       return AS_DONE_STOPPED;
     case AS_DONE:
-      return AS_DONE_EOF;
+      if (errorCode) {
+        return AS_DONE_ERROR;
+      } else {
+        return AS_DONE_EOF;
+      }
     default:
       break;
   }
@@ -478,6 +479,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   LOG(@"got an error: %@", [AudioStreamer stringForErrorCode:anErrorCode]);
   errorCode = anErrorCode;
+
+  [self setState:AS_DONE];
 
   [self stop];
 }
