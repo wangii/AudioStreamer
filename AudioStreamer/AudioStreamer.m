@@ -389,7 +389,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     SInt64 seekPacket = (SInt64)floor(newSeekTime / packetDuration);
     err = AudioFileStreamSeek(audioFileStream, seekPacket,
                               &packetAlignedByteOffset, &ioFlags);
-    if (!err && !(ioFlags & kAudioFileStreamSeekFlag_OffsetIsEstimated)) {
+    if (!err) {
       seekByteOffset = (UInt64)packetAlignedByteOffset + dataOffset;
       seekTime -= ((seekByteOffset - dataOffset) - (UInt64)packetAlignedByteOffset) * 8.0 / bitrate;
     }
