@@ -459,13 +459,35 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (BOOL) duration:(double*)ret {
-  double calculatedBitRate;
-  if (![self calculatedBitRate:&calculatedBitRate]) return NO;
-  if (calculatedBitRate == 0 || fileLength == 0) {
-    return NO;
+  if (fileLength == 0) return NO;
+
+  double packetDuration = asbd.mFramesPerPacket / asbd.mSampleRate;
+  if (!packetDuration) return NO;
+
+  // Method one
+  UInt64 packetCount;
+  UInt32 packetCountSize = sizeof(packetCount);
+  OSStatus status = AudioFileStreamGetProperty(audioFileStream,
+                                               kAudioFileStreamProperty_AudioDataPacketCount,
+                                               &packetCountSize, &packetCount);
+  if (status != 0) {
+    // Method two
+    packetCount = totalAudioPackets;
   }
 
-  *ret = (fileLength - dataOffset) / (calculatedBitRate * 0.125);
+  if (packetCount == 1000000)
+  {
+    // Method three
+    double calcBitrate;
+    if (![self calculatedBitRate:&calcBitrate]) return NO;
+    if (calcBitrate == 0) return NO;
+    *ret = (fileLength - dataOffset) / (calcBitrate * 0.125);
+  }
+  else
+  {
+    *ret = packetCount * asbd.mFramesPerPacket / asbd.mSampleRate;
+  }
+
   return YES;
 }
 
@@ -1195,6 +1217,31 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   if (!audioQueue) {
+    OSStatus status = 0;
+    UInt32 ioFlags = 0;
+    long long byteOffset;
+    SInt64 lower = 0;
+    SInt64 upper = 1000000;
+    SInt64 current;
+    while (upper - lower > 1 || status != 0)
+    {
+      current = (upper + lower) / 2;
+      status = AudioFileStreamSeek(audioFileStream, current, &byteOffset, &ioFlags);
+      if (status == 0)
+      {
+        lower = current;
+      }
+      else
+      {
+        upper = current;
+      }
+    }
+    AudioFileStreamSeek(audioFileStream, 0, &byteOffset, &ioFlags);
+    totalAudioPackets = (UInt64)current + 1;
+    seekByteOffset = (UInt64)byteOffset + dataOffset;
+    [self closeReadStream];
+    [self openReadStream];
+
     assert(!waitingOnBuffer);
     [self createQueue];
   }
