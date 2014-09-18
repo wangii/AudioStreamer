@@ -50,6 +50,8 @@
 typedef struct queued_packet {
   AudioStreamPacketDescription desc;
   struct queued_packet *next;
+  size_t offset;
+  UInt32 byteSize;
   char data[];
 } queued_packet_t;
 
@@ -444,18 +446,25 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (BOOL) calculatedBitRate:(double*)rate {
-  double sampleRate     = asbd.mSampleRate;
-  double packetDuration = asbd.mFramesPerPacket / sampleRate;
+  if (vbr)
+  {
+    double sampleRate     = asbd.mSampleRate;
+    double packetDuration = asbd.mFramesPerPacket / sampleRate;
 
-  if (packetDuration && processedPacketsCount > BitRateEstimationMinPackets) {
-    double averagePacketByteSize = processedPacketsSizeTotal /
-                                    processedPacketsCount;
-    /* bits/byte x bytes/packet x packets/sec = bits/sec */
-    *rate = 8 * averagePacketByteSize / packetDuration;
+    if (packetDuration && processedPacketsCount > BitRateEstimationMinPackets) {
+      double averagePacketByteSize = processedPacketsSizeTotal /
+                                      processedPacketsCount;
+      /* bits/byte x bytes/packet x packets/sec = bits/sec */
+      *rate = 8.0 * averagePacketByteSize / packetDuration;
+      return YES;
+    }
+    return NO;
+  }
+  else
+  {
+    *rate = 8.0 * asbd.mSampleRate * asbd.mBytesPerPacket * asbd.mFramesPerPacket;
     return YES;
   }
-
-  return NO;
 }
 
 - (BOOL) duration:(double*)ret {
@@ -666,7 +675,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CFHTTPMessageSetHeaderFieldValue(message,
                                      CFSTR("Range"),
                                      (__bridge CFStringRef) str);
-    discontinuous = YES;
+    discontinuous = vbr;
   }
 
   stream = CFReadStreamCreateForHTTPRequest(NULL, message);
@@ -838,7 +847,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED);
   }
 
-  UInt8 bytes[2048];
+  UInt8 bytes[bufferSize];
   CFIndex length;
   int i;
   for (i = 0;
@@ -946,9 +955,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   AudioQueueBufferRef fillBuf = buffers[fillBufferIndex];
   fillBuf->mAudioDataByteSize = bytesFilled;
 
-  assert(packetsFilled > 0);
-  err = AudioQueueEnqueueBuffer(audioQueue, fillBuf, packetsFilled,
-                                packetDescs);
+  if (packetsFilled) {
+    err = AudioQueueEnqueueBuffer(audioQueue, fillBuf, packetsFilled,
+                                  packetDescs);
+  } else {
+    err = AudioQueueEnqueueBuffer(audioQueue, fillBuf, 0, NULL);
+  }
   if (err) {
     [self failWithErrorCode:AS_AUDIO_QUEUE_ENQUEUE_FAILED];
     return -1;
@@ -1039,21 +1051,25 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                       (__bridge void*) self);
   CHECK_ERR(err, AS_AUDIO_QUEUE_ADD_LISTENER_FAILED);
 
-  /* Try to determine the packet size, eventually falling back to some
-     reasonable default of a size */
-  UInt32 sizeOfUInt32 = sizeof(UInt32);
-  err = AudioFileStreamGetProperty(audioFileStream,
-          kAudioFileStreamProperty_PacketSizeUpperBound, &sizeOfUInt32,
-          &packetBufferSize);
-
-  if (err || packetBufferSize == 0) {
+  if (vbr) {
+    /* Try to determine the packet size, eventually falling back to some
+       reasonable default of a size */
+    UInt32 sizeOfUInt32 = sizeof(UInt32);
     err = AudioFileStreamGetProperty(audioFileStream,
-            kAudioFileStreamProperty_MaximumPacketSize, &sizeOfUInt32,
+            kAudioFileStreamProperty_PacketSizeUpperBound, &sizeOfUInt32,
             &packetBufferSize);
+
     if (err || packetBufferSize == 0) {
-      // No packet size available, just use the default
-      packetBufferSize = bufferSize;
+      err = AudioFileStreamGetProperty(audioFileStream,
+              kAudioFileStreamProperty_MaximumPacketSize, &sizeOfUInt32,
+              &packetBufferSize);
+      if (err || packetBufferSize == 0) {
+        // No packet size available, just use the default
+        packetBufferSize = bufferSize;
+      }
     }
+  } else {
+    packetBufferSize = bufferSize;
   }
 
   // allocate audio queue buffers
@@ -1217,6 +1233,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   if (!audioQueue) {
+    vbr = (inPacketDescriptions != NULL);
+
     OSStatus status = 0;
     UInt32 ioFlags = 0;
     long long byteOffset;
@@ -1246,43 +1264,79 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     [self createQueue];
     if ([self isDone]) return; // Queue creation failed. Abort.
   }
-  assert(inPacketDescriptions != NULL);
 
-  /* Place each packet into a buffer and then send each buffer into the audio
-     queue */
-  UInt32 i;
-  for (i = 0; i < inNumberPackets && !waitingOnBuffer && queued_head == NULL; i++) {
-    AudioStreamPacketDescription *desc = &inPacketDescriptions[i];
-    int ret = [self handlePacket:(inInputData + desc->mStartOffset)
-                            desc:desc];
-    CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
-    if (!ret) break;
-  }
-  if (i == inNumberPackets) return;
+  if (inPacketDescriptions) {
+    /* Place each packet into a buffer and then send each buffer into the audio
+       queue */
+    UInt32 i;
+    for (i = 0; i < inNumberPackets && !waitingOnBuffer && queued_head == NULL; i++) {
+      AudioStreamPacketDescription *desc = &inPacketDescriptions[i];
+      int ret = [self handleVBRPacket:(inInputData + desc->mStartOffset)
+                              desc:desc];
+      CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
+      if (!ret) break;
+    }
+    if (i == inNumberPackets) return;
 
-  for (; i < inNumberPackets; i++) {
-    /* Allocate the packet */
-    UInt32 size = inPacketDescriptions[i].mDataByteSize;
-    queued_packet_t *packet = malloc(sizeof(queued_packet_t) + size);
-    CHECK_ERR(packet == NULL, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
+    for (; i < inNumberPackets; i++) {
+      /* Allocate the packet */
+      UInt32 size = inPacketDescriptions[i].mDataByteSize;
+      queued_packet_t *packet = malloc(sizeof(queued_packet_t) + size);
+      CHECK_ERR(packet == NULL, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
 
-    /* Prepare the packet */
-    packet->next = NULL;
-    packet->desc = inPacketDescriptions[i];
-    packet->desc.mStartOffset = 0;
-    memcpy(packet->data, inInputData + inPacketDescriptions[i].mStartOffset,
-           size);
+      /* Prepare the packet */
+      packet->next = NULL;
+      packet->desc = inPacketDescriptions[i];
+      packet->desc.mStartOffset = 0;
+      packet->byteSize = 0; // Not used when we have a desc.
+      memcpy(packet->data, inInputData + inPacketDescriptions[i].mStartOffset,
+             size);
 
-    if (queued_head == NULL) {
-      queued_head = queued_tail = packet;
-    } else {
-      queued_tail->next = packet;
-      queued_tail = packet;
+      if (queued_head == NULL) {
+        queued_head = queued_tail = packet;
+      } else {
+        queued_tail->next = packet;
+        queued_tail = packet;
+      }
+    }
+  } else {
+    size_t offset = 0;
+    while (inNumberBytes && !waitingOnBuffer && queued_head == NULL) {
+      size_t copySize;
+      int ret = [self handleCBRPacket:(inInputData + offset)
+                             byteSize:inNumberBytes
+                             copySize:&copySize];
+      CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
+      if (!ret) break;
+      inNumberBytes -= copySize;
+      offset += copySize;
+    }
+    while (inNumberBytes) {
+      /* Allocate the packet */
+      size_t size = MIN(bufferSize - bytesFilled, inNumberBytes);
+      queued_packet_t *packet = malloc(sizeof(queued_packet_t) + size);
+      CHECK_ERR(packet == NULL, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
+
+      /* Prepare the packet */
+      packet->next = NULL;
+      packet->byteSize = inNumberBytes;
+      packet->offset = offset;
+      memcpy(packet->data, inInputData + offset, size);
+
+      if (queued_head == NULL) {
+        queued_head = queued_tail = packet;
+      } else {
+        queued_tail->next = packet;
+        queued_tail = packet;
+      }
+
+      inNumberBytes -= size;
+      offset += size;
     }
   }
 }
 
-- (int) handlePacket:(const void*)data
+- (int) handleVBRPacket:(const void*)data
                 desc:(AudioStreamPacketDescription*)desc{
   assert(audioQueue != NULL);
   UInt32 packetSize = desc->mDataByteSize;
@@ -1300,7 +1354,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return hasFreeBuffer;
     }
     assert(bytesFilled == 0);
-    assert(packetBufferSize >= packetSize);
   }
 
   /* global statistics */
@@ -1331,6 +1384,42 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return 1;
 }
 
+- (int)handleCBRPacket:(const void*)data
+              byteSize:(UInt32)byteSize
+              copySize:(size_t*)copySize{
+  assert(audioQueue != NULL);
+
+  size_t bufSpaceRemaining = bufferSize - bytesFilled;
+  if (bufSpaceRemaining < byteSize) {
+    int hasFreeBuffer = [self enqueueBuffer];
+    if (hasFreeBuffer <= 0) {
+      return hasFreeBuffer;
+    }
+    assert(bytesFilled == 0);
+  }
+
+  if ([self isDone]) return 0;
+
+  bufSpaceRemaining = bufferSize - bytesFilled;
+  *copySize = MIN(bufSpaceRemaining, byteSize);
+
+  AudioQueueBufferRef buf = buffers[fillBufferIndex];
+  memcpy(buf->mAudioData + bytesFilled, data, *copySize);
+
+  bytesFilled += *copySize;
+
+  // Bitrate isn't estimated with these packets.
+  // It's safe to calculate the bitrate as soon as we start getting audio.
+  if (!bitrateNotification) {
+    bitrateNotification = true;
+    [[NSNotificationCenter defaultCenter]
+          postNotificationName:ASBitrateReadyNotification
+                        object:self];
+  }
+
+  return 1;
+}
+
 /**
  * @brief Internal helper for sending cached packets to the audio queue
  *
@@ -1346,9 +1435,18 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Queue up as many packets as possible into the buffers */
   queued_packet_t *cur = queued_head;
   while (cur != NULL) {
-    int ret = [self handlePacket:cur->data desc:&cur->desc];
-    CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
-    if (ret == 0) break;
+    if (cur->byteSize) {
+      size_t copySize;
+      int ret = [self handleCBRPacket:cur->data
+                             byteSize:cur->byteSize
+                             copySize:&copySize];
+      CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
+      if (ret == 0) break;
+    } else {
+      int ret = [self handleVBRPacket:cur->data desc:&cur->desc];
+      CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED);
+      if (ret == 0) break;
+    }
     queued_packet_t *next = cur->next;
     free(cur);
     cur = next;
