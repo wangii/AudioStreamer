@@ -1244,6 +1244,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     assert(!waitingOnBuffer);
     [self createQueue];
+    if ([self isDone]) return; // Queue creation failed. Abort.
   }
   assert(inPacketDescriptions != NULL);
 
