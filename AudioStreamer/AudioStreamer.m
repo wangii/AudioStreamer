@@ -1028,7 +1028,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   // create the audio queue
   err = AudioQueueNewOutput(&asbd, MyAudioQueueOutputCallback,
-                            (__bridge void*) self, CFRunLoopGetCurrent(), NULL,
+                            (__bridge void*) self, CFRunLoopGetMain(), NULL,
                             0, &audioQueue);
   CHECK_ERR(err, AS_AUDIO_QUEUE_CREATION_FAILED);
 
