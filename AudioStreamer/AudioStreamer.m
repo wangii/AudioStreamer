@@ -91,7 +91,7 @@ NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 @synthesize playbackRate;
 
 /* AudioFileStream callback when properties are available */
-static void MyPropertyListenerProc(void *inClientData,
+static void ASPropertyListenerProc(void *inClientData,
                             AudioFileStreamID inAudioFileStream,
                             AudioFileStreamPropertyID inPropertyID,
                             UInt32 *ioFlags) {
@@ -102,7 +102,7 @@ static void MyPropertyListenerProc(void *inClientData,
 }
 
 /* AudioFileStream callback when packets are available */
-static void MyPacketsProc(void *inClientData, UInt32 inNumberBytes, UInt32
+static void ASPacketsProc(void *inClientData, UInt32 inNumberBytes, UInt32
                    inNumberPackets, const void *inInputData,
                    AudioStreamPacketDescription  *inPacketDescriptions) {
   AudioStreamer* streamer = (__bridge AudioStreamer *)inClientData;
@@ -114,7 +114,7 @@ static void MyPacketsProc(void *inClientData, UInt32 inNumberBytes, UInt32
 
 /* AudioQueue callback notifying that a buffer is done, invoked on AudioQueue's
  * own personal threads, not the main thread */
-static void MyAudioQueueOutputCallback(void *inClientData, AudioQueueRef inAQ,
+static void ASAudioQueueOutputCallback(void *inClientData, AudioQueueRef inAQ,
                                 AudioQueueBufferRef inBuffer) {
   AudioStreamer* streamer = (__bridge AudioStreamer*)inClientData;
   [streamer handleBufferCompleteForQueue:inAQ buffer:inBuffer];
@@ -122,7 +122,7 @@ static void MyAudioQueueOutputCallback(void *inClientData, AudioQueueRef inAQ,
 
 /* AudioQueue callback that a property has changed, invoked on AudioQueue's own
  * personal threads like above */
-static void MyAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
+static void ASAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
                                    AudioQueuePropertyID inID) {
   AudioStreamer* streamer = (__bridge AudioStreamer *)inUserData;
   [streamer handlePropertyChangeForQueue:inAQ propertyID:inID];
@@ -841,8 +841,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     }
 
     // create an audio file stream parser
-    err = AudioFileStreamOpen((__bridge void*) self, MyPropertyListenerProc,
-                              MyPacketsProc, fileType, &audioFileStream);
+    err = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
+                              ASPacketsProc, fileType, &audioFileStream);
     CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED);
   }
 
@@ -898,8 +898,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               }
               defaultFileTypeUsed = NO;
 
-              err = AudioFileStreamOpen((__bridge void*) self, MyPropertyListenerProc,
-                                            MyPacketsProc, fileType, &audioFileStream);
+              err = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
+                                            ASPacketsProc, fileType, &audioFileStream);
               CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED);
 
               break; // We're not interested in any other metadata here.
@@ -935,8 +935,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 //
 // enqueueBuffer
 //
-// Called from MyPacketsProc and connectionDidFinishLoading to pass filled audio
-// buffers (filled by MyPacketsProc) to the AudioQueue for playback. This
+// Called from ASPacketsProc and connectionDidFinishLoading to pass filled audio
+// buffers (filled by ASPacketsProc) to the AudioQueue for playback. This
 // function does not return until a buffer is idle for further filling or
 // the AudioQueue is stopped.
 //
@@ -1038,7 +1038,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(audioQueue == NULL);
 
   // create the audio queue
-  err = AudioQueueNewOutput(&asbd, MyAudioQueueOutputCallback,
+  err = AudioQueueNewOutput(&asbd, ASAudioQueueOutputCallback,
                             (__bridge void*) self, CFRunLoopGetMain(), NULL,
                             0, &audioQueue);
   CHECK_ERR(err, AS_AUDIO_QUEUE_CREATION_FAILED);
@@ -1046,7 +1046,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   // start the queue if it has not been started already
   // listen to the "isRunning" property
   err = AudioQueueAddPropertyListener(audioQueue, kAudioQueueProperty_IsRunning,
-                                      MyAudioQueueIsRunningCallback,
+                                      ASAudioQueueIsRunningCallback,
                                       (__bridge void*) self);
   CHECK_ERR(err, AS_AUDIO_QUEUE_ADD_LISTENER_FAILED);
 
@@ -1118,7 +1118,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 //
 // handlePropertyChangeForFileStream:fileStreamPropertyID:ioFlags:
 //
-// Object method which handles implementation of MyPropertyListenerProc
+// Object method which handles implementation of ASPropertyListenerProc
 //
 // Parameters:
 //    inAudioFileStream - should be the same as self->audioFileStream
@@ -1212,7 +1212,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 //
 // handleAudioPackets:numberBytes:numberPackets:packetDescriptions:
 //
-// Object method which handles the implementation of MyPacketsProc
+// Object method which handles the implementation of ASPacketsProc
 //
 // Parameters:
 //    inInputData - the packet data
@@ -1518,7 +1518,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 //
 // handlePropertyChangeForQueue:propertyID:
 //
-// Implementation for MyAudioQueueIsRunningCallback
+// Implementation for ASAudioQueueIsRunningCallback
 //
 // Parameters:
 //    inAQ - the audio queue
