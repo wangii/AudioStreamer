@@ -244,6 +244,7 @@ struct queued_packet;
   UInt64 processedPacketsCount;     /* bit rate calculation utility */
   UInt64 processedPacketsSizeTotal; /* helps calculate the bit rate */
   bool   bitrateNotification;       /* notified that the bitrate is ready */
+  bool   isParsing;           /* Are we parsing the file stream? */
 }
 
 /** @name Creating an audio stream */

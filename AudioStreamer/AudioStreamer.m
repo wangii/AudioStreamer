@@ -315,10 +315,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   /* Clean up our streams */
   [self closeReadStream];
-  if (audioFileStream) {
-    err = AudioFileStreamClose(audioFileStream);
-    assert(!err);
-    audioFileStream = nil;
+  if (audioFileStream && !isParsing) {
+    [self closeFileStream];
   }
   if (audioQueue) {
     AudioQueueStop(audioQueue, true);
@@ -890,6 +888,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       }
     }
 
+    isParsing = true;
     if (discontinuous) {
       err = AudioFileStreamParseBytes(audioFileStream, (UInt32) length, bytes,
                                       kAudioFileStreamParseFlag_Discontinuity);
@@ -897,6 +896,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       err = AudioFileStreamParseBytes(audioFileStream, (UInt32) length,
                                       bytes, 0);
     }
+    isParsing = false;
+    if ([self isDone]) [self closeFileStream];
     CHECK_ERR(err, AS_FILE_STREAM_PARSE_BYTES_FAILED);
   }
 }
@@ -1417,6 +1418,15 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CFRelease(stream);
     stream = nil;
   }
+}
+
+/**
+ * @brief Closes the file stream
+ */
+- (void) closeFileStream {
+  err = AudioFileStreamClose(audioFileStream);
+  assert(!err);
+  audioFileStream = nil;
 }
 
 @end
