@@ -549,9 +549,9 @@ struct queued_packet;
  *
  * @param volume the volume to set the stream to in the range 0.0-1.0 where 1.0
  *        is the loudest and 0.0 is silent.
- * @return YES if the volume was set, or NO if the audio queue wasn't to have
- *         the volume ready to be set. When the state for this audio streamer
- *         changes internally to have a stream, then setVolume: will work
+ * @return YES if the volume was set, or NO if the audio queue wasn't ready to
+ *         have its volume set. When the state for this audio streamer changes
+ *         internally to have a stream, then setVolume: will work.
  */
 - (BOOL) setVolume:(float)volume;
 
@@ -587,7 +587,6 @@ struct queued_packet;
  * The AudioQueue volume is progressively increased from 0 to 1
  *
  * @param duration a double which represents the fade-in time span.
- * @return nothing.
  */
 - (void) fadeInDuration:(float)duration;
 
@@ -597,7 +596,6 @@ struct queued_packet;
  * The AudioQueue volume is progressively decreased from 1 to 0.
  *
  * @param duration a double which represents the fade-in time span.
- * @return nothing.
  */
 - (void) fadeOutDuration:(float)duration;
 
