@@ -358,7 +358,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return NO;
   }
   assert(!seeking);
-  seeking = YES;
+  seeking = true;
 
   //
   // Calculate the byte offset for seeking
@@ -401,14 +401,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Stop audio for now */
   err = AudioQueueStop(audioQueue, true);
   if (err) {
-    seeking = NO;
+    seeking = false;
     [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED];
     return NO;
   }
 
   /* Open a new stream with a new offset */
   BOOL ret = [self openReadStream];
-  seeking = NO;
+  seeking = false;
   return ret;
 }
 
@@ -576,8 +576,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
      discard this sample (not enough of it was known to be in the "scheduled
      state"), but we clear flags so we might process the next sample */
   if (rescheduled && unscheduled) {
-    unscheduled = NO;
-    rescheduled = NO;
+    unscheduled = false;
+    rescheduled = false;
     return;
   }
 
@@ -837,7 +837,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                       [[url path] pathExtension]];
         if (fileType == 0) {
           fileType = kAudioFileMP3Type;
-          defaultFileTypeUsed = YES;
+          defaultFileTypeUsed = true;
         }
       }
     }
@@ -898,7 +898,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                 // Okay, we can now default to this now.
                 fileType = kAudioFileMP3Type;
               }
-              defaultFileTypeUsed = NO;
+              defaultFileTypeUsed = false;
 
               err = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
                                             ASPacketsProc, fileType, &audioFileStream);
@@ -1017,8 +1017,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(),
                                         kCFRunLoopCommonModes);
       /* Make sure we don't have ourselves marked as rescheduled */
-      unscheduled = YES;
-      rescheduled = NO;
+      unscheduled = true;
+      rescheduled = false;
     }
     waitingOnBuffer = true;
     return 0;
@@ -1458,7 +1458,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
    * stream to run */
   if (cur == NULL) {
     queued_tail = NULL;
-    rescheduled = YES;
+    rescheduled = true;
     if (!bufferInfinite) {
       CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
                                       kCFRunLoopCommonModes);
@@ -1551,7 +1551,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  * @brief Closes the read stream and frees all queued data
  */
 - (void) closeReadStream {
-  if (waitingOnBuffer) waitingOnBuffer = FALSE;
+  if (waitingOnBuffer) waitingOnBuffer = false;
   queued_packet_t *cur = queued_head;
   while (cur != NULL) {
     queued_packet_t *tmp = cur->next;

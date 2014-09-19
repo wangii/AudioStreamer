@@ -21,7 +21,7 @@
 //     distribution.
 //
 
-/* This file has been heavily modified since its original distribution bytes
+/* This file has been heavily modified since its original distribution by
    Alex Crichton for the Hermes project */
 
 #import <AudioToolbox/AudioToolbox.h>
@@ -179,7 +179,7 @@ struct queued_packet;
   NSString        *proxyHost;
   int             proxyPort;
   AudioFileTypeID fileType;
-  BOOL            defaultFileTypeUsed;
+  bool            defaultFileTypeUsed;
   UInt32          bufferSize; /* attempted to be guessed, but fallback here */
   UInt32          bufferCnt;
   BOOL            bufferInfinite;
@@ -191,8 +191,8 @@ struct queued_packet;
 
   /* Timeout management */
   NSTimer *timeout; /* timer managing the timeout event */
-  BOOL unscheduled; /* flag if the http stream is unscheduled */
-  BOOL rescheduled; /* flag if the http stream was rescheduled */
+  bool unscheduled; /* flag if the http stream is unscheduled */
+  bool rescheduled; /* flag if the http stream was rescheduled */
   int events;       /* events which have happened since the last tick */
 
   /* Once the stream has bytes read from it, these are created */
@@ -221,7 +221,7 @@ struct queued_packet;
   UInt32 packetsFilled;         /* number of valid entries in packetDescs */
   UInt32 bytesFilled;           /* bytes in use in the pending buffer */
   unsigned int fillBufferIndex; /* index of the pending buffer */
-  BOOL *inuse;                  /* which buffers have yet to be processed */
+  bool *inuse;                  /* which buffers have yet to be processed */
   UInt32 buffersUsed;           /* Number of buffers in use */
 
   /* cache state (see above description) */
