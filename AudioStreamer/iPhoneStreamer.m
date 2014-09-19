@@ -20,21 +20,8 @@
 
 @implementation iPhoneStreamer
 
-+ (instancetype)streamWithURL:(NSURL *)url {
-    assert(url != nil);
-    iPhoneStreamer *stream = [[iPhoneStreamer alloc] init];
-    stream->url = url;
-    stream->bufferCnt = kDefaultNumAQBufs;
-    stream->bufferSize = kDefaultAQDefaultBufSize;
-    stream->timeoutInterval = 10;
-    stream->playbackRate = 1.0f;
-    return stream;
-}
-
 - (BOOL)start {
-    if (stream != NULL) return NO;
-    
-    [super start];
+    if (![super start]) return NO;
     
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     [audioSession setDelegate:self];
