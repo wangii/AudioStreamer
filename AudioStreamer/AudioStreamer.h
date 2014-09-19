@@ -487,7 +487,7 @@ struct queued_packet;
  * Tests whether the stream is done with all operation
  *
  * A stream can be 'done' if it either hits an error or consumes all audio data
- * from the remote source.
+ * from the remote source. This method also checks if the stream has been stopped.
  *
  * @return YES if the stream is done, or NO Otherwise
  */

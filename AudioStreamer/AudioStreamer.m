@@ -57,25 +57,6 @@ typedef struct queued_packet {
 NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
 NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 
-@interface AudioStreamer ()
-
-- (void)handlePropertyChangeForFileStream:(AudioFileStreamID)inAudioFileStream
-                     fileStreamPropertyID:(AudioFileStreamPropertyID)inPropertyID
-                                  ioFlags:(UInt32 *)ioFlags;
-- (void)handleAudioPackets:(const void *)inInputData
-               numberBytes:(UInt32)inNumberBytes
-             numberPackets:(UInt32)inNumberPackets
-        packetDescriptions:(AudioStreamPacketDescription *)inPacketDescriptions;
-- (void)handleBufferCompleteForQueue:(AudioQueueRef)inAQ
-                              buffer:(AudioQueueBufferRef)inBuffer;
-- (void)handlePropertyChangeForQueue:(AudioQueueRef)inAQ
-                          propertyID:(AudioQueuePropertyID)inID;
-
-- (void)handleReadFromStream:(CFReadStreamRef)aStream
-                   eventType:(CFStreamEventType)eventType;
-
-@end
-
 /* Woohoo, actual implementation now! */
 @implementation AudioStreamer
 
