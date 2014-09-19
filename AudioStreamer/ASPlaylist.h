@@ -26,7 +26,7 @@ extern NSString * const ASStreamError;
   BOOL stopping;              /* Are we in the middle of stopping? */
   BOOL volumeSet;             /* TRUE if the volume has been set on the stream */
   double lastKnownSeekTime;   /* time to seek to */
-  double volume;              /* volume for all streams on this playlist */
+  float volume;              /* volume for all streams on this playlist */
 
   NSInteger tries;            /* # of retry attempts */
   NSMutableArray *urls;       /* list of URLs to play */
@@ -76,7 +76,7 @@ extern NSString * const ASStreamError;
 - (BOOL) isPlaying;
 - (BOOL) isIdle;
 - (BOOL) isError;
-- (void) setVolume:(double)volume;
+- (void) setVolume:(float)volume;
 - (BOOL) duration:(double*)ret;
 - (BOOL) progress:(double*)ret;
 

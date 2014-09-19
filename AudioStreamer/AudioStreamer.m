@@ -854,7 +854,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   for (i = 0;
        i < 3 && ![self isDone] && CFReadStreamHasBytesAvailable(stream);
        i++) {
-    length = CFReadStreamRead(stream, bytes, sizeof(bytes));
+    length = CFReadStreamRead(stream, bytes, (CFIndex)sizeof(bytes));
 
     if (length < 0) {
       [self failWithErrorCode:AS_AUDIO_DATA_NOT_FOUND];

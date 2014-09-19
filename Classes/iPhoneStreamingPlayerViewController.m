@@ -147,7 +147,7 @@
 	[CATransaction setValue:@YES forKey:kCATransactionDisableActions];
 	CGRect frame = [button frame];
 	button.layer.anchorPoint = CGPointMake(0.5, 0.5);
-	button.layer.position = CGPointMake(frame.origin.x + 0.5 * frame.size.width, frame.origin.y + 0.5 * frame.size.height);
+	button.layer.position = CGPointMake(frame.origin.x + 0.5f * frame.size.width, frame.origin.y + 0.5f * frame.size.height);
 	[CATransaction commit];
 
 	[CATransaction begin];
@@ -271,7 +271,7 @@
 					progress,
 					duration]];
 			[progressSlider setEnabled:YES];
-			[progressSlider setValue:100 * progress / duration];
+			[progressSlider setValue:100.f * (float)(progress / duration)];
 		}
 		else
 		{

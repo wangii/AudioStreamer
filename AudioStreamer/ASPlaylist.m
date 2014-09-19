@@ -201,7 +201,7 @@ NSString * const ASStreamError       = @"ASStreamError";
   stopping = NO;
 }
 
-- (void) setVolume:(double)vol {
+- (void) setVolume:(float)vol {
   volumeSet = [stream setVolume:vol];
   self->volume = vol;
 }
