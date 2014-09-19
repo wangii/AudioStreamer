@@ -2,7 +2,7 @@
 
 This project is a method of streaming audio from a remote HTTP source. Multiple audio formats are supported.  The goal of this project is to provide a robust and much easier-to-use API than using AudioQueue services directly.
 
-This project is a fork of @mattgallagher's [AudioStreamer](https://github.com/mattgallagher/AudioStreamer) and most of the credit goes to him for all the awesome work that he put into it. His version is no longer maintained, however, and I've decided to actively maintain it for a project that I'm using this library for, [Hermes](https://github.com/alexcrichton/hermes).
+This project is a fork of @mattgallagher's [AudioStreamer](https://github.com/mattgallagher/AudioStreamer) and most of the credit goes to him for all the awesome work that he put into it. His version is no longer maintained, however, and I've decided to actively maintain it for a project that I'm using this library for, [Hermes](https://github.com/HermesApp/Hermes).
 
 ## Documentation
 
@@ -35,7 +35,7 @@ iPhoneStreamer uses `AVAudioSessionDelegate` so you may handle these interruptio
 
 Despite the name, iPhoneStreamer also works on iPad.
 
-## Sample Usage (AudioStreamer)
+## Sample Usage (`AudioStreamer`)
 
 ```objc
 - (void) play {
