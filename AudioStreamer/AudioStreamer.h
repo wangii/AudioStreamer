@@ -42,8 +42,8 @@ typedef NS_ENUM(NSUInteger, AudioStreamerState) {
 
 typedef NS_ENUM(NSUInteger, AudioStreamerErrorCode)
 {
-  AS_NO_ERROR = 0,
-  AS_NETWORK_CONNECTION_FAILED,
+  AS_NO_ERROR __deprecated_msg("Unused with the new error property. Check if the error property is nil or not.") = 0,
+  AS_NETWORK_CONNECTION_FAILED = 1000,
   AS_FILE_STREAM_GET_PROPERTY_FAILED,
   AS_FILE_STREAM_SET_PROPERTY_FAILED,
   AS_FILE_STREAM_SEEK_FAILED,
@@ -75,6 +75,7 @@ typedef NS_ENUM(NSUInteger, AudioStreamerDoneReason) {
   AS_NOT_DONE
 };
 
+/* Notifications */
 extern NSString * const ASStatusChangedNotification;
 extern NSString * const ASBitrateReadyNotification;
 
@@ -148,8 +149,7 @@ struct queued_packet;
  * remote stream just won't work.  Occasionally errors might reflect a lack of
  * local resources.
  *
- * Error information can be learned from the errorCode property and the
- * stringForErrorCode: method.
+ * Error information can be learned from the error property.
  *
  * ## Seeking
  *
@@ -230,15 +230,13 @@ struct queued_packet;
 
   /* Internal metadata about errors and state */
   AudioStreamerState state_;
-  AudioStreamerErrorCode errorCode;
-  NSError *networkError;
   OSStatus err;
 
   /* Miscellaneous metadata */
-  bool discontinuous;        /* flag to indicate the middle of a stream */
+  bool   discontinuous;      /* flag to indicate the middle of a stream */
   UInt64 seekByteOffset;     /* position with the file to seek */
   double seekTime;
-  bool seeking;              /* Are we currently in the process of seeking? */
+  bool   seeking;            /* Are we currently in the process of seeking? */
   double lastProgress;       /* last calculated progress point */
   UInt64 processedPacketsCount;     /* bit rate calculation utility */
   UInt64 processedPacketsSizeTotal; /* helps calculate the bit rate */
@@ -260,25 +258,49 @@ struct queued_packet;
  * @param url the remote source of audio
  * @return the stream to configure and being playback with
  */
-+ (instancetype) streamWithURL:(NSURL*)url;
++ (instancetype)streamWithURL:(NSURL*)url;
 
 /** @name Properties of the audio stream */
 
 /**
+ * If an error occurs on the stream, then this variable is set with the
+ * corresponding error information.
+ *
+ * By default this is nil.
+ */
+@property (readonly) NSError *error;
+
+/**
+ * DEPRECATED: Use the -code method from the 'error' property instead.
+ *
  * If an error occurs on the stream, then this variable is set with the code
  * corresponding to the error
  *
  * By default this is AS_NO_ERROR.
  */
-@property (readonly) AudioStreamerErrorCode errorCode;
+@property (readonly) AudioStreamerErrorCode errorCode
+  __deprecated_msg("Use the -code method from the 'error' property instead.");
 
 /**
+ * DEPRECATED: Use the -localizedDescription method from the 'error' property instead.
+ *
  * Converts an error code to a string
  *
  * @param anErrorCode the code to convert, usually from the errorCode field
  * @return the string description of the error code (as best as possible)
  */
-+ (NSString*) stringForErrorCode:(AudioStreamerErrorCode)anErrorCode;
++ (NSString*)stringForErrorCode:(AudioStreamerErrorCode)anErrorCode
+  __deprecated_msg("Use the -localizedDescription method from the 'error' property instead.");
+
+/**
+ * DEPRECATED: Use the -localizedFailureReason method from 'error' property instead.
+ *
+ * On AS_NETWORK_CONNECTION_FAILED, this will contain the error details
+ *
+ * Note that AS_TIMED_OUT no longer sets this property as no other info is given
+ */
+@property (readonly) NSError *networkError
+  __deprecated_msg("Use the -localizedFailureReason method from the 'error' property instead.");
 
 /**
  * Headers received from the remote source
@@ -286,13 +308,6 @@ struct queued_packet;
  * Used to determine file size, but other information may be useful as well
  */
 @property (readonly) NSDictionary *httpHeaders;
-
-/**
- * On AS_NETWORK_CONNECTION_FAILED, this will contain the error details
- *
- * Note that AS_TIMED_OUT no longer sets this property as no other info is given
- */
-@property (readonly) NSError *networkError; /* TODO: get rid of this? */
 
 /**
  * The remote resource that this stream is playing, this is a read-only property

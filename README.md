@@ -42,7 +42,7 @@ Despite the name, iPhoneStreamer also works on iPad.
   NSURL *url = ...;
   AudioStreamer *stream = [AudioStreamer streamWithUrl:url];
 
-  /* Set some properties like proxies, buffer sizes, formats, etc. on stream */
+  /* Optional: Set some properties like proxies, buffer sizes, formats, etc. on stream */
 
   [stream start];
   [[NSNotificationCenter defaultNotificationCenter]
@@ -54,7 +54,7 @@ Despite the name, iPhoneStreamer also works on iPad.
 
 - (void) stateChanged:(NSNotification*) notification {
   AudioStreamer *stream = [notification object];
-  if ([stream errorCode] != AS_NO_ERROR) {
+  if ([stream error] != nil) {
     // handle the error via a UI, retrying the stream, etc.
   } else if ([stream isPlaying]) {
     [self setIcon:pause];

@@ -84,10 +84,9 @@ NSString * const ASStreamError       = @"ASStreamError";
     volumeSet = [stream setVolume:volume];
   }
 
-  int code = [stream errorCode];
   if (stopping) {
     return;
-  } else if (code != 0) {
+  } else if ([self isError]) {
     /* If we've hit an error, then we want to record out current progress into
        the song. Only do this if we're not in the process of retrying to
        establish a connection, so that way we don't blow away the original
@@ -103,6 +102,7 @@ NSString * const ASStreamError       = @"ASStreamError";
        reason. Most likely this is some network trouble and we should have the
        opportunity to hit a button to retry this specific connection so we can
        at least hope to regain our current place in the song */
+    NSInteger code = [[stream error] code];
     if (code == AS_NETWORK_CONNECTION_FAILED || code == AS_TIMED_OUT) {
       [[NSNotificationCenter defaultCenter]
             postNotificationName:ASStreamError
@@ -169,7 +169,7 @@ NSString * const ASStreamError       = @"ASStreamError";
 - (BOOL) isPaused { return [stream isPaused]; }
 - (BOOL) isPlaying { return [stream isPlaying]; }
 - (BOOL) isIdle { return [stream isDone]; }
-- (BOOL) isError { return [stream errorCode] != AS_NO_ERROR; }
+- (BOOL) isError { return [stream error] != nil; }
 - (BOOL) progress:(double*)ret { return [stream progress:ret]; }
 - (BOOL) duration:(double*)ret { return [stream duration:ret]; }
 
