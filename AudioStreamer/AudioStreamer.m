@@ -178,7 +178,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 + (NSString *)stringForErrorCode:(AudioStreamerErrorCode)anErrorCode {
   switch (anErrorCode) {
     case AS_NO_ERROR:
-      return @"No error.";
+      return @"No error";
     case AS_FILE_STREAM_GET_PROPERTY_FAILED:
       return @"File stream get property failed";
     case AS_FILE_STREAM_SET_PROPERTY_FAILED:
@@ -223,6 +223,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"Audio streamer failed";
     case AS_AUDIO_BUFFER_TOO_SMALL:
       return @"Audio buffer too small";
+    case AS_TIMED_OUT:
+      return @"Timed out";
     default:
       break;
   }
