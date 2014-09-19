@@ -692,11 +692,20 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Deal with proxies */
   switch (proxyType) {
     case PROXY_HTTP: {
-      CFDictionaryRef proxySettings = (__bridge CFDictionaryRef)
+      CFDictionaryRef proxySettings;
+      if ([[[url scheme] lowercaseString] isEqualToString:@"https"]) {
+        proxySettings = (__bridge CFDictionaryRef)
+          [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            proxyHost, kCFStreamPropertyHTTPSProxyHost,
+            @(proxyPort), kCFStreamPropertyHTTPSProxyPort,
+            nil];
+      } else {
+        proxySettings = (__bridge CFDictionaryRef)
         [NSMutableDictionary dictionaryWithObjectsAndKeys:
           proxyHost, kCFStreamPropertyHTTPProxyHost,
           @(proxyPort), kCFStreamPropertyHTTPProxyPort,
           nil];
+      }
       CFReadStreamSetProperty(stream, kCFStreamPropertyHTTPProxy,
                               proxySettings);
       break;
@@ -721,7 +730,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   /* handle SSL connections */
-  if ([[url absoluteString] rangeOfString:@"https"].location == 0) {
+  if ([[[url scheme] lowercaseString] isEqualToString:@"https"]) {
     NSDictionary *sslSettings = @{
       (id)kCFStreamSSLLevel: (NSString*)kCFStreamSocketSecurityLevelNegotiatedSSL,
       (id)kCFStreamSSLValidatesCertificateChain:  @YES,
