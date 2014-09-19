@@ -4,7 +4,7 @@ XCBFLAGS      = -configuration $(CONFIGURATION)
 
 .PHONY: doc
 
-all: framework mac iphone
+all: framework mac iphonelib iphone
 
 framework:
 	$(XCB) $(XCBFLAGS) -target AudioStreamer
@@ -12,7 +12,11 @@ framework:
 mac:
 	$(XCB) $(XCBFLAGS) -target 'Mac Streaming Player'
 
-iphone: XCBFLAGS += -sdk iphonesimulator5.0
+iphonelib: XCBFLAGS += -sdk iphoneos
+iphonelib:
+	$(XCB) $(XCBFLAGS) -target 'libAudioStreamer'
+
+iphone: XCBFLAGS += -sdk iphoneos
 iphone:
 	$(XCB) $(XCBFLAGS) -target 'iPhone Streaming Player'
 
