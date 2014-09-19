@@ -587,7 +587,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return;
   }
 
-  networkError = [NSError errorWithDomain:@"Timed out" code:1 userInfo:nil];
   [self failWithErrorCode:AS_TIMED_OUT];
 }
 

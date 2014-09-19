@@ -288,8 +288,12 @@ struct queued_packet;
  */
 @property (readonly) NSDictionary *httpHeaders;
 
-/* TODO: get rid of this */
-@property (readonly) NSError *networkError;
+/**
+ * On AS_NETWORK_CONNECTION_FAILED, this will contain the error details
+ *
+ * Note that AS_TIMED_OUT no longer sets this property as no other info is given
+ */
+@property (readonly) NSError *networkError; /* TODO: get rid of this? */
 
 /**
  * The remote resource that this stream is playing, this is a read-only property
