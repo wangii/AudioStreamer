@@ -63,7 +63,6 @@ NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 @synthesize errorCode;
 @synthesize networkError;
 @synthesize httpHeaders;
-@synthesize url;
 @synthesize fileType;
 @synthesize bufferCnt;
 @synthesize bufferSize;
@@ -116,15 +115,21 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   [streamer handleReadFromStream:aStream eventType:eventType];
 }
 
-+ (instancetype) streamWithURL:(NSURL*)url{
+/* Private method. Developers should call -[AudioStreamer streamWithURL:] */
+- (instancetype)initWithURL:(NSURL*)url {
+  if ((self = [super init])) {
+    _url = url;
+    bufferCnt  = kDefaultNumAQBufs;
+    bufferSize = kDefaultAQDefaultBufSize;
+    timeoutInterval = 10;
+    playbackRate = 1.0f;
+  }
+  return self;
+}
+
++ (instancetype)streamWithURL:(NSURL*)url{
   assert(url != nil);
-  AudioStreamer *stream = [[AudioStreamer alloc] init];
-  stream->url = url;
-  stream->bufferCnt  = kDefaultNumAQBufs;
-  stream->bufferSize = kDefaultAQDefaultBufSize;
-  stream->timeoutInterval = 10;
-  stream->playbackRate = 1.0f;
-  return stream;
+  return [[self alloc] initWithURL:url];
 }
 
 - (void)dealloc {
@@ -644,7 +649,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   CFHTTPMessageRef message =
       CFHTTPMessageCreateRequest(NULL,
                                  CFSTR("GET"),
-                                 (__bridge CFURLRef) url,
+                                 (__bridge CFURLRef) _url,
                                  kCFHTTPVersion1_1);
 
   /* When seeking to a time within the stream, we both already know the file
@@ -674,7 +679,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   switch (proxyType) {
     case PROXY_HTTP: {
       CFDictionaryRef proxySettings;
-      if ([[[url scheme] lowercaseString] isEqualToString:@"https"]) {
+      if ([[[_url scheme] lowercaseString] isEqualToString:@"https"]) {
         proxySettings = (__bridge CFDictionaryRef)
           [NSMutableDictionary dictionaryWithObjectsAndKeys:
             proxyHost, kCFStreamPropertyHTTPSProxyHost,
@@ -711,7 +716,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   /* handle SSL connections */
-  if ([[[url scheme] lowercaseString] isEqualToString:@"https"]) {
+  if ([[[_url scheme] lowercaseString] isEqualToString:@"https"]) {
     NSDictionary *sslSettings = @{
       (id)kCFStreamSSLLevel: (NSString*)kCFStreamSocketSecurityLevelNegotiatedSSL,
       (id)kCFStreamSSLValidatesCertificateChain:  @YES,
@@ -823,7 +828,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       fileType = [AudioStreamer hintForMIMEType: httpHeaders[@"Content-Type"]];
       if (fileType == 0) {
         fileType = [AudioStreamer hintForFileExtension:
-                      [[url path] pathExtension]];
+                      [[_url path] pathExtension]];
         if (fileType == 0) {
           fileType = kAudioFileMP3Type;
           defaultFileTypeUsed = true;

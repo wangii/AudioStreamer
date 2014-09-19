@@ -174,7 +174,6 @@ struct queued_packet;
    * should be changed after the stream has started or otherwise it could cause
    * internal inconsistencies in the stream. Detail explanations of each
    * property can be found in the source */
-  NSURL           *url;
   int             proxyType;  /* defaults to whatever the system says */
   NSString        *proxyHost;
   int             proxyPort;
@@ -206,7 +205,7 @@ struct queued_packet;
   AudioStreamBasicDescription asbd; /* description of audio */
 
   /* Once properties have been read, packets arrive, and the audio queue is
-     created once the first packet arrives */
+   created once the first packet arrives */
   AudioQueueRef audioQueue;
   UInt32 packetBufferSize;  /* guessed from audioFileStream */
 
