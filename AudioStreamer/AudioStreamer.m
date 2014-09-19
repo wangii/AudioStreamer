@@ -859,7 +859,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED, @"");
   }
 
-  UInt8 bytes[bufferSize];
+  UInt8 bytes[packetBufferSize];
   CFIndex length;
   int i;
   for (i = 0;
@@ -1325,7 +1325,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     }
     while (inNumberBytes) {
       /* Allocate the packet */
-      size_t size = MIN(bufferSize - bytesFilled, inNumberBytes);
+      size_t size = MIN(packetBufferSize - bytesFilled, inNumberBytes);
       queued_packet_t *packet = malloc(sizeof(queued_packet_t) + size);
       CHECK_ERR(packet == NULL, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
 
@@ -1401,7 +1401,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               copySize:(size_t*)copySize{
   assert(audioQueue != NULL);
 
-  size_t bufSpaceRemaining = bufferSize - bytesFilled;
+  size_t bufSpaceRemaining = packetBufferSize - bytesFilled;
   if (bufSpaceRemaining < byteSize) {
     int hasFreeBuffer = [self enqueueBuffer];
     if (hasFreeBuffer <= 0) {
@@ -1412,7 +1412,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   if ([self isDone]) return 0;
 
-  bufSpaceRemaining = bufferSize - bytesFilled;
+  bufSpaceRemaining = packetBufferSize - bytesFilled;
   *copySize = MIN(bufSpaceRemaining, byteSize);
 
   AudioQueueBufferRef buf = buffers[fillBufferIndex];
