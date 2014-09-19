@@ -271,7 +271,7 @@ struct queued_packet;
  *
  * By default this is AS_NO_ERROR.
  */
-@property AudioStreamerErrorCode errorCode;
+@property (readonly) AudioStreamerErrorCode errorCode;
 
 /**
  * Converts an error code to a string
