@@ -59,6 +59,25 @@ extern NSString * const ASAttemptingNewSong;
 /** @name Managing the playlist */
 
 /**
+ * Adds a new song to the playlist, optionally starting playback.
+ */
+- (void)addSong:(NSURL*)url play:(BOOL)play;
+
+/**
+ * Removes a song from the playlist at the specified index.
+ *
+ * This will raise a NSRangeException if the index is beyond the end of the
+ * playlist array.
+ */
+- (void)removeSongAtIndex:(NSUInteger)idx;
+
+/**
+ * Removes all songs from the internal list of songs. This does not trigger
+ * notifications about songs running low.
+ */
+- (void)clearSongList;
+
+/**
  * Start playing songs on the playlist, or resume playback.
  *
  * This will send out notifications for more songs if we're running low on songs
@@ -104,16 +123,5 @@ extern NSString * const ASAttemptingNewSong;
  * stream
  */
 - (void)retry;
-
-/**
- * Removes all songs from the internal list of songs. This does not trigger
- * notifications about songs running low.
- */
-- (void)clearSongList;
-
-/**
- * Adds a new song to the playlist, optionally starting playback.
- */
-- (void)addSong:(NSURL*)url play:(BOOL)play;
 
 @end

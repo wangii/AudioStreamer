@@ -32,16 +32,20 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   [self stop];
 }
 
-- (void)clearSongList {
-  [_playlist removeAllObjects];
-}
-
 - (void)addSong:(NSURL*)url play:(BOOL)play {
   [_playlist addObject:url];
 
   if (play && ![stream isPlaying]) {
     [self play];
   }
+}
+
+- (void)removeSongAtIndex:(NSUInteger)idx {
+  [_playlist removeObjectAtIndex:idx];
+}
+
+- (void)clearSongList {
+  [_playlist removeAllObjects];
 }
 
 - (void)setAudioStream {
