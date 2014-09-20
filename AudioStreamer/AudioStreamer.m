@@ -1348,8 +1348,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   /* This shouldn't happen because most of the time we read the packet buffer
      size from the file stream, but if we restored to guessing it we could
-     come up too small here */
-  if (packetSize > packetBufferSize) return -1;
+     come up too small here. Developers may have to set the bufferCnt property. */
+  if (packetSize > packetBufferSize) {
+    [self failWithErrorCode:AS_AUDIO_BUFFER_TOO_SMALL reason:@"The audio buffer was too small to handle the audio packets."];
+    return -1;
+  }
 
   // if the space remaining in the buffer is not enough for this packet, then
   // enqueue the buffer and wait for another to become available.
