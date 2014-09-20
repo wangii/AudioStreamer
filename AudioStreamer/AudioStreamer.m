@@ -454,6 +454,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   switch (anErrorCode) {
     case 0: /* Deprecated */
       return @"No error";
+    case AS_NETWORK_CONNECTION_FAILED:
+      return @"Network connection failure";
     case AS_FILE_STREAM_GET_PROPERTY_FAILED:
       return @"File stream get property failed";
     case AS_FILE_STREAM_SET_PROPERTY_FAILED:
@@ -462,6 +464,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"File stream seek failed";
     case AS_FILE_STREAM_PARSE_BYTES_FAILED:
       return @"Parse bytes failed";
+    case AS_FILE_STREAM_OPEN_FAILED:
+      return @"Failed to open file stream";
+    case AS_FILE_STREAM_CLOSE_FAILED:
+      return @"Failed to close the file stream";
+    case AS_AUDIO_DATA_NOT_FOUND:
+      return @"No audio data found";
     case AS_AUDIO_QUEUE_CREATION_FAILED:
       return @"Audio queue creation failed";
     case AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED:
@@ -474,28 +482,20 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"Failed to remove listener from audio queue";
     case AS_AUDIO_QUEUE_START_FAILED:
       return @"Failed to start the audio queue";
-    case AS_AUDIO_QUEUE_BUFFER_MISMATCH:
-      return @"Audio queue buffer mismatch";
-    case AS_FILE_STREAM_OPEN_FAILED:
-      return @"Failed to open file stream";
-    case AS_FILE_STREAM_CLOSE_FAILED:
-      return @"Failed to close the file stream";
-    case AS_AUDIO_QUEUE_DISPOSE_FAILED:
-      return @"Couldn't dispose of audio queue";
     case AS_AUDIO_QUEUE_PAUSE_FAILED:
       return @"Failed to pause the audio queue";
-    case AS_AUDIO_QUEUE_FLUSH_FAILED:
-      return @"Failed to flush the audio queue";
-    case AS_AUDIO_DATA_NOT_FOUND:
-      return @"No audio data found";
-    case AS_GET_AUDIO_TIME_FAILED:
-      return @"Couldn't get audio time";
-    case AS_NETWORK_CONNECTION_FAILED:
-      return @"Network connection failure";
+    case AS_AUDIO_QUEUE_BUFFER_MISMATCH:
+      return @"Audio queue buffer mismatch";
+    case AS_AUDIO_QUEUE_DISPOSE_FAILED:
+      return @"Couldn't dispose of audio queue";
     case AS_AUDIO_QUEUE_STOP_FAILED:
       return @"Audio queue stop failed";
+    case AS_AUDIO_QUEUE_FLUSH_FAILED:
+      return @"Failed to flush the audio queue";
     case 1019: /* AS_AUDIO_STREAMER_FAILED - Deprecated */
       return @"Audio streamer failed";
+    case 1020: /* AS_GET_AUDIO_TIME_FAILED - Deprecated */
+      return @"Couldn't get audio time";
     case AS_AUDIO_BUFFER_TOO_SMALL:
       return @"Audio buffer too small";
     case AS_TIMED_OUT:

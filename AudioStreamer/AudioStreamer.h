@@ -63,7 +63,7 @@ typedef NS_ENUM(NSInteger, AudioStreamerErrorCode)
   AS_AUDIO_QUEUE_STOP_FAILED = 1017,
   AS_AUDIO_QUEUE_FLUSH_FAILED = 1018,
   AS_AUDIO_STREAMER_FAILED __deprecated_msg("Unused.") = 1019,
-  AS_GET_AUDIO_TIME_FAILED = 1020,
+  AS_GET_AUDIO_TIME_FAILED __deprecated_msg("Unused. The progress method will return NO instead.") = 1020,
   AS_AUDIO_BUFFER_TOO_SMALL = 1021,
   AS_TIMED_OUT = 1022
 };
