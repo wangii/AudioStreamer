@@ -494,7 +494,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"Network connection failure";
     case AS_AUDIO_QUEUE_STOP_FAILED:
       return @"Audio queue stop failed";
-    case AS_AUDIO_STREAMER_FAILED:
+    case 1019: /* AS_AUDIO_STREAMER_FAILED - Deprecated */
       return @"Audio streamer failed";
     case AS_AUDIO_BUFFER_TOO_SMALL:
       return @"Audio buffer too small";
