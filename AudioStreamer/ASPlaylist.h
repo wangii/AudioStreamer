@@ -30,7 +30,6 @@ extern NSString * const ASAttemptingNewSong;
   float volume;               /* volume for all streams on this playlist */
 
   NSInteger tries;            /* # of retry attempts */
-  AudioStreamer *stream;      /* stream that is playing */
 }
 
 /**
@@ -46,6 +45,15 @@ extern NSString * const ASAttemptingNewSong;
  * This is nil of no url has ever been playing.
  */
 @property (readonly) NSURL *playing;
+
+/**
+ * The streamer that is playing the current song.
+ *
+ * This gets replaced with a new one before every song.
+ *
+ * You should always use ASPlaylist's methods over the streamer's.
+ */
+@property (readonly) AudioStreamer *streamer;
 
 /** @name Initializers */
 

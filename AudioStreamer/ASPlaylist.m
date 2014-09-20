@@ -17,6 +17,8 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
 @implementation ASPlaylist
 
+@synthesize streamer=stream; // Compatibility.
+
 - (id)init {
   return [self initWithCapacity:10];
 }
