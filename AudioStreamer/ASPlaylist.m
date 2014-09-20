@@ -117,7 +117,7 @@ NSString * const ASStreamError       = @"ASStreamError";
        just in case, retry the current song automatically a few times before we
        finally give up and clear our cache of urls (see below) */
     } else {
-      [self retry];
+      [self performSelectorOnMainThread:@selector(next) withObject:nil waitUntilDone:NO];
     }
 
   /* When the stream has finished, move on to the next song */
@@ -170,18 +170,36 @@ NSString * const ASStreamError       = @"ASStreamError";
   }
 }
 
-- (void)pause { [stream pause]; }
-- (BOOL)isPaused { return [stream isPaused]; }
-- (BOOL)isPlaying { return [stream isPlaying]; }
-- (BOOL)isIdle { return [stream isDone]; }
-- (BOOL)isError { return [stream error] != nil; }
-- (BOOL)progress:(double*)ret { return [stream progress:ret]; }
-- (BOOL)duration:(double*)ret { return [stream duration:ret]; }
+- (void)pause {
+  [stream pause];
+}
+
+- (BOOL)isPaused {
+  return [stream isPaused];
+}
+
+- (BOOL)isPlaying {
+  return [stream isPlaying];
+}
+
+- (BOOL)isIdle {
+  return [stream isDone];
+}
+
+- (BOOL)isError {
+  return [stream error] != nil;
+}
+
+- (BOOL)progress:(double*)ret {
+  return [stream progress:ret];
+}
+
+- (BOOL)duration:(double*)ret {
+  return [stream duration:ret];
+}
 
 - (void)next {
-  if (nexting)
-    return;
-
+  assert(!nexting);
   nexting = YES;
   lastKnownSeekTime = 0;
   retrying = FALSE;
@@ -193,7 +211,6 @@ NSString * const ASStreamError       = @"ASStreamError";
 - (void)stop {
   assert(!stopping);
   stopping = YES;
-  nexting = YES;
   [stream stop];
   if (stream != nil) {
     [[NSNotificationCenter defaultCenter]
