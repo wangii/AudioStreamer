@@ -117,12 +117,12 @@ NSString * const ASStreamError       = @"ASStreamError";
        just in case, retry the current song automatically a few times before we
        finally give up and clear our cache of urls (see below) */
     } else {
-      [self performSelectorOnMainThread:@selector(next) withObject:nil waitUntilDone:NO];
+      [self performSelector:@selector(retry) withObject:nil afterDelay:0];
     }
 
   /* When the stream has finished, move on to the next song */
   } else if ([stream isDone]) {
-    if (!nexting) [self next];
+    [self performSelectorOnMainThread:@selector(next) withObject:nil waitUntilDone:NO];
   }
 }
 
@@ -156,12 +156,13 @@ NSString * const ASStreamError       = @"ASStreamError";
   [urls removeObjectAtIndex:0];
   [self setAudioStream];
   tries = 0;
-  [stream start];
 
   [[NSNotificationCenter defaultCenter]
         postNotificationName:ASNewSongPlaying
                       object:self
                     userInfo:@{@"url": _playing}];
+
+  [stream start];
 
   if ([urls count] < 2) {
     [[NSNotificationCenter defaultCenter]
