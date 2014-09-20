@@ -680,7 +680,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (!CFReadStreamSetProperty(stream,
                                kCFStreamPropertyHTTPShouldAutoredirect,
                                kCFBooleanTrue)) {
-    [self failWithErrorCode:AS_FILE_STREAM_GET_PROPERTY_FAILED reason:@""];
+    [self failWithErrorCode:AS_FILE_STREAM_SET_PROPERTY_FAILED reason:@""];
     return NO;
   }
 
