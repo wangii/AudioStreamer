@@ -51,7 +51,7 @@ NSString * const ASStreamError       = @"ASStreamError";
                 object:stream];
     [stream stop];
   }
-  stream = [AudioStreamer streamWithURL: _playing];
+  stream = [AudioStreamer streamWithURL:_playing];
   [[NSNotificationCenter defaultCenter]
         postNotificationName:ASCreatedNewStream
                       object:self

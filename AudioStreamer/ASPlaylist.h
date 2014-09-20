@@ -38,7 +38,7 @@ extern NSString * const ASStreamError;
  *
  * This is nil of no url has ever been playing.
  */
-@property NSURL *playing;
+@property (readonly) NSURL *playing;
 
 /** @name Initializers */
 
