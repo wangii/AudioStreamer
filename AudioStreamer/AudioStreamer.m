@@ -589,7 +589,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return;
   }
 
-  [self failWithErrorCode:AS_TIMED_OUT reason:@""];
+  [self failWithErrorCode:AS_TIMED_OUT
+                   reason:[NSString stringWithFormat:@"No data was received in %d seconds while expecting data.", timeoutInterval]];
 }
 
 //

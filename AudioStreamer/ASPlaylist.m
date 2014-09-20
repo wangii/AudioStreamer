@@ -17,6 +17,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
 @implementation ASPlaylist
 
+// Backwards compatibility for subclasses.
 @synthesize streamer=stream;
 @synthesize playlist=urls;
 
