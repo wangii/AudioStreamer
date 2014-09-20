@@ -17,7 +17,8 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
 @implementation ASPlaylist
 
-@synthesize streamer=stream; // Compatibility.
+@synthesize streamer=stream;
+@synthesize playlist=urls;
 
 - (id)init {
   return [self initWithCapacity:10];
@@ -25,7 +26,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
 - (id)initWithCapacity:(NSUInteger)capacity {
   if ((self = [super init])) {
-    _playlist = [NSMutableArray arrayWithCapacity:capacity];
+    urls = [NSMutableArray arrayWithCapacity:capacity];
   }
   return self;
 }
@@ -35,7 +36,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 }
 
 - (void)addSong:(NSURL*)url play:(BOOL)play {
-  [_playlist addObject:url];
+  [urls addObject:url];
 
   if (play && ![stream isPlaying]) {
     [self play];
@@ -43,11 +44,11 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 }
 
 - (void)removeSongAtIndex:(NSUInteger)idx {
-  [_playlist removeObjectAtIndex:idx];
+  [urls removeObjectAtIndex:idx];
 }
 
 - (void)clearSongList {
-  [_playlist removeAllObjects];
+  [urls removeAllObjects];
 }
 
 - (void)setAudioStream {
@@ -158,15 +159,15 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
     return;
   }
 
-  if ([_playlist count] == 0) {
+  if ([urls count] == 0) {
     [[NSNotificationCenter defaultCenter]
           postNotificationName:ASNoSongsLeft
                         object:self];
     return;
   }
 
-  _playing = _playlist[0];
-  [_playlist removeObjectAtIndex:0];
+  _playing = urls[0];
+  [urls removeObjectAtIndex:0];
   [self setAudioStream];
   tries = 0;
 
@@ -176,7 +177,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
   [stream start];
 
-  if ([_playlist count] < 2) {
+  if ([urls count] < 2) {
     [[NSNotificationCenter defaultCenter]
           postNotificationName:ASRunningOutOfSongs
                         object:self];
