@@ -64,13 +64,6 @@ NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 /* Woohoo, actual implementation now! */
 @implementation AudioStreamer
 
-@synthesize httpHeaders;
-@synthesize fileType;
-@synthesize bufferCnt;
-@synthesize bufferSize;
-@synthesize bufferInfinite;
-@synthesize timeoutInterval;
-
 /* AudioFileStream callback when properties are available */
 static void ASPropertyListenerProc(void *inClientData,
                             AudioFileStreamID inAudioFileStream,
@@ -120,9 +113,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (instancetype)initWithURL:(NSURL*)url {
   if ((self = [super init])) {
     _url = url;
-    bufferCnt  = kDefaultNumAQBufs;
-    bufferSize = kDefaultAQDefaultBufSize;
-    timeoutInterval = 10;
+    _bufferCnt  = kDefaultNumAQBufs;
+    _bufferSize = kDefaultAQDefaultBufSize;
+    _timeoutInterval = 10;
     _playbackRate = 1.0f;
   }
   return self;
@@ -206,7 +199,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(state_ == AS_INITIALIZED);
   [self openReadStream];
   if (![self isDone]) {
-    timeout = [NSTimer scheduledTimerWithTimeInterval:timeoutInterval
+    timeout = [NSTimer scheduledTimerWithTimeInterval:_timeoutInterval
                                                target:self
                                              selector:@selector(checkTimeout)
                                              userInfo:nil
@@ -271,7 +264,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     inuse = NULL;
   }
 
-  httpHeaders      = nil;
+  _httpHeaders     = nil;
   bytesFilled      = 0;
   packetsFilled    = 0;
   seekByteOffset   = 0;
@@ -589,7 +582,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   [self failWithErrorCode:AS_TIMED_OUT
-                   reason:[NSString stringWithFormat:@"No data was received in %d seconds while expecting data.", timeoutInterval]];
+                   reason:[NSString stringWithFormat:@"No data was received in %d seconds while expecting data.", _timeoutInterval]];
 }
 
 //
@@ -777,7 +770,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (void)handleReadFromStream:(CFReadStreamRef)aStream
                    eventType:(CFStreamEventType)eventType {
   assert(aStream == stream);
-  assert(!waitingOnBuffer || bufferInfinite);
+  assert(!waitingOnBuffer || _bufferInfinite);
   events++;
 
   switch (eventType) {
@@ -822,10 +815,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   LOG(@"data");
 
   /* Read off the HTTP headers into our own class if we haven't done so */
-  if (!httpHeaders) {
+  if (!_httpHeaders) {
     CFTypeRef message =
         CFReadStreamCopyProperty(stream, kCFStreamPropertyHTTPResponseHeader);
-    httpHeaders = (__bridge_transfer NSDictionary *)
+    _httpHeaders = (__bridge_transfer NSDictionary *)
         CFHTTPMessageCopyAllHeaderFields((CFHTTPMessageRef) message);
     CFRelease(message);
 
@@ -834,20 +827,20 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     // we only have a subset of the total bytes.
     //
     if (seekByteOffset == 0) {
-      fileLength = (UInt64)[httpHeaders[@"Content-Length"] longLongValue];
+      fileLength = (UInt64)[_httpHeaders[@"Content-Length"] longLongValue];
     }
   }
 
   /* If we haven't yet opened up a file stream, then do so now */
   if (!audioFileStream) {
     /* If a file type wasn't specified, we have to guess */
-    if (fileType == 0) {
-      fileType = [AudioStreamer hintForMIMEType: httpHeaders[@"Content-Type"]];
-      if (fileType == 0) {
-        fileType = [AudioStreamer hintForFileExtension:
+    if (_fileType == 0) {
+      _fileType = [AudioStreamer hintForMIMEType: _httpHeaders[@"Content-Type"]];
+      if (_fileType == 0) {
+        _fileType = [AudioStreamer hintForFileExtension:
                       [[_url path] pathExtension]];
-        if (fileType == 0) {
-          fileType = kAudioFileMP3Type;
+        if (_fileType == 0) {
+          _fileType = kAudioFileMP3Type;
           defaultFileTypeUsed = true;
         }
       }
@@ -855,7 +848,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     // create an audio file stream parser
     err = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
-                              ASPacketsProc, fileType, &audioFileStream);
+                              ASPacketsProc, _fileType, &audioFileStream);
     CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED, @"");
   }
 
@@ -904,15 +897,15 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                 AudioQueueFreeBuffer(audioQueue, buffers[j]);
               }
 
-              fileType = [AudioStreamer hintForMIMEType:lineItems[1]];
-              if (fileType == 0) {
+              _fileType = [AudioStreamer hintForMIMEType:lineItems[1]];
+              if (_fileType == 0) {
                 // Okay, we can now default to this now.
-                fileType = kAudioFileMP3Type;
+                _fileType = kAudioFileMP3Type;
               }
               defaultFileTypeUsed = false;
 
               err = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
-                                            ASPacketsProc, fileType, &audioFileStream);
+                                            ASPacketsProc, _fileType, &audioFileStream);
               CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED, @"");
 
               break; // We're not interested in any other metadata here.
@@ -982,7 +975,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (state_ == AS_WAITING_FOR_DATA) {
     /* Once we have a small amount of queued data, then we can go ahead and
      * start the audio queue and the file stream should remain ahead of it */
-    if (bufferCnt < 3 || buffersUsed > 2) {
+    if (_bufferCnt < 3 || buffersUsed > 2) {
       UInt32 propVal = 1;
       AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
 
@@ -1006,7 +999,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   /* move on to the next buffer and wait for it to be in use */
-  if (++fillBufferIndex >= bufferCnt) fillBufferIndex = 0;
+  if (++fillBufferIndex >= _bufferCnt) fillBufferIndex = 0;
   bytesFilled   = 0;    // reset bytes filled
   packetsFilled = 0;    // reset packets filled
 
@@ -1024,7 +1017,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   if (inuse[fillBufferIndex]) {
     LOG(@"waiting for buffer %d", fillBufferIndex);
-    if (!bufferInfinite) {
+    if (!_bufferInfinite) {
       CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(),
                                         kCFRunLoopCommonModes);
       /* Make sure we don't have ourselves marked as rescheduled */
@@ -1077,19 +1070,19 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               &packetBufferSize);
       if (err || packetBufferSize == 0) {
         // No packet size available, just use the default
-        packetBufferSize = bufferSize;
+        packetBufferSize = _bufferSize;
       }
     }
   } else {
-    packetBufferSize = bufferSize;
+    packetBufferSize = _bufferSize;
   }
 
   // allocate audio queue buffers
-  buffers = malloc(bufferCnt * sizeof(buffers[0]));
+  buffers = malloc(_bufferCnt * sizeof(buffers[0]));
   CHECK_ERR(buffers == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
-  inuse = calloc(bufferCnt, sizeof(inuse[0]));
+  inuse = calloc(_bufferCnt, sizeof(inuse[0]));
   CHECK_ERR(inuse == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
-  for (unsigned int i = 0; i < bufferCnt; ++i) {
+  for (unsigned int i = 0; i < _bufferCnt; ++i) {
     err = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
                                    &buffers[i]);
     CHECK_ERR(err, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
@@ -1470,7 +1463,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (cur == NULL) {
     queued_tail = NULL;
     rescheduled = true;
-    if (!bufferInfinite) {
+    if (!_bufferInfinite) {
       CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
                                       kCFRunLoopCommonModes);
     }
@@ -1496,10 +1489,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Figure out which buffer just became free, and it had better damn well be
      one of our own buffers */
   UInt32 idx;
-  for (idx = 0; idx < bufferCnt; idx++) {
+  for (idx = 0; idx < _bufferCnt; idx++) {
     if (buffers[idx] == inBuffer) break;
   }
-  assert(idx >= 0 && idx < bufferCnt);
+  assert(idx >= 0 && idx < _bufferCnt);
   assert(inuse[idx]);
 
   LOG(@"buffer %u finished", (unsigned int)idx);

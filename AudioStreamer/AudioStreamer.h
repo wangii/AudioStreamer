@@ -177,12 +177,7 @@ struct queued_packet;
   int             proxyType;  /* defaults to whatever the system says */
   NSString        *proxyHost;
   int             proxyPort;
-  AudioFileTypeID fileType;
   bool            defaultFileTypeUsed;
-  UInt32          bufferSize; /* attempted to be guessed, but fallback here */
-  UInt32          bufferCnt;
-  BOOL            bufferInfinite;
-  int             timeoutInterval;
 
   /* Creates as part of the [start] method */
   CFReadStreamRef stream;
@@ -194,7 +189,6 @@ struct queued_packet;
   int events;       /* events which have happened since the last tick */
 
   /* Once the stream has bytes read from it, these are created */
-  NSDictionary *httpHeaders;
   AudioFileStreamID audioFileStream;
 
   /* The audio file stream will fill in these parameters */
