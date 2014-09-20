@@ -30,9 +30,15 @@ extern NSString * const ASAttemptingNewSong;
   float volume;               /* volume for all streams on this playlist */
 
   NSInteger tries;            /* # of retry attempts */
-  NSMutableArray *urls;       /* list of URLs to play */
   AudioStreamer *stream;      /* stream that is playing */
 }
+
+/**
+ * The playlist array.
+ *
+ * This array contains the list of URLs that ASPlaylist runs upon.
+ */
+@property (readonly) NSMutableArray *playlist;
 
 /**
  * The currently playing URL.
@@ -82,6 +88,7 @@ extern NSString * const ASAttemptingNewSong;
 - (void)next;
 
 /** @name Interface to AudioStreamer */
+
 - (BOOL)isPaused;
 - (BOOL)isPlaying;
 - (BOOL)isIdle;

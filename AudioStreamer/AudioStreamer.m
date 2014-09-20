@@ -456,7 +456,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   [self fadeTo:0.0 duration:duration];
 }
 
-/* Internal Functions ======================================================= */
+#pragma mark - Internal functions
 
 + (NSString *)descriptionForErrorCode:(AudioStreamerErrorCode)anErrorCode {
   switch (anErrorCode) {
