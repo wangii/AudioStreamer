@@ -17,8 +17,13 @@ NSString * const ASStreamError       = @"ASStreamError";
 @implementation ASPlaylist
 
 - (id)init {
-  if (!(self = [super init])) return nil;
-  urls = [NSMutableArray arrayWithCapacity:10];
+  return [self initWithCapacity:10];
+}
+
+- (id)initWithCapacity:(NSUInteger)capacity {
+  if ((self = [super init])) {
+    urls = [NSMutableArray arrayWithCapacity:capacity];
+  }
   return self;
 }
 

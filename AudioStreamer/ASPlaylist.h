@@ -40,6 +40,15 @@ extern NSString * const ASStreamError;
  */
 @property NSURL *playing;
 
+/** @name Initializers */
+
+/**
+ * Creates a new ASPlaylist instance with the given capacity.
+ *
+ * @param capacity how many songs the ASPlaylist should be able to hold
+ */
+- (id)initWithCapacity:(NSUInteger)capacity;
+
 /** @name Managing the playlist */
 
 /**
