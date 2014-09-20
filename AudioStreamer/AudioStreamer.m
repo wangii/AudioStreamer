@@ -143,19 +143,19 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(inuse == NULL);
 }
 
-- (void) setHTTPProxy:(NSString*)host port:(int)port {
+- (void)setHTTPProxy:(NSString*)host port:(int)port {
   proxyHost = host;
   proxyPort = port;
   proxyType = PROXY_HTTP;
 }
 
-- (void) setSOCKSProxy:(NSString*)host port:(int)port {
+- (void)setSOCKSProxy:(NSString*)host port:(int)port {
   proxyHost = host;
   proxyPort = port;
   proxyType = PROXY_SOCKS;
 }
 
-- (BOOL)setVolume: (float) volume {
+- (BOOL)setVolume:(float)volume {
   if (audioQueue != NULL) {
     AudioQueueSetParameter(audioQueue, kAudioQueueParam_Volume, volume);
     return YES;
@@ -201,7 +201,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return AS_NOT_DONE;
 }
 
-- (BOOL) start {
+- (BOOL)start {
   if (stream != NULL) return NO;
   assert(audioQueue == NULL);
   assert(state_ == AS_INITIALIZED);
@@ -216,7 +216,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return YES;
 }
 
-- (BOOL) pause {
+- (BOOL)pause {
   if (state_ != AS_PLAYING) return NO;
   assert(audioQueue != NULL);
   err = AudioQueuePause(audioQueue);
@@ -228,7 +228,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return YES;
 }
 
-- (BOOL) play {
+- (BOOL)play {
   if (state_ != AS_PAUSED) return NO;
   assert(audioQueue != NULL);
   err = AudioQueueStart(audioQueue, NULL);
@@ -240,7 +240,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return YES;
 }
 
-- (void) stop {
+- (void)stop {
   if (state_ == AS_STOPPED) return; // Already stopped.
 
   AudioStreamerState prevState = state_;
@@ -348,7 +348,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return ret;
 }
 
-- (BOOL) seekByDelta:(double)seekTimeDelta {
+- (BOOL)seekByDelta:(double)seekTimeDelta {
   double p = 0;
   if ([self progress:&p]) {
     return [self seekToTime:p + seekTimeDelta];
@@ -356,7 +356,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return NO;
 }
 
-- (BOOL) progress:(double*)ret {
+- (BOOL)progress:(double*)ret {
   double sampleRate = asbd.mSampleRate;
   if (state_ == AS_STOPPED) {
     *ret = lastProgress;
@@ -382,7 +382,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return YES;
 }
 
-- (BOOL) calculatedBitRate:(double*)rate {
+- (BOOL)calculatedBitRate:(double*)rate {
   if (vbr)
   {
     double sampleRate     = asbd.mSampleRate;
@@ -404,7 +404,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 }
 
-- (BOOL) duration:(double*)ret {
+- (BOOL)duration:(double*)ret {
   if (fileLength == 0) return NO;
 
   double packetDuration = asbd.mFramesPerPacket / asbd.mSampleRate;
@@ -437,7 +437,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return YES;
 }
 
-- (BOOL) fadeTo:(float)volume duration:(float)duration {
+- (BOOL)fadeTo:(float)volume duration:(float)duration {
   if (audioQueue != NULL) {
     AudioQueueSetParameter(audioQueue, kAudioQueueParam_VolumeRampTime, duration);
     AudioQueueSetParameter(audioQueue, kAudioQueueParam_Volume, volume);
@@ -446,13 +446,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return NO;
 }
 
-- (void) fadeInDuration:(float)duration {
+- (void)fadeInDuration:(float)duration {
   //-- set the gain to 0.0, so we can call this method just after creating the streamer
   [self setVolume:0.0];
   [self fadeTo:1.0 duration:duration];
 }
 
-- (void) fadeOutDuration:(float)duration {
+- (void)fadeOutDuration:(float)duration {
   [self fadeTo:0.0 duration:duration];
 }
 
@@ -568,7 +568,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  * @brief Check the stream for a timeout, and trigger one if this is a timeout
  *        situation
  */
-- (void) checkTimeout {
+- (void)checkTimeout {
   /* Ignore if we're in the paused state */
   if (state_ == AS_PAUSED) return;
   /* If the read stream has been unscheduled and not rescheduled, then this tick
@@ -629,7 +629,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  * Code from:
  * https://github.com/DigitalDJ/AudioStreamer/blob/master/Classes/AudioStreamer.m
  */
-+ (AudioFileTypeID) hintForMIMEType:(NSString*)mimeType {
++ (AudioFileTypeID)hintForMIMEType:(NSString*)mimeType {
   if ([mimeType isEqual:@"audio/mpeg"]) {
     return kAudioFileMP3Type;
   } else if ([mimeType isEqual:@"audio/x-wav"]) {
@@ -956,7 +956,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 // This function is adapted from Apple's example in AudioFileStreamExample with
 // CBR functionality added.
 //
-- (int) enqueueBuffer {
+- (int)enqueueBuffer {
   assert(stream != NULL);
 
   assert(!inuse[fillBufferIndex]);
@@ -1348,7 +1348,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 }
 
-- (int) handleVBRPacket:(const void*)data
+- (int)handleVBRPacket:(const void*)data
                 desc:(AudioStreamPacketDescription*)desc{
   assert(audioQueue != NULL);
   UInt32 packetSize = desc->mDataByteSize;
@@ -1437,7 +1437,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  *
  * This method is enqueued for delivery when an audio buffer is freed
  */
-- (void) enqueueCachedData {
+- (void)enqueueCachedData {
   if ([self isDone]) return;
   assert(!waitingOnBuffer);
   assert(!inuse[fillBufferIndex]);
@@ -1561,7 +1561,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 /**
  * @brief Closes the read stream and frees all queued data
  */
-- (void) closeReadStream {
+- (void)closeReadStream {
   if (waitingOnBuffer) waitingOnBuffer = false;
   queued_packet_t *cur = queued_head;
   while (cur != NULL) {
@@ -1581,7 +1581,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 /**
  * @brief Closes the file stream
  */
-- (void) closeFileStream {
+- (void)closeFileStream {
   err = AudioFileStreamClose(audioFileStream);
   assert(!err);
   audioFileStream = nil;

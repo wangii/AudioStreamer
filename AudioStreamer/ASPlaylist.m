@@ -16,21 +16,21 @@ NSString * const ASStreamError       = @"ASStreamError";
 
 @implementation ASPlaylist
 
-- (id) init {
+- (id)init {
   if (!(self = [super init])) return nil;
   urls = [NSMutableArray arrayWithCapacity:10];
   return self;
 }
 
-- (void) dealloc {
+- (void)dealloc {
   [self stop];
 }
 
-- (void) clearSongList {
+- (void)clearSongList {
   [urls removeAllObjects];
 }
 
-- (void) addSong:(NSURL*)url play:(BOOL)play {
+- (void)addSong:(NSURL*)url play:(BOOL)play {
   [urls addObject:url];
 
   if (play && ![stream isPlaying]) {
@@ -38,7 +38,7 @@ NSString * const ASStreamError       = @"ASStreamError";
   }
 }
 
-- (void) setAudioStream {
+- (void)setAudioStream {
   if (stream != nil) {
     [[NSNotificationCenter defaultCenter]
         removeObserver:self
@@ -121,7 +121,7 @@ NSString * const ASStreamError       = @"ASStreamError";
   }
 }
 
-- (void) retry {
+- (void)retry {
   if (tries > 2) {
     /* too many retries means just skip to the next song */
     [self clearSongList];
@@ -134,7 +134,7 @@ NSString * const ASStreamError       = @"ASStreamError";
   [stream start];
 }
 
-- (void) play {
+- (void)play {
   if (stream) {
     [stream play];
     return;
@@ -165,15 +165,15 @@ NSString * const ASStreamError       = @"ASStreamError";
   }
 }
 
-- (void) pause { [stream pause]; }
-- (BOOL) isPaused { return [stream isPaused]; }
-- (BOOL) isPlaying { return [stream isPlaying]; }
-- (BOOL) isIdle { return [stream isDone]; }
-- (BOOL) isError { return [stream error] != nil; }
-- (BOOL) progress:(double*)ret { return [stream progress:ret]; }
-- (BOOL) duration:(double*)ret { return [stream duration:ret]; }
+- (void)pause { [stream pause]; }
+- (BOOL)isPaused { return [stream isPaused]; }
+- (BOOL)isPlaying { return [stream isPlaying]; }
+- (BOOL)isIdle { return [stream isDone]; }
+- (BOOL)isError { return [stream error] != nil; }
+- (BOOL)progress:(double*)ret { return [stream progress:ret]; }
+- (BOOL)duration:(double*)ret { return [stream duration:ret]; }
 
-- (void) next {
+- (void)next {
   if (nexting)
     return;
 
@@ -185,7 +185,7 @@ NSString * const ASStreamError       = @"ASStreamError";
   nexting = NO;
 }
 
-- (void) stop {
+- (void)stop {
   assert(!stopping);
   stopping = YES;
   nexting = YES;
@@ -201,9 +201,9 @@ NSString * const ASStreamError       = @"ASStreamError";
   stopping = NO;
 }
 
-- (void) setVolume:(float)vol {
+- (void)setVolume:(float)vol {
   volumeSet = [stream setVolume:vol];
-  self->volume = vol;
+  volume = vol;
 }
 
 @end

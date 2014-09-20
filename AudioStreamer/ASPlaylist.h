@@ -24,9 +24,9 @@ extern NSString * const ASStreamError;
   BOOL retrying;              /* Are we retrying the current url? */
   BOOL nexting;               /* Are we in the middle of nexting? */
   BOOL stopping;              /* Are we in the middle of stopping? */
-  BOOL volumeSet;             /* TRUE if the volume has been set on the stream */
+  BOOL volumeSet;             /* YES if the volume has been set on the stream */
   double lastKnownSeekTime;   /* time to seek to */
-  float volume;              /* volume for all streams on this playlist */
+  float volume;               /* volume for all streams on this playlist */
 
   NSInteger tries;            /* # of retry attempts */
   NSMutableArray *urls;       /* list of URLs to play */
@@ -48,37 +48,37 @@ extern NSString * const ASStreamError;
  * This will send out notifications for more songs if we're running low on songs
  * or are out of songs completely to play.
  */
-- (void) play;
+- (void)play;
 
 /**
  * Pause playback on the playlist.
  *
  * This has no effect if the playlist is already paused or wasn't playing a song
  */
-- (void) pause;
+- (void)pause;
 
 /**
  * Stops playing the current song and forgets about it.
  *
  * The song is stopped and internally all state about the song is thrown away
  */
-- (void) stop;
+- (void)stop;
 
 /**
  * Goes to the next song in the playlist
  *
  * This can trigger notifications about songs running low or associated events.
  */
-- (void) next;
+- (void)next;
 
 /** @name Interface to AudioStreamer */
-- (BOOL) isPaused;
-- (BOOL) isPlaying;
-- (BOOL) isIdle;
-- (BOOL) isError;
-- (void) setVolume:(float)volume;
-- (BOOL) duration:(double*)ret;
-- (BOOL) progress:(double*)ret;
+- (BOOL)isPaused;
+- (BOOL)isPlaying;
+- (BOOL)isIdle;
+- (BOOL)isError;
+- (void)setVolume:(float)volume;
+- (BOOL)duration:(double*)ret;
+- (BOOL)progress:(double*)ret;
 
 /** @name Miscellaneous */
 
@@ -86,17 +86,17 @@ extern NSString * const ASStreamError;
  * If the stream has stopped for a network error, this retries playing the
  * stream
  */
-- (void) retry;
+- (void)retry;
 
 /**
  * Removes all songs from the internal list of songs. This does not trigger
  * notifications about songs running low.
  */
-- (void) clearSongList;
+- (void)clearSongList;
 
 /**
  * Adds a new song to the playlist, optionally starting playback.
  */
-- (void) addSong:(NSURL*)url play:(BOOL)play;
+- (void)addSong:(NSURL*)url play:(BOOL)play;
 
 @end

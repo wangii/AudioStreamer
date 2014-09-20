@@ -207,7 +207,7 @@ struct queued_packet;
   /* Once properties have been read, packets arrive, and the audio queue is
    created once the first packet arrives */
   AudioQueueRef audioQueue;
-  UInt32 packetBufferSize;  /* guessed from audioFileStream */
+  UInt32 packetBufferSize;   /* guessed from audioFileStream */
 
   /* When receiving audio data, raw data is placed into these buffers. The
    * buffers are essentially a "ring buffer of buffers" as each buffer is cycled
@@ -420,7 +420,7 @@ struct queued_packet;
  * @param host the address/hostname of the remote host
  * @param port the port of the proxy
  */
-- (void) setHTTPProxy:(NSString*)host port:(int)port;
+- (void)setHTTPProxy:(NSString*)host port:(int)port;
 
 /**
  * Set SOCKS proxy for this stream
@@ -428,7 +428,7 @@ struct queued_packet;
  * @param host the address/hostname of the remote host
  * @param port the port of the proxy
  */
-- (void) setSOCKSProxy:(NSString*)host port:(int)port;
+- (void)setSOCKSProxy:(NSString*)host port:(int)port;
 
 /** @name Management of the stream and testing state */
 
@@ -442,7 +442,7 @@ struct queued_packet;
  * @return YES if the stream was started, or NO if the stream was previously
  *         started and this had no effect.
  */
-- (BOOL) start;
+- (BOOL)start;
 
 /**
  * Stop all streams, cleaning up resources and preventing all further events
@@ -452,7 +452,7 @@ struct queued_packet;
  * a signal of error happening. This method sets the state to AS_STOPPED if it
  * isn't already AS_STOPPED or AS_DONE.
  */
-- (void) stop;
+- (void)stop;
 
 /**
  * Pause the audio stream if playing
@@ -460,7 +460,7 @@ struct queued_packet;
  * @return YES if the audio stream was paused, or NO if it was not in the
  *         AS_PLAYING state or an error occurred.
  */
-- (BOOL) pause;
+- (BOOL)pause;
 
 /**
  * Plays the audio stream if paused
@@ -468,14 +468,14 @@ struct queued_packet;
  * @return YES if the audio stream entered into the AS_PLAYING state, or NO if
  *         any other error or bad state was encountered.
  */
-- (BOOL) play;
+- (BOOL)play;
 
 /**
  * Tests whether the stream is playing
  *
  * @return YES if the stream is playing, or NO Otherwise
  */
-- (BOOL) isPlaying;
+- (BOOL)isPlaying;
 
 /**
  * Tests whether the stream is paused
@@ -485,7 +485,7 @@ struct queued_packet;
  *
  * @return YES if the stream is paused, or NO Otherwise
  */
-- (BOOL) isPaused;
+- (BOOL)isPaused;
 
 /**
  * Tests whether the stream is waiting
@@ -495,7 +495,7 @@ struct queued_packet;
  *
  * @return YES if the stream is waiting, or NO Otherwise
  */
-- (BOOL) isWaiting;
+- (BOOL)isWaiting;
 
 /**
  * Tests whether the stream is done with all operation
@@ -513,7 +513,7 @@ struct queued_packet;
  *
  * @return the reason for the stream being done, or that it's not done.
  */
-- (AudioStreamerDoneReason) doneReason;
+- (AudioStreamerDoneReason)doneReason;
 
 /** @name Calculated properties and modifying the stream (all can fail) */
 
@@ -531,7 +531,7 @@ struct queued_packet;
  * @return YES if the stream will be seeking, or NO if the stream did not have
  *         enough information available to it to seek to the specified time.
  */
-- (BOOL) seekToTime:(double)newSeekTime;
+- (BOOL)seekToTime:(double)newSeekTime;
 
 /**
  * Seek to a relative time in the audio stream
@@ -543,7 +543,7 @@ struct queued_packet;
  * @return YES if the stream will be seeking, or NO if the stream did not have
  *         enough information available to it to seek to the specified time.
  */
-- (BOOL) seekByDelta:(double)seekTimeDelta;
+- (BOOL)seekByDelta:(double)seekTimeDelta;
 
 /**
  * Calculates the bit rate of the stream
@@ -556,7 +556,7 @@ struct queued_packet;
  * @return YES if the bit rate could be calculated with a high degree of
  *         certainty, or NO if it could not be.
  */
-- (BOOL) calculatedBitRate:(double*)ret;
+- (BOOL)calculatedBitRate:(double*)ret;
 
 /**
  * Attempt to set the volume on the audio queue
@@ -567,7 +567,7 @@ struct queued_packet;
  *         have its volume set. When the state for this audio streamer changes
  *         internally to have a stream, then setVolume: will work.
  */
-- (BOOL) setVolume:(float)volume;
+- (BOOL)setVolume:(float)volume;
 
 /**
  * Calculates the duration of the audio stream in seconds
@@ -580,7 +580,7 @@ struct queued_packet;
  *         could not be determined. In the NO case, the contents of ret are
  *         undefined
  */
-- (BOOL) duration:(double*)ret;
+- (BOOL)duration:(double*)ret;
 
 /**
  * Calculate the progress into the stream, in seconds
@@ -593,7 +593,7 @@ struct queued_packet;
  * @return YES if the progress of the stream was determined, or NO if the
  *         progress could not be determined at this time.
  */
-- (BOOL) progress:(double*)ret;
+- (BOOL)progress:(double*)ret;
 
 /**
  * Fade in playback
@@ -602,7 +602,7 @@ struct queued_packet;
  *
  * @param duration a double which represents the fade-in time span.
  */
-- (void) fadeInDuration:(float)duration;
+- (void)fadeInDuration:(float)duration;
 
 /**
  * Fade out playback
@@ -611,6 +611,6 @@ struct queued_packet;
  *
  * @param duration a double which represents the fade-in time span.
  */
-- (void) fadeOutDuration:(float)duration;
+- (void)fadeOutDuration:(float)duration;
 
 @end
