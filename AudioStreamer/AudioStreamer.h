@@ -40,7 +40,7 @@ typedef NS_ENUM(NSUInteger, AudioStreamerState) {
   AS_STOPPED
 };
 
-typedef NS_ENUM(NSUInteger, AudioStreamerErrorCode)
+typedef NS_ENUM(NSInteger, AudioStreamerErrorCode)
 {
   AS_NO_ERROR __deprecated_msg("Unused with the new error property. Check if the error property is nil or not.") = 0,
   AS_NETWORK_CONNECTION_FAILED = 1000,
