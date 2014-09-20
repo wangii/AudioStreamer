@@ -183,7 +183,6 @@ struct queued_packet;
   UInt32          bufferCnt;
   BOOL            bufferInfinite;
   int             timeoutInterval;
-  float           playbackRate;
 
   /* Creates as part of the [start] method */
   CFReadStreamRef stream;

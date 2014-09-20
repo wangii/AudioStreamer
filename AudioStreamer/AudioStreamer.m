@@ -70,14 +70,13 @@ NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
 @synthesize bufferSize;
 @synthesize bufferInfinite;
 @synthesize timeoutInterval;
-@synthesize playbackRate;
 
 /* AudioFileStream callback when properties are available */
 static void ASPropertyListenerProc(void *inClientData,
                             AudioFileStreamID inAudioFileStream,
                             AudioFileStreamPropertyID inPropertyID,
                             UInt32 *ioFlags) {
-  AudioStreamer* streamer = (__bridge AudioStreamer *)inClientData;
+  AudioStreamer *streamer = (__bridge AudioStreamer *)inClientData;
   [streamer handlePropertyChangeForFileStream:inAudioFileStream
                          fileStreamPropertyID:inPropertyID
                                       ioFlags:ioFlags];
@@ -87,7 +86,7 @@ static void ASPropertyListenerProc(void *inClientData,
 static void ASPacketsProc(void *inClientData, UInt32 inNumberBytes, UInt32
                    inNumberPackets, const void *inInputData,
                    AudioStreamPacketDescription  *inPacketDescriptions) {
-  AudioStreamer* streamer = (__bridge AudioStreamer *)inClientData;
+  AudioStreamer *streamer = (__bridge AudioStreamer *)inClientData;
   [streamer handleAudioPackets:inInputData
                    numberBytes:inNumberBytes
                  numberPackets:inNumberPackets
@@ -98,7 +97,7 @@ static void ASPacketsProc(void *inClientData, UInt32 inNumberBytes, UInt32
  * own personal threads, not the main thread */
 static void ASAudioQueueOutputCallback(void *inClientData, AudioQueueRef inAQ,
                                 AudioQueueBufferRef inBuffer) {
-  AudioStreamer* streamer = (__bridge AudioStreamer*)inClientData;
+  AudioStreamer *streamer = (__bridge AudioStreamer *)inClientData;
   [streamer handleBufferCompleteForQueue:inAQ buffer:inBuffer];
 }
 
@@ -106,25 +105,25 @@ static void ASAudioQueueOutputCallback(void *inClientData, AudioQueueRef inAQ,
  * personal threads like above */
 static void ASAudioQueueIsRunningCallback(void *inUserData, AudioQueueRef inAQ,
                                    AudioQueuePropertyID inID) {
-  AudioStreamer* streamer = (__bridge AudioStreamer *)inUserData;
+  AudioStreamer *streamer = (__bridge AudioStreamer *)inUserData;
   [streamer handlePropertyChangeForQueue:inAQ propertyID:inID];
 }
 
 /* CFReadStream callback when an event has occurred */
 static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType eventType,
                           void* inClientInfo) {
-  AudioStreamer* streamer = (__bridge AudioStreamer *)inClientInfo;
+  AudioStreamer *streamer = (__bridge AudioStreamer *)inClientInfo;
   [streamer handleReadFromStream:aStream eventType:eventType];
 }
 
-/* Private method. Developers should call -[AudioStreamer streamWithURL:] */
+/* Private method. Developers should call +[AudioStreamer streamWithURL:] */
 - (instancetype)initWithURL:(NSURL*)url {
   if ((self = [super init])) {
     _url = url;
     bufferCnt  = kDefaultNumAQBufs;
     bufferSize = kDefaultAQDefaultBufSize;
     timeoutInterval = 10;
-    playbackRate = 1.0f;
+    _playbackRate = 1.0f;
   }
   return self;
 }
@@ -990,11 +989,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       propVal = kAudioQueueTimePitchAlgorithm_Spectral;
       AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
 
-      propVal = (playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
+      propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
       AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
 
-      if (playbackRate != 1.0f && fileLength > 0) {
-        AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, playbackRate);
+      if (_playbackRate != 1.0f && fileLength > 0) {
+        AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
       }
 
       err = AudioQueueStart(audioQueue, NULL);
