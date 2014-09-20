@@ -13,6 +13,7 @@ NSString * const ASNewSongPlaying    = @"ASNewSongPlaying";
 NSString * const ASNoSongsLeft       = @"ASNoSongsLeft";
 NSString * const ASRunningOutOfSongs = @"ASRunningOutOfSongs";
 NSString * const ASStreamError       = @"ASStreamError";
+NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
 @implementation ASPlaylist
 
@@ -74,6 +75,12 @@ NSString * const ASStreamError       = @"ASStreamError";
 - (void)bitrateReady: (NSNotification*)notification {
   NSAssert([notification object] == stream,
            @"Should only receive notifications for the current stream");
+
+  [[NSNotificationCenter defaultCenter]
+        postNotificationName:ASNewSongPlaying
+                      object:self
+                    userInfo:@{@"url": _playing}];
+  
   if (lastKnownSeekTime == 0)
     return;
   if (![stream seekToTime:lastKnownSeekTime])
@@ -158,9 +165,8 @@ NSString * const ASStreamError       = @"ASStreamError";
   tries = 0;
 
   [[NSNotificationCenter defaultCenter]
-        postNotificationName:ASNewSongPlaying
-                      object:self
-                    userInfo:@{@"url": _playing}];
+        postNotificationName:ASAttemptingNewSong
+                      object:self];
 
   [stream start];
 
