@@ -8,10 +8,6 @@
 
 #import "iPhoneStreamer.h"
 
-/* Default number and size of audio queue buffers */
-#define kDefaultNumAQBufs 16
-#define kDefaultAQDefaultBufSize 2048
-
 #if defined(DEBUG) && 0
 #define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
 #else
@@ -64,13 +60,13 @@
         
         [self pause];
         
-        pausedByInterruption = YES;
+        _interrupted = YES;
     }
 }
 
 - (void)endInterruptionWithFlags:(NSUInteger)flags
 {
-    if ([self isPaused] && pausedByInterruption)
+    if ([self isPaused] && _interrupted)
     {
         LOG(@"Interruption ended");
         
@@ -85,7 +81,7 @@
             [self stop];
         }
         
-        pausedByInterruption = NO;
+        _interrupted = NO;
     }
 }
 
