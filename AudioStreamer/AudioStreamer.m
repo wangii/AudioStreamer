@@ -478,7 +478,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"Queueing of audio buffer failed";
     case AS_AUDIO_QUEUE_ADD_LISTENER_FAILED:
       return @"Failed to add listener to audio queue";
-    case AS_AUDIO_QUEUE_REMOVE_LISTENER_FAILED:
+    case 1012: /* AS_AUDIO_QUEUE_REMOVE_LISTENER_FAILED - Deprecated */
       return @"Failed to remove listener from audio queue";
     case AS_AUDIO_QUEUE_START_FAILED:
       return @"Failed to start the audio queue";
