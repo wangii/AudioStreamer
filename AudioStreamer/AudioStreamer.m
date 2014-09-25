@@ -852,7 +852,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED, @"");
   }
 
-  UInt8 bytes[packetBufferSize];
+  UInt32 bufferSize = (packetBufferSize > 0) ? packetBufferSize : _bufferSize;
+  if (bufferSize <= 0) {
+    bufferSize = 2048;
+  }
+
+  UInt8 bytes[bufferSize];
   CFIndex length;
   int i;
   for (i = 0;
@@ -893,7 +898,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               AudioFileStreamClose(audioFileStream);
               AudioQueueStop(audioQueue, true);
               AudioQueueReset(audioQueue);
-              for (UInt32 j = 0; j < packetBufferSize; ++j) {
+              for (UInt32 j = 0; j < bufferSize; ++j) {
                 AudioQueueFreeBuffer(audioQueue, buffers[j]);
               }
 
