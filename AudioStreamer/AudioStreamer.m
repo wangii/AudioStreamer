@@ -898,8 +898,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               AudioFileStreamClose(audioFileStream);
               AudioQueueStop(audioQueue, true);
               AudioQueueReset(audioQueue);
-              for (UInt32 j = 0; j < bufferSize; ++j) {
-                AudioQueueFreeBuffer(audioQueue, buffers[j]);
+              if (buffers) {
+                for (UInt32 j = 0; j < _bufferCnt; ++j) {
+                  AudioQueueFreeBuffer(audioQueue, buffers[j]);
+                }
               }
 
               _fileType = [AudioStreamer hintForMIMEType:lineItems[1]];
