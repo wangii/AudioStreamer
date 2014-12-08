@@ -301,7 +301,7 @@
 	CGFloat seconds = fmod(totalSconds, 60);
 	int minutes = (int)floor(fmod(totalSconds / 60, 60));
 	int hours = (int)floor(fmod(totalSconds / 3600, 60));
-	return [NSString stringWithFormat:@"%02d:%02d:%.1f", hours, minutes, seconds];
+	return [NSString stringWithFormat:@"%02d:%02d:%04.1f", hours, minutes, seconds];
 }
 
 //
