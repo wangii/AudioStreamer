@@ -362,7 +362,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return NO;
   }
 
-  double progress = progressDelta + seekTime + queueTime.mSampleTime / sampleRate;
+  double progress = seekTime + queueTime.mSampleTime / sampleRate;
   if (progress < 0.0) {
     progress = 0.0;
   }
@@ -1157,6 +1157,21 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   AudioQueueSetProperty(audioQueue, kAudioQueueProperty_MagicCookie, cookieData,
                         cookieSize);
   free(cookieData);
+
+  /* Playback rate */
+
+  UInt32 propVal = 1;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
+
+  propVal = kAudioQueueTimePitchAlgorithm_Spectral;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
+
+  propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
+
+  if (_playbackRate != 1.0f && fileLength > 0) {
+    AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
+  }
 }
 
 /**
@@ -1168,22 +1183,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  */
 - (BOOL)startAudioQueue
 {
-  if (!queuePaused)
-  {
-    UInt32 propVal = 1;
-    AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
-
-    propVal = kAudioQueueTimePitchAlgorithm_Spectral;
-    AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
-
-    propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
-    AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
-
-    if (_playbackRate != 1.0f && fileLength > 0) {
-      AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
-    }
-  }
-
   err = AudioQueueStart(audioQueue, NULL);
   if (err) {
     [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED reason:@""];

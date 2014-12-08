@@ -230,7 +230,6 @@ struct queued_packet;
   double seekTime;
   bool   seeking;            /* Are we currently in the process of seeking? */
   double lastProgress;       /* last calculated progress point */
-  double progressDelta;      /* How much to add on to the progress */
   UInt64 processedPacketsCount;     /* bit rate calculation utility */
   UInt64 processedPacketsSizeTotal; /* helps calculate the bit rate */
   bool   bitrateNotification;       /* notified that the bitrate is ready */

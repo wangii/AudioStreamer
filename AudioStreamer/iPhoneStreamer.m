@@ -14,6 +14,12 @@
 #define LOG(...)
 #endif
 
+@interface AudioStreamer (iPhoneStreamer)
+
+- (void)createQueue;
+
+@end
+
 @implementation iPhoneStreamer
 
 - (BOOL)start {
@@ -83,6 +89,17 @@
 
         _interrupted = NO;
     }
+}
+
+- (void)createQueue
+{
+    [super createQueue];
+
+    /* "Prefer" hardware playback but not "require" it.
+     * This means that streams can use software playback if hardware is unavailable.
+     * This allows for concurrent streams */
+    UInt32 propVal = kAudioQueueHardwareCodecPolicy_PreferHardware;
+    AudioQueueSetProperty(audioQueue, kAudioQueueProperty_HardwareCodecPolicy, &propVal, sizeof(propVal));
 }
 
 @end
