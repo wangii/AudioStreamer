@@ -113,7 +113,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (instancetype)initWithURL:(NSURL*)url {
   if ((self = [super init])) {
     _url = url;
-    _bufferCnt  = kDefaultNumAQBufs;
+    _bufferCount  = kDefaultNumAQBufs;
     _bufferSize = kDefaultAQDefaultBufSize;
     _timeoutInterval = 10;
     _playbackRate = 1.0f;
@@ -903,7 +903,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               AudioQueueStop(audioQueue, true);
               AudioQueueReset(audioQueue);
               if (buffers) {
-                for (UInt32 j = 0; j < _bufferCnt; ++j) {
+                for (UInt32 j = 0; j < _bufferCount; ++j) {
                   AudioQueueFreeBuffer(audioQueue, buffers[j]);
                 }
               }
@@ -986,13 +986,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (state_ == AS_WAITING_FOR_DATA) {
     /* Once we have a small amount of queued data, then we can go ahead and
      * start the audio queue and the file stream should remain ahead of it */
-    if (_bufferCnt < 3 || buffersUsed > 2) {
+    if (_bufferCount < 3 || buffersUsed > 2) {
       if (![self startAudioQueue]) return -1;
     }
   }
 
   /* move on to the next buffer and wait for it to be in use */
-  if (++fillBufferIndex >= _bufferCnt) fillBufferIndex = 0;
+  if (++fillBufferIndex >= _bufferCount) fillBufferIndex = 0;
   bytesFilled   = 0;    // reset bytes filled
   packetsFilled = 0;    // reset packets filled
 
@@ -1071,11 +1071,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   // allocate audio queue buffers
-  buffers = malloc(_bufferCnt * sizeof(buffers[0]));
+  buffers = malloc(_bufferCount * sizeof(buffers[0]));
   CHECK_ERR(buffers == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
-  inuse = calloc(_bufferCnt, sizeof(inuse[0]));
+  inuse = calloc(_bufferCount, sizeof(inuse[0]));
   CHECK_ERR(inuse == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
-  for (unsigned int i = 0; i < _bufferCnt; ++i) {
+  for (unsigned int i = 0; i < _bufferCount; ++i) {
     err = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
                                    &buffers[i]);
     CHECK_ERR(err, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
@@ -1372,7 +1372,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   /* This shouldn't happen because most of the time we read the packet buffer
      size from the file stream, but if we restored to guessing it we could
-     come up too small here. Developers may have to set the bufferCnt property. */
+     come up too small here. Developers may have to set the bufferCount property. */
   if (packetSize > packetBufferSize) {
     [self failWithErrorCode:AS_AUDIO_BUFFER_TOO_SMALL reason:@"The audio buffer was too small to handle the audio packets."];
     return -1;
@@ -1516,10 +1516,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Figure out which buffer just became free, and it had better damn well be
      one of our own buffers */
   UInt32 idx;
-  for (idx = 0; idx < _bufferCnt; idx++) {
+  for (idx = 0; idx < _bufferCount; idx++) {
     if (buffers[idx] == inBuffer) break;
   }
-  assert(idx >= 0 && idx < _bufferCnt);
+  assert(idx >= 0 && idx < _bufferCount);
   assert(inuse[idx]);
 
   LOG(@"buffer %u finished", (unsigned int)idx);

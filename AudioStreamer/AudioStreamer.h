@@ -316,6 +316,8 @@ struct queued_packet;
  */
 @property (readonly) AudioStreamBasicDescription streamDescription;
 
+@property (readwrite) UInt32 bufferCnt __attribute__((unavailable("Use the 'bufferCount' property instead.")));
+
 /**
  * The number of audio buffers to have
  *
@@ -333,7 +335,7 @@ struct queued_packet;
  *
  * Default: 16
  */
-@property (readwrite) UInt32 bufferCnt;
+@property (readwrite) UInt32 bufferCount;
 
 /**
  * The default size for each buffer allocated
@@ -344,7 +346,7 @@ struct queued_packet;
  * how large each buffer should be.
  *
  * If you find that this is being used, then it should be coordinated with
- * bufferCnt above to make sure that the audio stays responsive and slightly
+ * bufferCount above to make sure that the audio stays responsive and slightly
  * behind the HTTP stream
  *
  * Default: 2048
@@ -370,7 +372,7 @@ struct queued_packet;
  * Flag if to infinitely buffer data
  *
  * If this flag is set to NO, then a statically sized buffer is used as
- * determined by bufferCnt and bufferSize above and the read stream will be
+ * determined by bufferCount and bufferSize above and the read stream will be
  * descheduled when those fill up. This limits the bandwidth consumed to the
  * remote source and also limits memory usage.
  *
