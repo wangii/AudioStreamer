@@ -384,7 +384,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       double averagePacketByteSize = processedPacketsSizeTotal /
                                       processedPacketsCount;
       /* bits/byte x bytes/packet x packets/sec = bits/sec */
-      *rate = 8.0 * averagePacketByteSize / packetDuration;
+      *rate = averagePacketByteSize;
       return YES;
     }
     return NO;
@@ -1372,7 +1372,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   /* global statistics */
-  processedPacketsSizeTotal += packetSize;
+  processedPacketsSizeTotal += 8.0 * packetSize / (asbd.mFramesPerPacket / asbd.mSampleRate);
   processedPacketsCount++;
   if (processedPacketsCount > BitRateEstimationMinPackets &&
       !bitrateNotification) {
