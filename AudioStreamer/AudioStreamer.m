@@ -311,7 +311,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   //
   // Attempt to align the seek with a packet boundary
   //
-  double packetDuration = asbd.mFramesPerPacket / asbd.mSampleRate;
+  double packetDuration = _streamDescription.mFramesPerPacket / _streamDescription.mSampleRate;
   if (packetDuration > 0 && bitrate > 0) {
     UInt32 ioFlags = 0;
     SInt64 packetAlignedByteOffset;
@@ -349,7 +349,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (BOOL)progress:(double*)ret {
-  double sampleRate = asbd.mSampleRate;
+  double sampleRate = _streamDescription.mSampleRate;
   if (state_ == AS_STOPPED) {
     *ret = lastProgress;
     return YES;
@@ -377,8 +377,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (BOOL)calculatedBitRate:(double*)rate {
   if (vbr)
   {
-    double sampleRate     = asbd.mSampleRate;
-    double packetDuration = asbd.mFramesPerPacket / sampleRate;
+    double sampleRate     = _streamDescription.mSampleRate;
+    double packetDuration = _streamDescription.mFramesPerPacket / sampleRate;
 
     if (packetDuration && processedPacketsCount > BitRateEstimationMinPackets) {
       double averagePacketByteSize = processedPacketsSizeTotal /
@@ -391,7 +391,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
   else
   {
-    *rate = 8.0 * asbd.mSampleRate * asbd.mBytesPerPacket * asbd.mFramesPerPacket;
+    *rate = 8.0 * _streamDescription.mSampleRate * _streamDescription.mBytesPerPacket * _streamDescription.mFramesPerPacket;
     return YES;
   }
 }
@@ -399,7 +399,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (BOOL)duration:(double*)ret {
   if (fileLength == 0) return NO;
 
-  double packetDuration = asbd.mFramesPerPacket / asbd.mSampleRate;
+  double packetDuration = _streamDescription.mFramesPerPacket / _streamDescription.mSampleRate;
   if (!packetDuration) return NO;
 
   // Method one
@@ -423,7 +423,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
   else
   {
-    *ret = packetCount * asbd.mFramesPerPacket / asbd.mSampleRate;
+    *ret = packetCount * _streamDescription.mFramesPerPacket / _streamDescription.mSampleRate;
   }
 
   return YES;
@@ -1037,7 +1037,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(audioQueue == NULL);
 
   // create the audio queue
-  err = AudioQueueNewOutput(&asbd, ASAudioQueueOutputCallback,
+  err = AudioQueueNewOutput(&_streamDescription, ASAudioQueueOutputCallback,
                             (__bridge void*) self, CFRunLoopGetMain(), NULL,
                             0, &audioQueue);
   CHECK_ERR(err, AS_AUDIO_QUEUE_CREATION_FAILED, @"");
@@ -1194,11 +1194,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     case kAudioFileStreamProperty_DataFormat: {
       /* If we seeked, don't re-read the data */
-      if (asbd.mSampleRate == 0) {
-        UInt32 asbdSize = sizeof(asbd);
+      if (_streamDescription.mSampleRate == 0) {
+        UInt32 descSize = sizeof(_streamDescription);
 
         err = AudioFileStreamGetProperty(inAudioFileStream,
-                kAudioFileStreamProperty_DataFormat, &asbdSize, &asbd);
+                kAudioFileStreamProperty_DataFormat, &descSize, &_streamDescription);
         CHECK_ERR(err, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
       }
       LOG(@"have data format");
@@ -1229,7 +1229,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
         if (pasbd.mFormatID == kAudioFormatMPEG4AAC_HE || pasbd.mFormatID == kAudioFormatMPEG4AAC_HE_V2)
         {
-          asbd = pasbd;
+          _streamDescription = pasbd;
           break;
         }
       }
@@ -1389,7 +1389,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   /* global statistics */
-  processedPacketsSizeTotal += 8.0 * packetSize / (asbd.mFramesPerPacket / asbd.mSampleRate);
+  processedPacketsSizeTotal += 8.0 * packetSize / (_streamDescription.mFramesPerPacket / _streamDescription.mSampleRate);
   processedPacketsCount++;
   if (processedPacketsCount > BitRateEstimationMinPackets &&
       !bitrateNotification) {

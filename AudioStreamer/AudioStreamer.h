@@ -195,7 +195,6 @@ struct queued_packet;
   UInt64 fileLength;         /* length of file, set from http headers */
   UInt64 dataOffset;         /* offset into the file of the start of stream */
   UInt64 audioDataByteCount; /* number of bytes of audio data in file */
-  AudioStreamBasicDescription asbd; /* description of audio */
 
   /* Once properties have been read, packets arrive, and the audio queue is
    created once the first packet arrives */
@@ -307,6 +306,15 @@ struct queued_packet;
  * and cannot be changed after creation
  */
 @property (readonly) NSURL *url;
+
+/**
+ * The stream's description.
+ *
+ * This property contains data like sample rate and number of audio channels.
+ *
+ * See Apple's AudioStreamBasicDescription documentation for more information.
+ */
+@property (readonly) AudioStreamBasicDescription streamDescription;
 
 /**
  * The number of audio buffers to have
