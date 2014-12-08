@@ -24,6 +24,7 @@
 #import "MacStreamingPlayerController.h"
 #import "AudioStreamer.h"
 #import <QuartzCore/CoreAnimation.h>
+#import <tgmath.h>
 
 @implementation MacStreamingPlayerController
 
@@ -253,9 +254,9 @@
 		if ([streamer progress:&progress] && [streamer duration:&duration])
 		{
 			[positionLabel setStringValue:
-				[NSString stringWithFormat:@"Time Played: %.1f/%.1f seconds",
-					progress,
-					duration]];
+				[NSString stringWithFormat:@"Time Played: %@/%@",
+					[self stringFromSeconds:progress],
+					[self stringFromSeconds:duration]]];
 			[progressSlider setEnabled:YES];
 			[progressSlider setDoubleValue:100 * progress / duration];
 		}
@@ -269,6 +270,24 @@
 	{
 		[positionLabel setStringValue:@"Time Played:"];
 	}
+}
+
+//
+// stringFromSeconds:
+//
+// Converts a CGFloat time, in seconds, into NSString in HH:MM:SS.ss format
+//
+// Parameters:
+//    interval - the time, in seconds, to convert
+//
+// returns the NSString of the converted time
+//
+- (NSString *)stringFromSeconds:(CGFloat)totalSconds
+{
+	CGFloat seconds = fmod(totalSconds, 60);
+	int minutes = (int)floor(fmod(totalSconds / 60, 60));
+	int hours = (int)floor(fmod(totalSconds / 3600, 60));
+	return [NSString stringWithFormat:@"%02d:%02d:%.1f", hours, minutes, seconds];
 }
 
 //
