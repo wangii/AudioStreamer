@@ -799,7 +799,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
           /* If we got some data, the stream was either short or interrupted early.
            * We have some data so go ahead and play that. */
           [self startAudioQueue];
-        } else if (seekByteOffset != 0) {
+        } else if ((seekByteOffset - dataOffset) != 0) {
           /* If a seek was performed, and no data came back, then we probably
              seeked to the end or near the end of the stream */
           [self setState:AS_DONE];
@@ -830,7 +830,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     // Only read the content length if we seeked to time zero, otherwise
     // we only have a subset of the total bytes.
     //
-    if (seekByteOffset == 0) {
+    if ((seekByteOffset - dataOffset) == 0) {
       fileLength = (UInt64)[_httpHeaders[@"Content-Length"] longLongValue];
     }
   }
