@@ -46,7 +46,7 @@ typedef NS_ENUM(NSInteger, AudioStreamerErrorCode)
   AS_NETWORK_CONNECTION_FAILED = 1000,
   AS_FILE_STREAM_GET_PROPERTY_FAILED = 1001,
   AS_FILE_STREAM_SET_PROPERTY_FAILED = 1002,
-  AS_FILE_STREAM_SEEK_FAILED = 1003,
+  AS_FILE_STREAM_SEEK_FAILED __deprecated_msg("Unused.") = 1003,
   AS_FILE_STREAM_PARSE_BYTES_FAILED = 1004,
   AS_FILE_STREAM_OPEN_FAILED = 1005,
   AS_FILE_STREAM_CLOSE_FAILED __deprecated_msg("Unused. Closing happens when the stream is stopping and so it's too late to fail.") = 1006,

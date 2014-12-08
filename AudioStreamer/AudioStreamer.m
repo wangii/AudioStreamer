@@ -460,7 +460,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"File stream get property failed";
     case AS_FILE_STREAM_SET_PROPERTY_FAILED:
       return @"File stream set property failed";
-    case AS_FILE_STREAM_SEEK_FAILED:
+    case 1003: /* AS_FILE_STREAM_SEEK_FAILED - Deprecated */
       return @"File stream seek failed";
     case AS_FILE_STREAM_PARSE_BYTES_FAILED:
       return @"Parse bytes failed";
