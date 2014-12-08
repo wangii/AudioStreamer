@@ -364,7 +364,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return NO;
   }
 
-  double progress = seekTime + queueTime.mSampleTime / sampleRate;
+  double progress = progressDelta + seekTime + queueTime.mSampleTime / sampleRate;
   if (progress < 0.0) {
     progress = 0.0;
   }
@@ -940,6 +940,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
             if ([lineItems[0] caseInsensitiveCompare:@"Content-Type"] == NSOrderedSame) {
               LOG(@"Shoutcast Stream Content-Type: %@", lineItems[1]);
               AudioFileStreamClose(audioFileStream);
+              double progress;
+              [self progress:&progress];
+              progressDelta = progress;
               AudioQueueStop(audioQueue, true);
               AudioQueueReset(audioQueue);
               if (buffers) {
@@ -1605,6 +1608,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     else
     {
       /* No previous error occurred so we simply aren't buffering fasting enough */
+      double progress;
+      [self progress:&progress];
+      progressDelta = progress;
+
       seeking = true;
       AudioQueueStop(audioQueue, true);
 
