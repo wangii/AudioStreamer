@@ -236,6 +236,7 @@ struct queued_packet;
   bool   isParsing;           /* Are we parsing the file stream? */
   UInt64 totalAudioPackets;   /* Total number of audio packets expected */
   bool   vbr;                 /* Are we playing a VBR stream? */
+  bool   didConnect;          /* Did we connect successfully at some point? */
 }
 
 /** @name Creating an audio stream */

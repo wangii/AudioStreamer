@@ -509,7 +509,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 //
-// failWithErrorCode:
+// failWithErrorCode:reason:
 //
 // Sets the playback state to failed and logs the error.
 //
@@ -517,10 +517,24 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 //    errorCode - the error condition
 //    reason    - the error reason
 //
-- (void)failWithErrorCode:(AudioStreamerErrorCode)errorCode reason:(NSString*)reason {
+- (void)failWithErrorCode:(AudioStreamerErrorCode)errorCode reason:(NSString*)reason
+{
+  [self failWithErrorCode:errorCode reason:reason shouldStop:YES];
+}
+
+//
+// failWithErrorCode:reason:shouldStop:
+//
+// Sets the playback state to failed and logs the error.
+//
+// Parameters:
+//    errorCode  - the error condition
+//    reason     - the error reason
+//    shouldStop - whether the stream should stop immediately or not
+//
+- (void)failWithErrorCode:(AudioStreamerErrorCode)errorCode reason:(NSString*)reason shouldStop:(BOOL)shouldStop {
   // Only set the error once.
   if (_error) {
-    assert([self isDone]);
     return;
   }
 
@@ -538,13 +552,16 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                NSLocalizedString(reason, nil)};
   _error = [NSError errorWithDomain:ASErrorDomain code:errorCode userInfo:userInfo];
 
-  state_ = AS_DONE; // Delay notification to avoid race conditions
+  if (shouldStop)
+  {
+    state_ = AS_DONE; // Delay notification to avoid race conditions
 
-  [self stop];
+    [self stop];
 
-  [[NSNotificationCenter defaultCenter]
-        postNotificationName:ASStatusChangedNotification
-                      object:self];
+    [[NSNotificationCenter defaultCenter]
+          postNotificationName:ASStatusChangedNotification
+                        object:self];
+  }
 }
 
 - (void)setState:(AudioStreamerState)aStatus {
@@ -780,7 +797,21 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       LOG(@"error");
       /* Deprecated. Will eventually be a local variable. */
       _networkError = (__bridge_transfer NSError*) CFReadStreamCopyError(aStream);
-      [self failWithErrorCode:AS_NETWORK_CONNECTION_FAILED reason:[_networkError localizedDescription]];
+      if (!_error) {
+        if (buffersUsed != 0) {
+          /* shouldStop = NO as we will retry connecting later */
+          [self failWithErrorCode:AS_NETWORK_CONNECTION_FAILED reason:[_networkError localizedDescription] shouldStop:NO];
+        } else {
+          [self failWithErrorCode:AS_NETWORK_CONNECTION_FAILED reason:[_networkError localizedDescription] shouldStop:YES];
+        }
+      } else {
+        /* We tried reconnecting but failed. Time to stop. */
+        state_ = AS_DONE; // Delay notification to avoid race conditions
+        [self stop];
+        [[NSNotificationCenter defaultCenter]
+              postNotificationName:ASStatusChangedNotification
+                            object:self];
+      }
       return;
 
     case kCFStreamEventEndEncountered:
@@ -872,11 +903,19 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     length = CFReadStreamRead(stream, bytes, (CFIndex)sizeof(bytes));
 
     if (length < 0) {
+      if (didConnect) {
+        didConnect = false;
+        // Ignore. A network connection likely happened so we should wait for that to throw.
+        // If this happens again, throw a audio data not found error.
+        return;
+      }
       [self failWithErrorCode:AS_AUDIO_DATA_NOT_FOUND reason:@""];
       return;
     } else if (length == 0) {
       return;
     }
+
+    didConnect = true;
 
     // Shoutcast support.
     if (defaultFileTypeUsed) {
@@ -989,6 +1028,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     /* Once we have a small amount of queued data, then we can go ahead and
      * start the audio queue and the file stream should remain ahead of it */
     if ((_bufferCount < _bufferFillCountToStart && buffersUsed >= _bufferCount) || buffersUsed >= _bufferFillCountToStart) {
+      _error = nil; // We have successfully reconnected. Clear the error.
       if (![self startAudioQueue]) return -1;
     }
   }
@@ -1542,7 +1582,28 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     assert(!waitingOnBuffer);
     AudioQueueStop(audioQueue, false);
 
-  /* Otherwise we just opened up a buffer so try to fill it with some cached
+  /* If we are out of buffers then we need to reconnect or wait */
+  } else if (buffersUsed == 0 && ![self isDone] && ![self isWaiting]) {
+    if (_error)
+    {
+      /* A previous error occurred without the need to halt,
+       * so we can try reconnecting */
+      if (fileLength != 0)
+      {
+        /* Livestream - don't bother reconnecting. */
+        state_ = AS_DONE; // Delay notification to avoid race conditions
+        [self stop];
+        [[NSNotificationCenter defaultCenter]
+         postNotificationName:ASStatusChangedNotification
+         object:self];
+      }
+      /* Try to reconnect */
+      double progress;
+      [self progress:&progress];
+      [self seekToTime:progress];
+    }
+
+  /* If we just opened up a buffer so try to fill it with some cached
    * data if there is any available */
   } else if (waitingOnBuffer) {
     waitingOnBuffer = false;
@@ -1574,7 +1635,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     UInt32 output = sizeof(running);
     err = AudioQueueGetProperty(audioQueue, kAudioQueueProperty_IsRunning,
                                 &running, &output);
-    if (!err && !running && !seeking) {
+    if (!err && !running && !seeking && !_error) {
       [self setState:AS_DONE];
     }
   }
