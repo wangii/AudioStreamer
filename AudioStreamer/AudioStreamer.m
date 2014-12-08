@@ -21,7 +21,7 @@
 //     distribution.
 //
 
-/* This file has been heavily modified since its original distribution bytes
+/* This file has been heavily modified since its original distribution by
    Alex Crichton for the Hermes project */
 
 #import "AudioStreamer.h"
@@ -466,7 +466,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"Parse bytes failed";
     case AS_FILE_STREAM_OPEN_FAILED:
       return @"Failed to open file stream";
-    case AS_FILE_STREAM_CLOSE_FAILED:
+    case 1006: /* AS_FILE_STREAM_CLOSE_FAILED - Deprecated */
       return @"Failed to close the file stream";
     case AS_AUDIO_DATA_NOT_FOUND:
       return @"No audio data found";
@@ -924,7 +924,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
             break;
           }
 
-          lineStart = streamStart+2; // c3
+          lineStart = streamStart+2;
         }
 
         streamStart++;
