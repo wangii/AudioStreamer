@@ -33,9 +33,9 @@
 #define PROXY_HTTP   2
 
 /* Default number and size of audio queue buffers */
-#define kDefaultNumAQBufs 16
-#define kDefaultAQDefaultBufSize 2048
-#define kDefaultNumAQBufsToStart 3
+#define kDefaultNumAQBufs 256
+#define kDefaultAQDefaultBufSize 4096
+#define kDefaultNumAQBufsToStart 32
 
 #define CHECK_ERR(err, code, reasonStr) {                                      \
     if (err) { [self failWithErrorCode:code reason:reasonStr]; return; }       \

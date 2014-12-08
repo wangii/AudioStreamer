@@ -335,7 +335,13 @@ struct queued_packet;
  * up with the remote data stream. The incoming data should always be able to
  * stay ahead of these buffers being filled
  *
- * Default: 16
+ * Higher values will mean more data is stored so the higher you go, the more you
+ * can go without streaming more. This can help in the case of brief network
+ * slowdowns. Additionally, higher bitrates demand more buffers than lower ones
+ * as the data needed to store is much larger. The default value covers most
+ * bitrates but further tweaking may be required in certain cases.
+ *
+ * Default: 256
  */
 @property (readwrite) UInt32 bufferCount;
 
@@ -351,7 +357,7 @@ struct queued_packet;
  * bufferCount above to make sure that the audio stays responsive and slightly
  * behind the HTTP stream
  *
- * Default: 2048
+ * Default: 4096
  */
 @property (readwrite) UInt32 bufferSize;
 
@@ -366,7 +372,7 @@ struct queued_packet;
  * not error if not done so. AudioStreamer will simply fallback to the bufferCount
  * as the amount to fill instead.
  *
- * Default: 3
+ * Default: 32
  */
 @property (readwrite) UInt32 bufferFillCountToStart;
 
