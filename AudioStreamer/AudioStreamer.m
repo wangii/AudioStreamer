@@ -218,6 +218,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     [self failWithErrorCode:AS_AUDIO_QUEUE_PAUSE_FAILED reason:@""];
     return NO;
   }
+  queuePaused = true;
   [self setState:AS_PAUSED];
   return YES;
 }
@@ -225,12 +226,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (BOOL)play {
   if (state_ != AS_PAUSED) return NO;
   assert(audioQueue != NULL);
-  err = AudioQueueStart(audioQueue, NULL);
-  if (err) {
-    [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED reason:@""];
-    return NO;
-  }
-  [self setState:AS_PLAYING];
+  [self startAudioQueue];
   return YES;
 }
 
@@ -337,7 +333,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   /* Open a new stream with a new offset */
-  return [self openReadStream];
+  BOOL ret = [self openReadStream];
+  seeking = false;
+  return ret;
 }
 
 - (BOOL)seekByDelta:(double)seekTimeDelta {
@@ -829,7 +827,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         if (buffersUsed > 0) {
           /* If we got some data, the stream was either short or interrupted early.
            * We have some data so go ahead and play that. */
-          seeking = false;
           [self startAudioQueue];
         } else if ((seekByteOffset - dataOffset) != 0) {
           /* If a seek was performed, and no data came back, then we probably
@@ -940,9 +937,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
             if ([lineItems[0] caseInsensitiveCompare:@"Content-Type"] == NSOrderedSame) {
               LOG(@"Shoutcast Stream Content-Type: %@", lineItems[1]);
               AudioFileStreamClose(audioFileStream);
-              double progress;
-              [self progress:&progress];
-              progressDelta = progress;
               AudioQueueStop(audioQueue, true);
               AudioQueueReset(audioQueue);
               if (buffers) {
@@ -1030,7 +1024,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     /* Once we have a small amount of queued data, then we can go ahead and
      * start the audio queue and the file stream should remain ahead of it */
     if ((_bufferCount < _bufferFillCountToStart && buffersUsed >= _bufferCount) || buffersUsed >= _bufferFillCountToStart) {
-      seeking = false;
       _error = nil; // We have successfully reconnected. Clear the error.
       if (![self startAudioQueue]) return -1;
     }
@@ -1168,17 +1161,20 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  */
 - (BOOL)startAudioQueue
 {
-  UInt32 propVal = 1;
-  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
+  if (!queuePaused)
+  {
+    UInt32 propVal = 1;
+    AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
 
-  propVal = kAudioQueueTimePitchAlgorithm_Spectral;
-  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
+    propVal = kAudioQueueTimePitchAlgorithm_Spectral;
+    AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
 
-  propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
-  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
+    propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
+    AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
 
-  if (_playbackRate != 1.0f && fileLength > 0) {
-    AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
+    if (_playbackRate != 1.0f && fileLength > 0) {
+      AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
+    }
   }
 
   err = AudioQueueStart(audioQueue, NULL);
@@ -1186,7 +1182,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED reason:@""];
     return NO;
   }
-  [self setState:AS_WAITING_FOR_QUEUE_TO_START];
+
+  if (queuePaused) {
+    queuePaused = false;
+    [self setState:AS_PLAYING];
+  } else {
+    [self setState:AS_WAITING_FOR_QUEUE_TO_START];
+  }
+
   return YES;
 }
 
@@ -1608,12 +1611,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     else
     {
       /* No previous error occurred so we simply aren't buffering fasting enough */
-      double progress;
-      [self progress:&progress];
-      progressDelta = progress;
-
-      seeking = true;
-      AudioQueueStop(audioQueue, true);
+      err = AudioQueuePause(audioQueue);
+      CHECK_ERR(err, AS_AUDIO_QUEUE_PAUSE_FAILED, @"");
+      queuePaused = true;
 
       /* This can either fix or delay the problem
        * If it cannot fix it, the network is simply too slow */
@@ -1657,12 +1657,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   if (state_ == AS_WAITING_FOR_QUEUE_TO_START) {
     [self setState:AS_PLAYING];
-  } else if (state_ != AS_STOPPED) { // If the user stopped it, we don't care.
+  } else if (state_ != AS_STOPPED && !seeking && !_error) {
     UInt32 running;
     UInt32 output = sizeof(running);
     err = AudioQueueGetProperty(audioQueue, kAudioQueueProperty_IsRunning,
                                 &running, &output);
-    if (!err && !running && !seeking && !_error) {
+    if (!err && !running) {
       [self setState:AS_DONE];
     }
   }

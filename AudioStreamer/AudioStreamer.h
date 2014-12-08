@@ -238,6 +238,7 @@ struct queued_packet;
   UInt64 totalAudioPackets;   /* Total number of audio packets expected */
   bool   vbr;                 /* Are we playing a VBR stream? */
   bool   didConnect;          /* Did we connect successfully at some point? */
+  bool   queuePaused;         /* Is the audio queue paused? */
 }
 
 /** @name Creating an audio stream */
