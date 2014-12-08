@@ -484,7 +484,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"Failed to start the audio queue";
     case AS_AUDIO_QUEUE_PAUSE_FAILED:
       return @"Failed to pause the audio queue";
-    case AS_AUDIO_QUEUE_BUFFER_MISMATCH:
+    case 1015: /* AS_AUDIO_QUEUE_BUFFER_MISMATCH - Deprecated */
       return @"Audio queue buffer mismatch";
     case 1016: /* AS_AUDIO_QUEUE_DISPOSE_FAILED - Deprecated */
       return @"Couldn't dispose of audio queue";

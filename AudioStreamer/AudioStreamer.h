@@ -58,7 +58,7 @@ typedef NS_ENUM(NSInteger, AudioStreamerErrorCode)
   AS_AUDIO_QUEUE_REMOVE_LISTENER_FAILED __deprecated_msg("Unused.") = 1012,
   AS_AUDIO_QUEUE_START_FAILED = 1013,
   AS_AUDIO_QUEUE_PAUSE_FAILED = 1014,
-  AS_AUDIO_QUEUE_BUFFER_MISMATCH = 1015,
+  AS_AUDIO_QUEUE_BUFFER_MISMATCH __deprecated_msg("Unused.") = 1015,
   AS_AUDIO_QUEUE_DISPOSE_FAILED __deprecated_msg("Unused. Disposing happens when the stream is stopping and so it's too late to fail.") = 1016,
   AS_AUDIO_QUEUE_STOP_FAILED = 1017,
   AS_AUDIO_QUEUE_FLUSH_FAILED = 1018,
