@@ -795,7 +795,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
       /* If we never received any packets, then we're done now */
       if (state_ == AS_WAITING_FOR_DATA) {
-        if (seekByteOffset != 0) {
+        if (buffersUsed > 0) {
+          /* If we got some data, the stream was either short or interrupted early.
+           * We have some data so go ahead and play that. */
+          [self startAudioQueue];
+        } else if (seekByteOffset != 0) {
           /* If a seek was performed, and no data came back, then we probably
              seeked to the end or near the end of the stream */
           [self setState:AS_DONE];
@@ -983,25 +987,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     /* Once we have a small amount of queued data, then we can go ahead and
      * start the audio queue and the file stream should remain ahead of it */
     if (_bufferCnt < 3 || buffersUsed > 2) {
-      UInt32 propVal = 1;
-      AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
-
-      propVal = kAudioQueueTimePitchAlgorithm_Spectral;
-      AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
-
-      propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
-      AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
-
-      if (_playbackRate != 1.0f && fileLength > 0) {
-        AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
-      }
-
-      err = AudioQueueStart(audioQueue, NULL);
-      if (err) {
-        [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED reason:@""];
-        return -1;
-      }
-      [self setState:AS_WAITING_FOR_QUEUE_TO_START];
+      if (![self startAudioQueue]) return -1;
     }
   }
 
@@ -1126,6 +1112,37 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   AudioQueueSetProperty(audioQueue, kAudioQueueProperty_MagicCookie, cookieData,
                         cookieSize);
   free(cookieData);
+}
+
+/**
+ * @brief Sets up the audio queue and starts it
+ *
+ * This will set all the properties before starting the stream.
+ *
+ * @return YES if the AudioQueue was sucessfully set to start, NO if an error occurred
+ */
+- (BOOL)startAudioQueue
+{
+  UInt32 propVal = 1;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
+
+  propVal = kAudioQueueTimePitchAlgorithm_Spectral;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
+
+  propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
+
+  if (_playbackRate != 1.0f && fileLength > 0) {
+    AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
+  }
+
+  err = AudioQueueStart(audioQueue, NULL);
+  if (err) {
+    [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED reason:@""];
+    return NO;
+  }
+  [self setState:AS_WAITING_FOR_QUEUE_TO_START];
+  return YES;
 }
 
 //
