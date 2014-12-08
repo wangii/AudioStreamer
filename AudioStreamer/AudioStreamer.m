@@ -35,6 +35,7 @@
 /* Default number and size of audio queue buffers */
 #define kDefaultNumAQBufs 16
 #define kDefaultAQDefaultBufSize 2048
+#define kDefaultNumAQBufsToStart 3
 
 #define CHECK_ERR(err, code, reasonStr) {                                      \
     if (err) { [self failWithErrorCode:code reason:reasonStr]; return; }       \
@@ -115,6 +116,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     _url = url;
     _bufferCount  = kDefaultNumAQBufs;
     _bufferSize = kDefaultAQDefaultBufSize;
+    _bufferFillCountToStart = kDefaultNumAQBufsToStart;
     _timeoutInterval = 10;
     _playbackRate = 1.0f;
   }
@@ -986,7 +988,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (state_ == AS_WAITING_FOR_DATA) {
     /* Once we have a small amount of queued data, then we can go ahead and
      * start the audio queue and the file stream should remain ahead of it */
-    if (_bufferCount < 3 || buffersUsed > 2) {
+    if ((_bufferCount < _bufferFillCountToStart && buffersUsed >= _bufferCount) || buffersUsed >= _bufferFillCountToStart) {
       if (![self startAudioQueue]) return -1;
     }
   }

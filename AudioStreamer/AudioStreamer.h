@@ -354,6 +354,21 @@ struct queued_packet;
 @property (readwrite) UInt32 bufferSize;
 
 /**
+ * The number of buffers to fill before starting the stream
+ *
+ * The higher the value, the more smooth the start will be as there is more data
+ * cached for playback. A higher value will however result in slower starts which
+ * can also impact how "in-sync" livestreams are.
+ *
+ * This should always be lower than, or equal to, the bufferCount property but will
+ * not error if not done so. AudioStreamer will simply fallback to the bufferCount
+ * as the amount to fill instead.
+ *
+ * Default: 3
+ */
+@property (readwrite) UInt32 bufferFillCountToStart;
+
+/**
  * The file type of this audio stream
  *
  * This is an optional parameter. If not specified, then the file type will be
