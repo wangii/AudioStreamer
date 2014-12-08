@@ -926,12 +926,19 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
         if (bytes[streamStart] == '\r' && bytes[streamStart+1] == '\n')
         {
-          NSArray *lineItems = [[[[NSString alloc] initWithBytes:bytes
-                                                            length:streamStart
-                                                          encoding:NSUTF8StringEncoding]
-                                    substringWithRange:NSMakeRange(lineStart,
+          NSString *fullString = [[NSString alloc] initWithBytes:bytes
+                                                          length:streamStart
+                                                        encoding:NSUTF8StringEncoding];
+          if (fullString == nil)
+          {
+            fullString = [[NSString alloc] initWithBytes:bytes
+                                                  length:streamStart
+                                                encoding:NSISOLatin1StringEncoding];
+          }
+          NSArray *lineItems = [[fullString substringWithRange:NSMakeRange(lineStart,
                                                                   streamStart-lineStart)]
-                                    componentsSeparatedByString:@":"];
+                                   componentsSeparatedByString:@":"];
+
           if ([lineItems count] >= 2)
           {
             if ([lineItems[0] caseInsensitiveCompare:@"Content-Type"] == NSOrderedSame) {
