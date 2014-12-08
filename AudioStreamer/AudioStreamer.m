@@ -337,9 +337,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   /* Open a new stream with a new offset */
-  BOOL ret = [self openReadStream];
-  seeking = false;
-  return ret;
+  return [self openReadStream];
 }
 
 - (BOOL)seekByDelta:(double)seekTimeDelta {
@@ -831,6 +829,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         if (buffersUsed > 0) {
           /* If we got some data, the stream was either short or interrupted early.
            * We have some data so go ahead and play that. */
+          seeking = false;
           [self startAudioQueue];
         } else if ((seekByteOffset - dataOffset) != 0) {
           /* If a seek was performed, and no data came back, then we probably
@@ -891,7 +890,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   UInt32 bufferSize = (packetBufferSize > 0) ? packetBufferSize : _bufferSize;
   if (bufferSize <= 0) {
-    bufferSize = 2048;
+    bufferSize = kDefaultAQDefaultBufSize;
   }
 
   UInt8 bytes[bufferSize];
@@ -1028,6 +1027,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     /* Once we have a small amount of queued data, then we can go ahead and
      * start the audio queue and the file stream should remain ahead of it */
     if ((_bufferCount < _bufferFillCountToStart && buffersUsed >= _bufferCount) || buffersUsed >= _bufferFillCountToStart) {
+      seeking = false;
       _error = nil; // We have successfully reconnected. Clear the error.
       if (![self startAudioQueue]) return -1;
     }
@@ -1117,7 +1117,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   CHECK_ERR(buffers == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
   inuse = calloc(_bufferCount, sizeof(inuse[0]));
   CHECK_ERR(inuse == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
-  for (unsigned int i = 0; i < _bufferCount; ++i) {
+  for (UInt32 i = 0; i < _bufferCount; ++i) {
     err = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
                                    &buffers[i]);
     CHECK_ERR(err, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
@@ -1590,7 +1590,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
        * so we can try reconnecting */
       if (fileLength != 0)
       {
-        /* Livestream - don't bother reconnecting. */
+        /* Livestream - don't bother reconnecting */
         state_ = AS_DONE; // Delay notification to avoid race conditions
         [self stop];
         [[NSNotificationCenter defaultCenter]
@@ -1601,6 +1601,26 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       double progress;
       [self progress:&progress];
       [self seekToTime:progress];
+    }
+    else
+    {
+      /* No previous error occurred so we simply aren't buffering fasting enough */
+      seeking = true;
+      AudioQueueStop(audioQueue, true);
+
+      /* This can either fix or delay the problem
+       * If it cannot fix it, the network is simply too slow */
+      if (packetBufferSize < 65536) packetBufferSize = packetBufferSize * 2;
+      for (UInt32 j = 0; j < _bufferCount; ++j) {
+        AudioQueueFreeBuffer(audioQueue, buffers[j]);
+      }
+      for (UInt32 i = 0; i < _bufferCount; ++i) {
+        err = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
+                                       &buffers[i]);
+        CHECK_ERR(err, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
+      }
+
+      [self setState:AS_WAITING_FOR_DATA];
     }
 
   /* If we just opened up a buffer so try to fill it with some cached
