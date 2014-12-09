@@ -6,7 +6,7 @@ This project is a fork of @mattgallagher's [AudioStreamer](https://github.com/ma
 
 ## Documentation
 
-Documentation can either be found [here](http://alexcrichton.com/AudioStreamer/Classes/AudioStreamer.html) in an Apple-like format or in this README.
+Documentation can either be found [here](http://alexcrichton.com/AudioStreamer/index.html) in an Apple-like format or in this README.
 
 ## The `AudioStreamer` class
 
