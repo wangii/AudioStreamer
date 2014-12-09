@@ -220,9 +220,8 @@ struct queued_packet;
   struct queued_packet *queued_head;
   struct queued_packet *queued_tail;
 
-  /* Internal metadata about errors and state */
+  /* Internal metadata about state */
   AudioStreamerState state_;
-  OSStatus err;
 
   /* Miscellaneous metadata */
   bool   discontinuous;      /* flag to indicate the middle of a stream */

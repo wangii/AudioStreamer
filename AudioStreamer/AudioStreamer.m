@@ -37,9 +37,14 @@
 #define kDefaultAQDefaultBufSize 4096
 #define kDefaultNumAQBufsToStart 32
 
-#define CHECK_ERR(err, code, reasonStr) {                                      \
-    if (err) { [self failWithErrorCode:code reason:reasonStr]; return; }       \
+#define CHECK_ERR_NORET(err, code, reasonStr) {                                 \
+    if (err) { [self failWithErrorCode:code reason:reasonStr]; return; }        \
 }
+#define CHECK_ERR_RET(err, code, reasonStr, retVal) {                           \
+    if (err) { [self failWithErrorCode:code reason:reasonStr]; return retVal; } \
+}
+#define CHECK_ERR_X(x, err, code, reasonStr, retVal, FUNC, ...) FUNC
+#define CHECK_ERR(...) CHECK_ERR_X(,##__VA_ARGS__, CHECK_ERR_RET(__VA_ARGS__), CHECK_ERR_NORET(__VA_ARGS__))
 
 #if defined(DEBUG) && 0
 #define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
@@ -213,11 +218,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (BOOL)pause {
   if (state_ != AS_PLAYING) return NO;
   assert(audioQueue != NULL);
-  err = AudioQueuePause(audioQueue);
-  if (err) {
-    [self failWithErrorCode:AS_AUDIO_QUEUE_PAUSE_FAILED reason:@""];
-    return NO;
-  }
+  OSStatus osErr = AudioQueuePause(audioQueue);
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_PAUSE_FAILED, @"", NO);
   queuePaused = true;
   [self setState:AS_PAUSED];
   return YES;
@@ -249,8 +251,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
   if (audioQueue) {
     AudioQueueStop(audioQueue, true);
-    err = AudioQueueDispose(audioQueue, true);
-    assert(!err);
+    OSStatus osErr = AudioQueueDispose(audioQueue, true);
+    assert(!osErr);
     audioQueue = nil;
   }
   if (buffers != NULL) {
@@ -307,6 +309,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   seekTime = newSeekTime;
 
   //
+  // For later
+  //
+  OSStatus osErr;
+
+  //
   // Attempt to align the seek with a packet boundary
   //
   double packetDuration = _streamDescription.mFramesPerPacket / _streamDescription.mSampleRate;
@@ -314,9 +321,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     UInt32 ioFlags = 0;
     SInt64 packetAlignedByteOffset;
     SInt64 seekPacket = (SInt64)floor(newSeekTime / packetDuration);
-    err = AudioFileStreamSeek(audioFileStream, seekPacket,
-                              &packetAlignedByteOffset, &ioFlags);
-    if (!err) {
+    osErr = AudioFileStreamSeek(audioFileStream, seekPacket,
+                                &packetAlignedByteOffset, &ioFlags);
+    if (!osErr) {
       seekByteOffset = (UInt64)packetAlignedByteOffset + dataOffset;
       seekTime -= ((seekByteOffset - dataOffset) - (UInt64)packetAlignedByteOffset) * 8.0 / bitrate;
     }
@@ -325,8 +332,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   [self closeReadStream];
 
   /* Stop audio for now */
-  err = AudioQueueStop(audioQueue, true);
-  if (err) {
+  osErr = AudioQueueStop(audioQueue, true);
+  if (osErr) {
     seeking = false;
     [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED reason:@""];
     return NO;
@@ -357,8 +364,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   AudioTimeStamp queueTime;
   Boolean discontinuity;
-  err = AudioQueueGetCurrentTime(audioQueue, NULL, &queueTime, &discontinuity);
-  if (err) {
+  OSStatus osErr = AudioQueueGetCurrentTime(audioQueue, NULL, &queueTime, &discontinuity);
+  if (osErr) {
     return NO;
   }
 
@@ -692,12 +699,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   CFRelease(message);
 
   /* Follow redirection codes by default */
-  if (!CFReadStreamSetProperty(stream,
-                               kCFStreamPropertyHTTPShouldAutoredirect,
-                               kCFBooleanTrue)) {
-    [self failWithErrorCode:AS_FILE_STREAM_SET_PROPERTY_FAILED reason:@""];
-    return NO;
-  }
+  CHECK_ERR(!CFReadStreamSetProperty(stream,
+                                     kCFStreamPropertyHTTPShouldAutoredirect,
+                                     kCFBooleanTrue),
+            AS_FILE_STREAM_SET_PROPERTY_FAILED, @"", NO);
 
   /* Deal with proxies */
   switch (proxyType) {
@@ -753,10 +758,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   [self setState:AS_WAITING_FOR_DATA];
 
-  if (!CFReadStreamOpen(stream)) {
-    [self failWithErrorCode:AS_FILE_STREAM_OPEN_FAILED reason:@""];
-    return NO;
-  }
+  CHECK_ERR(!CFReadStreamOpen(stream), AS_FILE_STREAM_OPEN_FAILED, @"", NO);
 
   /* Set the callback to receive a few events, and then we're ready to
      schedule and go */
@@ -864,6 +866,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     }
   }
 
+  OSStatus osErr;
+
   /* If we haven't yet opened up a file stream, then do so now */
   if (!audioFileStream) {
     /* If a file type wasn't specified, we have to guess */
@@ -880,9 +884,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     }
 
     // create an audio file stream parser
-    err = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
-                              ASPacketsProc, _fileType, &audioFileStream);
-    CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED, @"");
+    osErr = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
+                                         ASPacketsProc, _fileType, &audioFileStream);
+    CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, @"");
   }
 
   UInt32 bufferSize = (packetBufferSize > 0) ? packetBufferSize : _bufferSize;
@@ -959,9 +963,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               }
               defaultFileTypeUsed = false;
 
-              err = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
+              osErr = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
                                             ASPacketsProc, _fileType, &audioFileStream);
-              CHECK_ERR(err, AS_FILE_STREAM_OPEN_FAILED, @"");
+              CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, @"");
 
               break; // We're not interested in any other metadata here.
             }
@@ -981,15 +985,15 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     isParsing = true;
     if (discontinuous) {
-      err = AudioFileStreamParseBytes(audioFileStream, (UInt32) length, bytes,
-                                      kAudioFileStreamParseFlag_Discontinuity);
+      osErr = AudioFileStreamParseBytes(audioFileStream, (UInt32) length, bytes,
+                                        kAudioFileStreamParseFlag_Discontinuity);
     } else {
-      err = AudioFileStreamParseBytes(audioFileStream, (UInt32) length,
-                                      bytes, 0);
+      osErr = AudioFileStreamParseBytes(audioFileStream, (UInt32) length,
+                                        bytes, 0);
     }
     isParsing = false;
     if ([self isDone]) [self closeFileStream];
-    CHECK_ERR(err, AS_FILE_STREAM_PARSE_BYTES_FAILED, @"");
+    CHECK_ERR(osErr, AS_FILE_STREAM_PARSE_BYTES_FAILED, @"");
   }
 }
 
@@ -1015,16 +1019,15 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   AudioQueueBufferRef fillBuf = buffers[fillBufferIndex];
   fillBuf->mAudioDataByteSize = bytesFilled;
 
+  OSStatus osErr;
   if (packetsFilled) {
-    err = AudioQueueEnqueueBuffer(audioQueue, fillBuf, packetsFilled,
-                                  packetDescs);
+    osErr = AudioQueueEnqueueBuffer(audioQueue, fillBuf, packetsFilled,
+                                    packetDescs);
   } else {
-    err = AudioQueueEnqueueBuffer(audioQueue, fillBuf, 0, NULL);
+    osErr = AudioQueueEnqueueBuffer(audioQueue, fillBuf, 0, NULL);
   }
-  if (err) {
-    [self failWithErrorCode:AS_AUDIO_QUEUE_ENQUEUE_FAILED reason:@""];
-    return -1;
-  }
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"", -1);
+
   LOG(@"committed buffer %d", fillBufferIndex);
 
   if (state_ == AS_WAITING_FOR_DATA) {
@@ -1046,11 +1049,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
      this case flush it out and asynchronously stop it */
   if (queued_head == NULL &&
       CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
-    err = AudioQueueFlush(audioQueue);
-    if (err) {
-      [self failWithErrorCode:AS_AUDIO_QUEUE_FLUSH_FAILED reason:@""];
-      return -1;
-    }
+    osErr = AudioQueueFlush(audioQueue);
+    CHECK_ERR(osErr, AS_AUDIO_QUEUE_FLUSH_FAILED, @"", -1);
   }
 
   if (inuse[fillBufferIndex]) {
@@ -1082,31 +1082,31 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(audioQueue == NULL);
 
   // create the audio queue
-  err = AudioQueueNewOutput(&_streamDescription, ASAudioQueueOutputCallback,
-                            (__bridge void*) self, CFRunLoopGetMain(), NULL,
-                            0, &audioQueue);
-  CHECK_ERR(err, AS_AUDIO_QUEUE_CREATION_FAILED, @"");
+  OSStatus osErr = AudioQueueNewOutput(&_streamDescription, ASAudioQueueOutputCallback,
+                                       (__bridge void*) self, CFRunLoopGetMain(), NULL,
+                                       0, &audioQueue);
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_CREATION_FAILED, @"");
 
   // start the queue if it has not been started already
   // listen to the "isRunning" property
-  err = AudioQueueAddPropertyListener(audioQueue, kAudioQueueProperty_IsRunning,
-                                      ASAudioQueueIsRunningCallback,
-                                      (__bridge void*) self);
-  CHECK_ERR(err, AS_AUDIO_QUEUE_ADD_LISTENER_FAILED, @"");
+  osErr = AudioQueueAddPropertyListener(audioQueue, kAudioQueueProperty_IsRunning,
+                                        ASAudioQueueIsRunningCallback,
+                                        (__bridge void*) self);
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_ADD_LISTENER_FAILED, @"");
 
   if (vbr) {
     /* Try to determine the packet size, eventually falling back to some
        reasonable default of a size */
     UInt32 sizeOfUInt32 = sizeof(UInt32);
-    err = AudioFileStreamGetProperty(audioFileStream,
-            kAudioFileStreamProperty_PacketSizeUpperBound, &sizeOfUInt32,
-            &packetBufferSize);
+    osErr = AudioFileStreamGetProperty(audioFileStream,
+                                       kAudioFileStreamProperty_PacketSizeUpperBound, &sizeOfUInt32,
+                                       &packetBufferSize);
 
-    if (err || packetBufferSize == 0) {
-      err = AudioFileStreamGetProperty(audioFileStream,
-              kAudioFileStreamProperty_MaximumPacketSize, &sizeOfUInt32,
-              &packetBufferSize);
-      if (err || packetBufferSize == 0) {
+    if (osErr || packetBufferSize == 0) {
+      osErr = AudioFileStreamGetProperty(audioFileStream,
+                                         kAudioFileStreamProperty_MaximumPacketSize, &sizeOfUInt32,
+                                         &packetBufferSize);
+      if (osErr || packetBufferSize == 0) {
         // No packet size available, just use the default
         packetBufferSize = _bufferSize;
       }
@@ -1121,9 +1121,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   inuse = calloc(_bufferCount, sizeof(inuse[0]));
   CHECK_ERR(inuse == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
   for (UInt32 i = 0; i < _bufferCount; ++i) {
-    err = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
+    osErr = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
                                    &buffers[i]);
-    CHECK_ERR(err, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
+    CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
   }
 
   /* Some audio formats have a "magic cookie" which needs to be transferred from
@@ -1183,11 +1183,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  */
 - (BOOL)startAudioQueue
 {
-  err = AudioQueueStart(audioQueue, NULL);
-  if (err) {
-    [self failWithErrorCode:AS_AUDIO_QUEUE_START_FAILED reason:@""];
-    return NO;
-  }
+  OSStatus osErr = AudioQueueStart(audioQueue, NULL);
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_START_FAILED, @"", NO);
 
   if (queuePaused) {
     queuePaused = false;
@@ -1223,9 +1220,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     case kAudioFileStreamProperty_DataOffset: {
       SInt64 offset;
       UInt32 offsetSize = sizeof(offset);
-      err = AudioFileStreamGetProperty(inAudioFileStream,
-              kAudioFileStreamProperty_DataOffset, &offsetSize, &offset);
-      CHECK_ERR(err, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
+      OSStatus osErr = AudioFileStreamGetProperty(inAudioFileStream,
+                                                  kAudioFileStreamProperty_DataOffset,
+                                                  &offsetSize, &offset);
+      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
       dataOffset = (UInt64)offset;
 
       if (audioDataByteCount) {
@@ -1237,10 +1235,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     case kAudioFileStreamProperty_AudioDataByteCount: {
       UInt32 byteCountSize = sizeof(UInt64);
-      err = AudioFileStreamGetProperty(inAudioFileStream,
-              kAudioFileStreamProperty_AudioDataByteCount,
-              &byteCountSize, &audioDataByteCount);
-      CHECK_ERR(err, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
+      OSStatus osErr = AudioFileStreamGetProperty(inAudioFileStream,
+                                                  kAudioFileStreamProperty_AudioDataByteCount,
+                                                  &byteCountSize, &audioDataByteCount);
+      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
       fileLength = dataOffset + audioDataByteCount;
       LOG(@"have byte count: %llx", audioDataByteCount);
       break;
@@ -1251,9 +1249,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       if (_streamDescription.mSampleRate == 0) {
         UInt32 descSize = sizeof(_streamDescription);
 
-        err = AudioFileStreamGetProperty(inAudioFileStream,
-                kAudioFileStreamProperty_DataFormat, &descSize, &_streamDescription);
-        CHECK_ERR(err, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
+        OSStatus osErr = AudioFileStreamGetProperty(inAudioFileStream,
+                                                    kAudioFileStreamProperty_DataFormat,
+                                                    &descSize, &_streamDescription);
+        CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
       }
       LOG(@"have data format");
       break;
@@ -1262,16 +1261,17 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     case kAudioFileStreamProperty_FormatList: {
       Boolean outWriteable;
       UInt32 formatListSize;
-      err = AudioFileStreamGetPropertyInfo(inAudioFileStream,
-              kAudioFileStreamProperty_FormatList,
-              &formatListSize, &outWriteable);
-      CHECK_ERR(err, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
+      OSStatus osErr = AudioFileStreamGetPropertyInfo(inAudioFileStream,
+                                                      kAudioFileStreamProperty_FormatList,
+                                                      &formatListSize, &outWriteable);
+      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
 
       AudioFormatListItem *formatList = malloc(formatListSize);
       CHECK_ERR(formatList == NULL, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
-      err = AudioFileStreamGetProperty(inAudioFileStream,
-              kAudioFileStreamProperty_FormatList, &formatListSize, formatList);
-      if (err) {
+      osErr = AudioFileStreamGetProperty(inAudioFileStream,
+                                         kAudioFileStreamProperty_FormatList,
+                                         &formatListSize, formatList);
+      if (osErr) {
         free(formatList);
         [self failWithErrorCode:AS_FILE_STREAM_GET_PROPERTY_FAILED reason:@""];
         return;
@@ -1427,10 +1427,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* This shouldn't happen because most of the time we read the packet buffer
      size from the file stream, but if we restored to guessing it we could
      come up too small here. Developers may have to set the bufferCount property. */
-  if (packetSize > packetBufferSize) {
-    [self failWithErrorCode:AS_AUDIO_BUFFER_TOO_SMALL reason:@"The audio buffer was too small to handle the audio packets."];
-    return -1;
-  }
+  CHECK_ERR(packetSize > packetBufferSize, AS_AUDIO_BUFFER_TOO_SMALL,
+            @"The audio buffer was too small to handle the audio packets.", -1);
 
   // if the space remaining in the buffer is not enough for this packet, then
   // enqueue the buffer and wait for another to become available.
@@ -1617,8 +1615,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     else
     {
       /* No previous error occurred so we simply aren't buffering fasting enough */
-      err = AudioQueuePause(audioQueue);
-      CHECK_ERR(err, AS_AUDIO_QUEUE_PAUSE_FAILED, @"");
+      OSStatus osErr = AudioQueuePause(audioQueue);
+      CHECK_ERR(osErr, AS_AUDIO_QUEUE_PAUSE_FAILED, @"");
       queuePaused = true;
 
       /* This can either fix or delay the problem
@@ -1628,9 +1626,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         AudioQueueFreeBuffer(audioQueue, buffers[j]);
       }
       for (UInt32 i = 0; i < _bufferCount; ++i) {
-        err = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
-                                       &buffers[i]);
-        CHECK_ERR(err, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
+        osErr = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
+                                         &buffers[i]);
+        CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
       }
 
       [self setState:AS_WAITING_FOR_DATA];
@@ -1666,9 +1664,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   } else if (state_ != AS_STOPPED && !seeking && !_error) {
     UInt32 running;
     UInt32 output = sizeof(running);
-    err = AudioQueueGetProperty(audioQueue, kAudioQueueProperty_IsRunning,
-                                &running, &output);
-    if (!err && !running) {
+    OSStatus osErr = AudioQueueGetProperty(audioQueue, kAudioQueueProperty_IsRunning,
+                                           &running, &output);
+    if (!osErr && !running) {
       [self setState:AS_DONE];
     }
   }
@@ -1698,8 +1696,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  * @brief Closes the file stream
  */
 - (void)closeFileStream {
-  err = AudioFileStreamClose(audioFileStream);
-  assert(!err);
+  OSStatus osErr = AudioFileStreamClose(audioFileStream);
+  assert(!osErr);
   audioFileStream = nil;
 }
 
