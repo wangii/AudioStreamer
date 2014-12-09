@@ -546,7 +546,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Attempt to save our last point of progress */
   [self progress:&lastProgress];
 
-  LOG(@"got an error: %@", [AudioStreamer descriptionForErrorCode:errorCode]);
+  LOG(@"got an error: %@ (%@)", [AudioStreamer descriptionForErrorCode:errorCode], reason);
   _errorCode = errorCode; // Deprecated.
 
   NSDictionary *userInfo = @{NSLocalizedDescriptionKey:
