@@ -499,7 +499,7 @@ struct queued_packet;
  * how large each buffer should be.
  *
  * If you find that this is being used, then it should be coordinated with
- * bufferCount above to make sure that the audio stays responsive and slightly
+ * <bufferCount> above to make sure that the audio stays responsive and slightly
  * behind the HTTP stream
  *
  * Default: 4096
@@ -526,7 +526,7 @@ struct queued_packet;
  *
  * @details This is an optional parameter. If not specified, then the file type will be
  * guessed. First, the MIME type of the response is used to guess the file
- * type, and if that fails the extension on the url is used. If that fails as
+ * type, and if that fails the extension on the <url> is used. If that fails as
  * well, then the default is an MP3 stream.
  *
  * If this property is set, then no inferring is done and that file type is
@@ -540,8 +540,8 @@ struct queued_packet;
  * @brief Flag if to infinitely buffer data
  *
  * @details If this flag is set to NO, then a statically sized buffer is used as
- * determined by bufferCount and bufferSize above and the read stream will be
- * descheduled when those fill up. This limits the bandwidth consumed to the
+ * determined by the <bufferCount> and <bufferSize> properties and the read stream
+ * will be descheduled when those fill up. This limits the bandwidth consumed to the
  * remote source and also limits memory usage.
  *
  * If, however, you wish to hold the entire stream in memory, then you can set

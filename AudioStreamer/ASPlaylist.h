@@ -16,7 +16,7 @@ extern NSString * const ASStreamError;
 extern NSString * const ASAttemptingNewSong;
 
 /**
- * The ASPlaylist class is intended to be a wrapper around the AudioStreamer
+ * The ASPlaylist class is intended to be a wrapper around the <AudioStreamer>
  * class for a more robust interface if one is desired. It also manages a queue
  * of songs to play and automatically switches from one song to the next when
  * playback finishes.
