@@ -202,7 +202,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 }
 
 - (BOOL)isError {
-  return [stream error] != nil;
+  return [stream doneReason] == AS_DONE_ERROR;
 }
 
 - (BOOL)progress:(double*)ret {

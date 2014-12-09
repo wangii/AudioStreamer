@@ -30,49 +30,183 @@
 /* Maximum number of packets which can be contained in one buffer */
 #define kAQMaxPacketDescs 512
 
+/**
+ * The state that the streamer is in.
+ *
+ * Currently this only useful internally.
+ */
 typedef NS_ENUM(NSUInteger, AudioStreamerState) {
+  /**
+   * The streamer has just been created and is waiting to start
+   */
   AS_INITIALIZED = 0,
+  /**
+   * The streamer is waiting for enough data before playing
+   */
   AS_WAITING_FOR_DATA,
+  /**
+   * The streamer is waiting for the audio queue (player) to start
+   */
   AS_WAITING_FOR_QUEUE_TO_START,
+  /**
+   * The streamer is playing
+   */
   AS_PLAYING,
+  /**
+   * The streamer is paused
+   */
   AS_PAUSED,
+  /**
+   * The streamer is done. Call <[AudioStreamer doneReason]> for a reason
+   */
   AS_DONE,
+  /**
+   * The streamer has been stopped by the <[AudioStreamer stop]> method
+   */
   AS_STOPPED
 };
 
+/**
+ * Error codes that the streamer could throw.
+ *
+ * These are mainly used internally but can be used to as comparison with
+ * the <[AudioStreamer error]> property.
+ *
+ * ```
+ * if ([[streamer error] code] == AS_NETWORK_CONNECTION_FAILED)
+ * {
+ *     // Retry
+ * }
+ * ```
+ */
 typedef NS_ENUM(NSInteger, AudioStreamerErrorCode)
 {
-  AS_NO_ERROR __deprecated_msg("Unused with the new error property. Check if the error property is nil or not.") = 0,
+  /**
+   * No error has occurred
+   * @deprecated Unused with the new error property. Check if the [AudioStreamer error] property is nil or not
+   */
+  AS_NO_ERROR DEPRECATED_MSG_ATTRIBUTE("Unused with the new error property. Check if the error property is nil or not.") = 0,
+  /**
+   * The network connection to the stream has failed
+   */
   AS_NETWORK_CONNECTION_FAILED = 1000,
+  /**
+   * The file stream threw an error when attempting to fetch a property
+   */
   AS_FILE_STREAM_GET_PROPERTY_FAILED = 1001,
+  /**
+   * The file stream threw an error when attempting to set a property
+   */
   AS_FILE_STREAM_SET_PROPERTY_FAILED = 1002,
-  AS_FILE_STREAM_SEEK_FAILED __deprecated_msg("Unused.") = 1003,
+  /**
+   * An error occurred when attempting to seek the file stream
+   * @deprecated Unused
+   */
+  AS_FILE_STREAM_SEEK_FAILED DEPRECATED_MSG_ATTRIBUTE("Unused.") = 1003,
+  /**
+   * The file stream threw an error when parsing the stream data
+   */
   AS_FILE_STREAM_PARSE_BYTES_FAILED = 1004,
+  /**
+   * The file stream threw an error when opening
+   */
   AS_FILE_STREAM_OPEN_FAILED = 1005,
-  AS_FILE_STREAM_CLOSE_FAILED __deprecated_msg("Unused. Closing happens when the stream is stopping and so it's too late to fail.") = 1006,
+  /**
+   * The file stream threw an error when closing
+   * @deprecated Unused. Closing happens when the stream is stopping and so it's too late to fail
+   */
+  AS_FILE_STREAM_CLOSE_FAILED DEPRECATED_MSG_ATTRIBUTE("Unused. Closing happens when the stream is stopping and so it's too late to fail.") = 1006,
+  /**
+   * No audio could be found in stream
+   */
   AS_AUDIO_DATA_NOT_FOUND = 1007,
+  /**
+   * The audio queue (player) threw an error on creation
+   */
   AS_AUDIO_QUEUE_CREATION_FAILED = 1008,
+  /**
+   * The audio queue (player) threw an error when allocating buffers
+   */
   AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED = 1009,
+  /**
+   * The audio queue (player) threw an error when enqueuing buffers
+   */
   AS_AUDIO_QUEUE_ENQUEUE_FAILED = 1010,
+  /**
+   * The audio queue (player) threw an error when adding a property listener
+   */
   AS_AUDIO_QUEUE_ADD_LISTENER_FAILED = 1011,
-  AS_AUDIO_QUEUE_REMOVE_LISTENER_FAILED __deprecated_msg("Unused.") = 1012,
+  /**
+   * The audio queue (player) threw an error when removing a property listener
+   * @deprecated Unused
+   */
+  AS_AUDIO_QUEUE_REMOVE_LISTENER_FAILED DEPRECATED_MSG_ATTRIBUTE("Unused.") = 1012,
+  /**
+   * The audio queue (player) threw an error on start
+   */
   AS_AUDIO_QUEUE_START_FAILED = 1013,
+  /**
+   * The audio queue (player) threw an error on pause
+   */
   AS_AUDIO_QUEUE_PAUSE_FAILED = 1014,
+  /**
+   * There was a mismatch in the audio queue's (player's) buffers.
+   * Perhaps you set <[AudioStreamer bufferCount]> while the stream was running?
+   */
   AS_AUDIO_QUEUE_BUFFER_MISMATCH = 1015,
-  AS_AUDIO_QUEUE_DISPOSE_FAILED __deprecated_msg("Unused. Disposing happens when the stream is stopping and so it's too late to fail.") = 1016,
+  /**
+   * The audio queue (player) threw an error on disposal
+   * @deprecated Unused. Disposing happens when the stream is stopping and so it's too late to fail
+   */
+  AS_AUDIO_QUEUE_DISPOSE_FAILED DEPRECATED_MSG_ATTRIBUTE("Unused. Disposing happens when the stream is stopping and so it's too late to fail.") = 1016,
+  /**
+   * The audio queue (player) threw an error on stop
+   */
   AS_AUDIO_QUEUE_STOP_FAILED = 1017,
+  /**
+   * The audio queue (player) threw an error while flushing
+   */
   AS_AUDIO_QUEUE_FLUSH_FAILED = 1018,
-  AS_AUDIO_STREAMER_FAILED __deprecated_msg("Unused.") = 1019,
-  AS_GET_AUDIO_TIME_FAILED __deprecated_msg("Unused. The progress method will return NO instead.") = 1020,
+  /**
+   * Generic error
+   * @deprecated No longer used in favour of more specific errors
+   */
+  AS_AUDIO_STREAMER_FAILED DEPRECATED_MSG_ATTRIBUTE("No longer used in favour of more specific errors.") = 1019,
+  /**
+   * Fetching of the current progress failed
+   * @deprecated The [AudioStreamer progress:] method will return NO instead
+   */
+  AS_GET_AUDIO_TIME_FAILED DEPRECATED_MSG_ATTRIBUTE("Unused. The progress: method will return NO instead.") = 1020,
+  /**
+   * The buffer size is too small. Try increasing <[AudioStreamer bufferSize]>
+   */
   AS_AUDIO_BUFFER_TOO_SMALL = 1021,
+  /**
+   * The connection to the stream timed out
+   */
   AS_TIMED_OUT = 1022
 };
 
+/**
+ * Possible reasons of why the streamer is now done.
+ */
 typedef NS_ENUM(NSUInteger, AudioStreamerDoneReason) {
-  AS_DONE_STOPPED = 0,
-  AS_DONE_ERROR,
-  AS_DONE_EOF,
-  AS_NOT_DONE
+  /**
+   * The streamer has ended with an error. Check <[AudioStreamer error]> for information
+   */
+  AS_DONE_ERROR = -1,
+  /**
+   * The streamer is not done
+   */
+  AS_NOT_DONE = 0,
+  /**
+   * The streamer was stopped through the <[AudioStreamer stop]> method
+   */
+  AS_DONE_STOPPED = 1,
+  /**
+   * The streamer has reached the end of the file
+   */
+  AS_DONE_EOF = 2,
 };
 
 /* Notifications */
@@ -149,7 +283,7 @@ struct queued_packet;
  * remote stream just won't work.  Occasionally errors might reflect a lack of
  * local resources.
  *
- * Error information can be learned from the error property.
+ * Error information can be learned from the <error> property.
  *
  * ## Seeking
  *
@@ -179,7 +313,7 @@ struct queued_packet;
   int             proxyPort;
   bool            defaultFileTypeUsed;
 
-  /* Creates as part of the [start] method */
+  /* Created as part of the <start> method */
   CFReadStreamRef stream;
 
   /* Timeout management */
@@ -242,87 +376,95 @@ struct queued_packet;
 /** @name Creating an audio stream */
 
 /**
- * Allocate a new audio stream with the specified url
+ * @brief Allocate a new audio stream with the specified url
  *
- * The created stream has not started playback. This gives an opportunity to
+ * @details The created stream has not started playback. This gives an opportunity to
  * configure the rest of the stream as necessary. To start playback, send the
- * stream an explicit 'start' message.
+ * stream an explicit <start> message.
  *
- * @param url the remote source of audio
- * @return the stream to configure and being playback with
+ * @param url The remote source of audio
+ * @return The stream to configure and being playback with
  */
 + (instancetype)streamWithURL:(NSURL*)url;
 
 /** @name Properties of the audio stream */
 
 /**
- * If an error occurs on the stream, then this variable is set with the
+ * @brief The error the streamer threw
+ *
+ * @details If an error occurs on the stream, then this variable is set with the
  * corresponding error information.
  *
  * By default this is nil.
+ *
+ * @see AudioStreamerErrorCode
  */
 @property (readonly) NSError *error;
 
 /**
- * DEPRECATED: Use the -code method from the 'error' property instead.
+ * @brief The error code the streamer threw
+ * @deprecated Use the -code method from the error property instead
  *
- * If an error occurs on the stream, then this variable is set with the code
+ * @details If an error occurs on the stream, then this variable is set with the code
  * corresponding to the error
  *
  * By default this is AS_NO_ERROR.
+ *
+ * @see AudioStreamerErrorCode
  */
 @property (readonly) AudioStreamerErrorCode errorCode
-  __deprecated_msg("Use the -code method from the 'error' property instead.");
+  __attribute__((deprecated("Use the -code method from the 'error' property instead.")));
 
 /**
- * DEPRECATED: Use the -localizedDescription method from the 'error' property instead.
+ * @brief Converts an error code to a string
+ * @deprecated Use the -localizedDescription method from the 'error' property instead
  *
- * Converts an error code to a string
- *
- * @param anErrorCode the code to convert, usually from the errorCode field
- * @return the string description of the error code (as best as possible)
+ * @param anErrorCode The code to convert, usually from the <errorCode> property
+ * @return The string description of the error code (as best as possible)
  */
 + (NSString*)stringForErrorCode:(AudioStreamerErrorCode)anErrorCode
-  __deprecated_msg("Use the -localizedDescription method from the 'error' property instead.");
+  __attribute__((deprecated("Use the -localizedDescription method from the 'error' property instead.")));
 
 /**
- * DEPRECATED: Use the -localizedFailureReason method from 'error' property instead.
+ * @brief The network error the streamer threw
+ * @deprecated Use the -localizedFailureReason method from 'error' property instead
  *
  * On AS_NETWORK_CONNECTION_FAILED, this will contain the error details
  *
- * Note that AS_TIMED_OUT no longer sets this property as no other info is given
+ * @warning AS_TIMED_OUT no longer sets this property as no other info is given
  */
 @property (readonly) NSError *networkError
-  __deprecated_msg("Use the -localizedFailureReason method from the 'error' property instead.");
+  __attribute__((deprecated("Use the -localizedFailureReason method from the 'error' property instead.")));
 
 /**
- * Headers received from the remote source
+ * @brief Headers received from the remote source
  *
- * Used to determine file size, but other information may be useful as well
+ * @details Used to determine file size, but other information may be useful as well
  */
 @property (readonly) NSDictionary *httpHeaders;
 
 /**
- * The remote resource that this stream is playing, this is a read-only property
- * and cannot be changed after creation
+ * @brief The remote resource that this stream is playing
+ * 
+ * @details This is a read-only property and cannot be changed after creation
  */
 @property (readonly) NSURL *url;
 
 /**
- * The stream's description.
+ * @brief The stream's description.
  *
- * This property contains data like sample rate and number of audio channels.
+ * @details This property contains data like sample rate and number of audio channels.
  *
- * See Apple's AudioStreamBasicDescription documentation for more information.
+ * See Apple's AudioStreamBasicDescription documentation for more information
  */
 @property (readonly) AudioStreamBasicDescription streamDescription;
 
 @property (readwrite) UInt32 bufferCnt __attribute__((unavailable("Use the 'bufferCount' property instead.")));
 
 /**
- * The number of audio buffers to have
+ * @brief The number of audio buffers to have
  *
- * Each audio buffer contains one or more packets of audio data. This amount is
+ * @details Each audio buffer contains one or more packets of audio data. This amount is
  * only relevant if infinite buffering is turned off. This is the amount of data
  * which is stored in memory while playing. Once this memory is full, the remote
  * connection will not be read and will not receive any more data until one of
@@ -345,9 +487,9 @@ struct queued_packet;
 @property (readwrite) UInt32 bufferCount;
 
 /**
- * The default size for each buffer allocated
+ * @brief The default size for each buffer allocated
  *
- * Each buffer's size is attempted to be guessed from the audio stream being
+ * @details Each buffer's size is attempted to be guessed from the audio stream being
  * received. This way each buffer is tuned for the audio stream itself. If this
  * inferring of the buffer size fails, however, this is used as a fallback as
  * how large each buffer should be.
@@ -361,13 +503,13 @@ struct queued_packet;
 @property (readwrite) UInt32 bufferSize;
 
 /**
- * The number of buffers to fill before starting the stream
+ * @brief The number of buffers to fill before starting the stream
  *
- * The higher the value, the more smooth the start will be as there is more data
+ * @details The higher the value, the more smooth the start will be as there is more data
  * cached for playback. A higher value will however result in slower starts which
  * can also impact how "in-sync" livestreams are.
  *
- * This should always be lower than, or equal to, the bufferCount property but will
+ * This should always be lower than, or equal to, the <bufferCount> property but will
  * not error if not done so. AudioStreamer will simply fallback to the bufferCount
  * as the amount to fill instead.
  *
@@ -376,9 +518,9 @@ struct queued_packet;
 @property (readwrite) UInt32 bufferFillCountToStart;
 
 /**
- * The file type of this audio stream
+ * @brief The file type of this audio stream
  *
- * This is an optional parameter. If not specified, then the file type will be
+ * @details This is an optional parameter. If not specified, then the file type will be
  * guessed. First, the MIME type of the response is used to guess the file
  * type, and if that fails the extension on the url is used. If that fails as
  * well, then the default is an MP3 stream.
@@ -391,9 +533,9 @@ struct queued_packet;
 @property (readwrite) AudioFileTypeID fileType;
 
 /**
- * Flag if to infinitely buffer data
+ * @brief Flag if to infinitely buffer data
  *
- * If this flag is set to NO, then a statically sized buffer is used as
+ * @details If this flag is set to NO, then a statically sized buffer is used as
  * determined by bufferCount and bufferSize above and the read stream will be
  * descheduled when those fill up. This limits the bandwidth consumed to the
  * remote source and also limits memory usage.
@@ -413,9 +555,9 @@ struct queued_packet;
 @property (readwrite) BOOL bufferInfinite;
 
 /**
- * Interval to consider timeout if no network activity is seen
+ * @brief Interval to consider timeout if no network activity is seen
  *
- * When downloading audio data from a remote source, this is the interval in
+ * @details When downloading audio data from a remote source, this is the interval in
  * which to consider it a timeout if no data is received. If the stream is
  * paused, then that time interval is not counted. This only counts if we are
  * waiting for data and an amount of time larger than this elapses.
@@ -427,40 +569,40 @@ struct queued_packet;
 @property (readwrite) int timeoutInterval;
 
 /**
- * Rate to playback audio
+ * @brief Rate to playback audio
  *
- * This property must be in the range 0.5 through 2.0.
+ * @details This property must be in the range 0.5 through 2.0.
  *
  * A value of 1.0 specifies that the audio should play back at its normal rate.
  *
- * On iOS, this property will only work in iOS 7 and later.
- *
  * Default: 1.0
+ *
+ * @available iOS 7 and later, OS X 10.6 and later
  */
 @property (readwrite) float playbackRate;
 
 /**
- * Set an HTTP proxy for this stream
+ * @brief Set an HTTP proxy for this stream
  *
- * @param host the address/hostname of the remote host
- * @param port the port of the proxy
+ * @param host The address/hostname of the remote host
+ * @param port The port of the proxy
  */
 - (void)setHTTPProxy:(NSString*)host port:(int)port;
 
 /**
- * Set SOCKS proxy for this stream
+ * @brief Set SOCKS proxy for this stream
  *
- * @param host the address/hostname of the remote host
- * @param port the port of the proxy
+ * @param host The address/hostname of the remote host
+ * @param port The port of the proxy
  */
 - (void)setSOCKSProxy:(NSString*)host port:(int)port;
 
 /** @name Management of the stream and testing state */
 
 /**
- * Starts playback of this audio stream.
+ * @brief Starts playback of this audio stream.
  *
- * This method can only be invoked once, and other methods will not work before
+ * @details This method can only be invoked once, and other methods will not work before
  * this method has been invoked. All properties (like proxies) must be set
  * before this method is invoked.
  *
@@ -470,17 +612,17 @@ struct queued_packet;
 - (BOOL)start;
 
 /**
- * Stop all streams, cleaning up resources and preventing all further events
+ * @brief Stop all streams, clean up resources and prevent all further events
  * from occurring.
  *
- * This method may be invoked at any time from any point of the audio stream as
+ * @details This method may be invoked at any time from any point of the audio stream as
  * a signal of error happening. This method sets the state to AS_STOPPED if it
  * isn't already AS_STOPPED or AS_DONE.
  */
 - (void)stop;
 
 /**
- * Pause the audio stream if playing
+ * @brief Pause the audio stream if playing
  *
  * @return YES if the audio stream was paused, or NO if it was not in the
  *         AS_PLAYING state or an error occurred.
@@ -488,7 +630,7 @@ struct queued_packet;
 - (BOOL)pause;
 
 /**
- * Plays the audio stream if paused
+ * @brief Plays the audio stream if paused
  *
  * @return YES if the audio stream entered into the AS_PLAYING state, or NO if
  *         any other error or bad state was encountered.
@@ -496,26 +638,26 @@ struct queued_packet;
 - (BOOL)play;
 
 /**
- * Tests whether the stream is playing
+ * @brief Tests whether the stream is playing
  *
  * @return YES if the stream is playing, or NO Otherwise
  */
 - (BOOL)isPlaying;
 
 /**
- * Tests whether the stream is paused
+ * @brief Tests whether the stream is paused
  *
- * A stream is not paused if it is waiting for data. A stream is paused if and
- * only if it used to be playing, but the it was paused via the pause method.
+ * @details A stream is not paused if it is waiting for data. A stream is paused if and
+ * only if it used to be playing, but the it was paused via the <pause> method.
  *
  * @return YES if the stream is paused, or NO Otherwise
  */
 - (BOOL)isPaused;
 
 /**
- * Tests whether the stream is waiting
+ * @brief Tests whether the stream is waiting
  *
- * This could either mean that we're waiting on data from the network or waiting
+ * @details This could either mean that we're waiting on data from the network or waiting
  * for some event with the AudioQueue instance.
  *
  * @return YES if the stream is waiting, or NO Otherwise
@@ -523,9 +665,9 @@ struct queued_packet;
 - (BOOL)isWaiting;
 
 /**
- * Tests whether the stream is done with all operation
+ * @brief Tests whether the stream is done with all operation
  *
- * A stream can be 'done' if it either hits an error or consumes all audio data
+ * @details A stream can be 'done' if it either hits an error or consumes all audio data
  * from the remote source. This method also checks if the stream has been stopped.
  *
  * @return YES if the stream is done, or NO Otherwise
@@ -533,38 +675,42 @@ struct queued_packet;
 - (BOOL) isDone;
 
 /**
- * When isDone returns true, this will return the reason that the stream has
+ * @brief Returns the reason that the streamer is done
+ *
+ * @details When isDone returns true, this will return the reason that the stream has
  * been flagged as being done.
  *
- * @return the reason for the stream being done, or that it's not done.
+ * @see AudioStreamerDoneReason
+ *
+ * @return The reason for the stream being done, or that it's not done.
  */
 - (AudioStreamerDoneReason)doneReason;
 
 /** @name Calculated properties and modifying the stream (all can fail) */
 
 /**
- * Seek to a specified time in the audio stream
+ * @brief Seek to a specified time in the audio stream
  *
- * This can only happen once the bit rate of the stream is known because
+ * @details This can only happen once the bit rate of the stream is known because
  * otherwise the byte offset to the stream is not known. For this reason the
  * function can fail to actually seek.
  *
  * Additionally, seeking to a new time involves re-opening the audio stream with
  * the remote source, although this is done under the hood.
  *
- * @param newSeekTime the time in seconds to seek to
+ * @param newSeekTime The time in seconds to seek to
  * @return YES if the stream will be seeking, or NO if the stream did not have
  *         enough information available to it to seek to the specified time.
  */
 - (BOOL)seekToTime:(double)newSeekTime;
 
 /**
- * Seek to a relative time in the audio stream
+ * @brief Seek to a relative time in the audio stream
  *
- * This will calculate the current stream progress and seek relative to it
+ * @details This will calculate the current stream progress and seek relative to it
  * by the specified delta. Useful for seeking.
  *
- * @param seekTimeDelta the time interval from current seek time to seek to
+ * @param seekTimeDelta The time interval from current seek time to seek to
  * @return YES if the stream will be seeking, or NO if the stream did not have
  *         enough information available to it to seek to the specified time.
  */
@@ -577,30 +723,30 @@ struct queued_packet;
  * This is used internally to determine other factors like duration and
  * progress.
  *
- * @param ret the double to fill in with the bit rate on success.
+ * @param ret The double to fill in with the bit rate on success
  * @return YES if the bit rate could be calculated with a high degree of
  *         certainty, or NO if it could not be.
  */
 - (BOOL)calculatedBitRate:(double*)ret;
 
 /**
- * Attempt to set the volume on the audio queue
+ * @brief Attempt to set the volume on the audio queue
  *
- * @param volume the volume to set the stream to in the range 0.0-1.0 where 1.0
- *        is the loudest and 0.0 is silent.
+ * @param volume The volume to set the stream to in the range 0.0 to 1.0 where 1.0
+ *        is the loudest and 0.0 is silent
  * @return YES if the volume was set, or NO if the audio queue wasn't ready to
  *         have its volume set. When the state for this audio streamer changes
- *         internally to have a stream, then setVolume: will work.
+ *         internally to have a stream, then setVolume: will work
  */
 - (BOOL)setVolume:(float)volume;
 
 /**
- * Calculates the duration of the audio stream in seconds
+ * @brief Calculates the duration of the audio stream, in seconds
  *
- * Uses information about the size of the file and the calculated bit rate to
+ * @details Uses information about the size of the file and the calculated bit rate to
  * determine the duration of the stream.
  *
- * @param ret where to fill in with the duration of the stream on success.
+ * @param ret The variable to fill with the duration of the stream on success
  * @return YES if ret contains the duration of the stream, or NO if the duration
  *         could not be determined. In the NO case, the contents of ret are
  *         undefined
@@ -608,31 +754,31 @@ struct queued_packet;
 - (BOOL)duration:(double*)ret;
 
 /**
- * Calculate the progress into the stream, in seconds
+ * @brief Calculate the progress into the stream, in seconds
  *
- * The AudioQueue instance is polled to determine the current time into the
+ * @details The AudioQueue instance is polled to determine the current time into the
  * stream, and this is returned.
  *
- * @param ret a double which is filled in with the progress of the stream. The
- *        contents are undefined if NO is returned.
+ * @param ret A double which is filled in with the progress of the stream. The
+ *        contents are undefined if NO is returned
  * @return YES if the progress of the stream was determined, or NO if the
- *         progress could not be determined at this time.
+ *         progress could not be determined at this time
  */
 - (BOOL)progress:(double*)ret;
 
 /**
- * Fade in playback
+ * @brief Fade in playback
  *
- * The AudioQueue volume is progressively increased from 0 to 1
+ * @details The AudioQueue volume is progressively increased from 0 to 1
  *
  * @param duration a double which represents the fade-in time span.
  */
 - (void)fadeInDuration:(float)duration;
 
 /**
- * Fade out playback
+ * @brief Fade out playback
  *
- * The AudioQueue volume is progressively decreased from 1 to 0.
+ * @details The AudioQueue volume is progressively decreased from 1 to 0.
  *
  * @param duration a double which represents the fade-in time span.
  */

@@ -33,101 +33,149 @@ extern NSString * const ASAttemptingNewSong;
 }
 
 /**
- * The playlist array.
+ * @brief The playlist array.
  *
- * This array contains the list of URLs that ASPlaylist runs upon.
+ * @details This array contains the list of URLs that ASPlaylist runs upon.
  */
 @property (readonly) NSMutableArray *playlist;
 
 /**
- * The currently playing URL.
+ * @brief The currently playing URL.
  *
- * This is nil of no url has ever been playing.
+ * @details This is nil of no url has ever been playing.
  */
 @property (readonly) NSURL *playing;
 
 /**
- * The streamer that is playing the current song.
+ * @brief The streamer that is playing the current song.
  *
- * This gets replaced with a new one before every song.
+ * @details This gets replaced with a new one before every song.
  *
- * You should always use ASPlaylist's methods over the streamer's.
+ * @warning You should always use ASPlaylist's methods over the streamer's.
  */
 @property (readonly) AudioStreamer *streamer;
 
 /** @name Initializers */
 
 /**
- * Creates a new ASPlaylist instance with the given capacity.
+ * @brief Creates a new ASPlaylist instance with the given capacity.
  *
- * @param capacity how many songs the ASPlaylist should be able to hold
+ * @param capacity How many songs the ASPlaylist should be able to hold
+ * @return The created ASPlaylist object
  */
 - (id)initWithCapacity:(NSUInteger)capacity;
 
 /** @name Managing the playlist */
 
 /**
- * Adds a new song to the playlist, optionally starting playback.
+ * @brief Adds a new song to the playlist, optionally starting playback.
+ *
+ * @param url The URL to add to the playlist
+ * @param play Whether playback should start immediately
  */
 - (void)addSong:(NSURL*)url play:(BOOL)play;
 
 /**
- * Removes a song from the playlist at the specified index.
+ * @brief Removes a song from the playlist at the specified index.
  *
- * This will raise a NSRangeException if the index is beyond the end of the
+ * @details
+ * @warning This will raise a NSRangeException if the index is beyond the end of the
  * playlist array.
+ *
+ * @param idx The index of the song to remove
  */
 - (void)removeSongAtIndex:(NSUInteger)idx;
 
 /**
- * Removes all songs from the internal list of songs. This does not trigger
- * notifications about songs running low.
+ * @brief Removes all songs from the internal list of songs.
+ *
+ * @details This does not trigger notifications about songs running low.
  */
 - (void)clearSongList;
 
 /**
- * Start playing songs on the playlist, or resume playback.
+ * @brief Start playing songs on the playlist, or resume playback.
  *
- * This will send out notifications for more songs if we're running low on songs
+ * @details This will send out notifications for more songs if we're running low on songs
  * or are out of songs completely to play.
  */
 - (void)play;
 
 /**
- * Pause playback on the playlist.
+ * @brief Pause playback on the playlist.
  *
- * This has no effect if the playlist is already paused or wasn't playing a song
+ * @details This has no effect if the playlist is already paused or wasn't playing a song
  */
 - (void)pause;
 
 /**
- * Stops playing the current song and forgets about it.
+ * @brief Stops playing the current song and forgets about it.
  *
- * The song is stopped and internally all state about the song is thrown away
+ * @details The song is stopped and internally all state about the song is thrown away
  */
 - (void)stop;
 
 /**
- * Goes to the next song in the playlist
+ * @brief Goes to the next song in the playlist
  *
- * This can trigger notifications about songs running low or associated events.
+ * @details This can trigger notifications about songs running low or associated events.
  */
 - (void)next;
 
 /** @name Interface to AudioStreamer */
 
+/**
+ * @brief Tests if the stream is paused
+ * @return YES if the stream is paused, NO otherwise
+ * @see [AudioStreamer isPaused]
+ */
 - (BOOL)isPaused;
+/**
+ * @brief Tests if the stream is playing
+ * @return YES if the stream is playing, NO otherwise
+ * @see [AudioStreamer isPlaying]
+ */
 - (BOOL)isPlaying;
+/**
+ * @brief Tests if the stream is idle
+ * @return YES if the stream is idle, NO otherwise
+ * @see [AudioStreamer isDone]
+ */
 - (BOOL)isIdle;
+/**
+ * @brief Tests if the stream has encountered an error
+ * @return YES if the stream has encountered an error, NO otherwise
+ * @see [AudioStreamer doneReason]
+ */
 - (BOOL)isError;
+/**
+ * @brief Attempts to set the stream volume
+ * @param volume The volume to set the stream to in the range 0.0 to 1.0 where 1.0
+ *        is the loudest and 0.0 is silent
+ * @see [AudioStreamer setVolume:]
+ */
 - (void)setVolume:(float)volume;
+/**
+ * @brief Calculates the duration of the audio stream in seconds
+ * @param ret The variable to fill with the duration of the stream
+ * @return YES if the duration was calculated successfully, NO otherwise
+ * @see [AudioStreamer duration:]
+ */
 - (BOOL)duration:(double*)ret;
+/**
+ * @brief Calculates the current progress of the audio stream in seconds
+ * @param ret The variable to fill with the progress of the stream
+ * @return YES if the progress was calculated successfully, NO otherwise
+ * @see [AudioStreamer progress:]
+ */
 - (BOOL)progress:(double*)ret;
 
 /** @name Miscellaneous */
 
 /**
- * If the stream has stopped for a network error, this retries playing the
+ * @brief Attempts to retry connecting
+ *
+ * @details If the stream has stopped for a network error, this retries playing the
  * stream
  */
 - (void)retry;
