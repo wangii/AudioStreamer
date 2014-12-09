@@ -164,7 +164,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
 /* Deprecated. */
 + (NSString *)stringForErrorCode:(AudioStreamerErrorCode)anErrorCode {
-  return [AudioStreamer descriptionForErrorCode:anErrorCode]; // Internal method.
+  return [[self class] descriptionForErrorCode:anErrorCode]; // Internal method.
 }
 
 - (BOOL)isPlaying {
@@ -546,11 +546,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Attempt to save our last point of progress */
   [self progress:&lastProgress];
 
-  LOG(@"got an error: %@ (%@)", [AudioStreamer descriptionForErrorCode:errorCode], reason);
+  LOG(@"got an error: %@ (%@)", [[self class] descriptionForErrorCode:errorCode], reason);
   _errorCode = errorCode; // Deprecated.
 
   NSDictionary *userInfo = @{NSLocalizedDescriptionKey:
-                               NSLocalizedString([AudioStreamer descriptionForErrorCode:errorCode], nil),
+                               NSLocalizedString([[self class] descriptionForErrorCode:errorCode], nil),
                              NSLocalizedFailureReasonErrorKey:
                                NSLocalizedString(reason, nil)};
   _error = [NSError errorWithDomain:ASErrorDomain code:errorCode userInfo:userInfo];
@@ -872,9 +872,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (!audioFileStream) {
     /* If a file type wasn't specified, we have to guess */
     if (_fileType == 0) {
-      _fileType = [AudioStreamer hintForMIMEType: _httpHeaders[@"Content-Type"]];
+      _fileType = [[self class] hintForMIMEType: _httpHeaders[@"Content-Type"]];
       if (_fileType == 0) {
-        _fileType = [AudioStreamer hintForFileExtension:
+        _fileType = [[self class] hintForFileExtension:
                       [[_url path] pathExtension]];
         if (_fileType == 0) {
           _fileType = kAudioFileMP3Type;
@@ -956,7 +956,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                 }
               }
 
-              _fileType = [AudioStreamer hintForMIMEType:lineItems[1]];
+              _fileType = [[self class] hintForMIMEType:lineItems[1]];
               if (_fileType == 0) {
                 // Okay, we can now default to this now.
                 _fileType = kAudioFileMP3Type;
