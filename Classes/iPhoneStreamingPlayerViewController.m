@@ -25,7 +25,6 @@
 #import <QuartzCore/CoreAnimation.h>
 #import <MediaPlayer/MediaPlayer.h>
 #import <CFNetwork/CFNetwork.h>
-#import <tgmath.h>
 
 @implementation iPhoneStreamingPlayerViewController
 
@@ -296,9 +295,9 @@
 //
 // returns the NSString of the converted time
 //
-- (NSString *)stringFromSeconds:(CGFloat)totalSconds
+- (NSString *)stringFromSeconds:(double)totalSconds
 {
-	CGFloat seconds = fmod(totalSconds, 60);
+	double seconds = fmod(totalSconds, 60);
 	int minutes = (int)floor(fmod(totalSconds / 60, 60));
 	int hours = (int)floor(fmod(totalSconds / 3600, 60));
 	return [NSString stringWithFormat:@"%02d:%02d:%04.1f", hours, minutes, seconds];
