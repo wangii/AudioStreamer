@@ -33,7 +33,11 @@
 /**
  * The state that the streamer is in.
  *
- * Currently this only useful internally.
+ * This only used internally but subclasses may use this.
+ *
+ * The <[AudioStreamer isPlaying]>, <[AudioStreamer isPaused]>, <[AudioStreamer isDone]>
+ * (and <[AudioStreamer doneReason]>) and <[AudioStreamer isWaiting]> methods cover these
+ * states.
  */
 typedef NS_ENUM(NSUInteger, AudioStreamerState) {
   /**
