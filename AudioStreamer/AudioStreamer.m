@@ -489,7 +489,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"Failed to start the audio queue";
     case AS_AUDIO_QUEUE_PAUSE_FAILED:
       return @"Failed to pause the audio queue";
-    case 1015: /* AS_AUDIO_QUEUE_BUFFER_MISMATCH - Deprecated */
+    case AS_AUDIO_QUEUE_BUFFER_MISMATCH:
       return @"Audio queue buffer mismatch";
     case 1016: /* AS_AUDIO_QUEUE_DISPOSE_FAILED - Deprecated */
       return @"Couldn't dispose of audio queue";
@@ -1571,7 +1571,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   for (idx = 0; idx < _bufferCount; idx++) {
     if (buffers[idx] == inBuffer) break;
   }
-  assert(idx >= 0 && idx < _bufferCount);
+  if (idx >= _bufferCnt)
+  {
+    [self failWithErrorCode:AS_AUDIO_QUEUE_BUFFER_MISMATCH reason:@""];
+  }
   assert(inuse[idx]);
 
   LOG(@"buffer %u finished", (unsigned int)idx);
