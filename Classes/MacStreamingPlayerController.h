@@ -25,8 +25,9 @@
 
 @class AudioStreamer;
 
-@interface MacStreamingPlayerController : NSObject
+@interface MacStreamingPlayerController : NSObject <NSTextFieldDelegate>
 {
+    IBOutlet NSWindow *window;
 	IBOutlet NSTextField *downloadSourceField;
 	IBOutlet NSButton *button;
 	IBOutlet NSTextField *positionLabel;

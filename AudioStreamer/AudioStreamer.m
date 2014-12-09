@@ -1571,11 +1571,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   for (idx = 0; idx < _bufferCount; idx++) {
     if (buffers[idx] == inBuffer) break;
   }
-  if (idx >= _bufferCount)
-  {
-    [self failWithErrorCode:AS_AUDIO_QUEUE_BUFFER_MISMATCH reason:@""];
-    return;
-  }
+  CHECK_ERR(idx >= _bufferCount, AS_AUDIO_QUEUE_BUFFER_MISMATCH, @"");
   assert(inuse[idx]);
 
   LOG(@"buffer %u finished", (unsigned int)idx);

@@ -183,7 +183,7 @@
 {
 	if ([button.image isEqual:[NSImage imageNamed:@"playbutton"]])
 	{
-		[downloadSourceField resignFirstResponder];
+		[window makeFirstResponder:nil];
 
 		[self createStreamer];
 		[self setButtonImage:[NSImage imageNamed:@"loadingbutton"]];
@@ -288,22 +288,28 @@
 	int hours = (int)floor(fmod(totalSconds / 3600, 60));
 	return [NSString stringWithFormat:@"%02d:%02d:%04.1f", hours, minutes, seconds];
 }
-
 //
-// textFieldShouldReturn:
+// control:textView:doCommandBySelector:
 //
-// Dismiss the text field when done is pressed
+// Start the streamer when return is pressed in the text field
 //
 // Parameters:
-//    sender - the text field
+//    control - the control that called this method
+//    textView - the field editor of the control
+//    commandSelector - the command that the control is about to call
 //
-// returns YES
+// returns YES to override the command, NO otherwise
 //
-- (BOOL)textFieldShouldReturn:(NSTextField *)sender
+- (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector
 {
-	[sender resignFirstResponder];
-	[self createStreamer];
-	return YES;
+	if ([NSStringFromSelector(commandSelector) isEqualToString:@"insertNewline:"])
+	{
+		[window makeFirstResponder:nil];
+		[self createStreamer];
+		[streamer start];
+		return YES;
+	}
+	return NO;
 }
 
 //
