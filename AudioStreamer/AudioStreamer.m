@@ -690,6 +690,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   icyDataBytesRead = 0;
   icyHeadersParsed = false;
   icyMetadata = [NSMutableString string];
+  _currentSong = nil;
 
   /* When seeking to a time within the stream, we both already know the file
      length and the seekByteOffset will be set to know what to send to the
