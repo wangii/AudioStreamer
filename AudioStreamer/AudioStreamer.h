@@ -217,7 +217,7 @@ typedef NS_ENUM(NSUInteger, AudioStreamerDoneReason) {
 extern NSString * const ASStatusChangedNotification;
 extern NSString * const ASBitrateReadyNotification;
 
-enum ASProxyType : NSUInteger;
+enum AudioStreamerProxyType : NSUInteger;
 struct queued_packet;
 
 /**
@@ -313,7 +313,7 @@ struct queued_packet;
    * should be changed after the stream has started or otherwise it could cause
    * internal inconsistencies in the stream. Detail explanations of each
    * property can be found in the source */
-  enum ASProxyType proxyType;  /* defaults to whatever the system says */
+  enum AudioStreamerProxyType proxyType; /* defaults to whatever the system says */
   NSString        *proxyHost;
   int             proxyPort;
 

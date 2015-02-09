@@ -49,7 +49,7 @@
 #define LOG(...)
 #endif
 
-typedef NS_ENUM(NSUInteger, ASProxyType) {
+typedef NS_ENUM(NSUInteger, AudioStreamerProxyType) {
   AS_PROXY_SYSTEM = 0,
   AS_PROXY_SOCKS,
   AS_PROXY_HTTP,
