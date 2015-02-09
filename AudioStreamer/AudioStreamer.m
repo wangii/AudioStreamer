@@ -446,14 +446,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return NO;
 }
 
-- (void)fadeInDuration:(float)duration {
+- (BOOL)fadeInDuration:(float)duration {
   //-- set the gain to 0.0, so we can call this method just after creating the streamer
   [self setVolume:0.0];
-  [self fadeTo:1.0 duration:duration];
+  return [self fadeTo:1.0 duration:duration];
 }
 
-- (void)fadeOutDuration:(float)duration {
-  [self fadeTo:0.0 duration:duration];
+- (BOOL)fadeOutDuration:(float)duration {
+  return [self fadeTo:0.0 duration:duration];
 }
 
 #pragma mark - Internal functions

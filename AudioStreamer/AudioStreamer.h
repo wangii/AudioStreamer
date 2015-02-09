@@ -792,8 +792,10 @@ struct queued_packet;
  * @details The AudioQueue volume is progressively increased from 0 to 1
  *
  * @param duration a double which represents the fade-in time span.
+ * @return YES if the fade in was set, or NO if the audio queue wasn't ready to
+ *         have its volume set.
  */
-- (void)fadeInDuration:(float)duration;
+- (BOOL)fadeInDuration:(float)duration;
 
 /**
  * @brief Fade out playback
@@ -801,7 +803,9 @@ struct queued_packet;
  * @details The AudioQueue volume is progressively decreased from 1 to 0.
  *
  * @param duration a double which represents the fade-in time span.
+ * @return YES if the fade out was set, or NO if the audio queue wasn't ready to
+ *         have its volume set.
  */
-- (void)fadeOutDuration:(float)duration;
+- (BOOL)fadeOutDuration:(float)duration;
 
 @end
