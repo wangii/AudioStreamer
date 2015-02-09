@@ -28,10 +28,6 @@
 
 #define BitRateEstimationMinPackets 50
 
-#define PROXY_SYSTEM 0
-#define PROXY_SOCKS  1
-#define PROXY_HTTP   2
-
 /* Defaults */
 #define kDefaultNumAQBufs 256
 #define kDefaultAQDefaultBufSize 4096
@@ -52,6 +48,12 @@
 #else
 #define LOG(...)
 #endif
+
+typedef NS_ENUM(NSUInteger, ASProxyType) {
+  AS_PROXY_SYSTEM = 0,
+  AS_PROXY_SOCKS,
+  AS_PROXY_HTTP,
+};
 
 typedef struct queued_packet {
   AudioStreamPacketDescription desc;
@@ -146,13 +148,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (void)setHTTPProxy:(NSString*)host port:(int)port {
   proxyHost = host;
   proxyPort = port;
-  proxyType = PROXY_HTTP;
+  proxyType = AS_PROXY_HTTP;
 }
 
 - (void)setSOCKSProxy:(NSString*)host port:(int)port {
   proxyHost = host;
   proxyPort = port;
-  proxyType = PROXY_SOCKS;
+  proxyType = AS_PROXY_SOCKS;
 }
 
 - (BOOL)setVolume:(float)volume {
@@ -712,7 +714,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   /* Deal with proxies */
   switch (proxyType) {
-    case PROXY_HTTP: {
+    case AS_PROXY_HTTP: {
       CFDictionaryRef proxySettings;
       if ([[[_url scheme] lowercaseString] isEqualToString:@"https"]) {
         proxySettings = (__bridge CFDictionaryRef)
@@ -731,7 +733,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                               proxySettings);
       break;
     }
-    case PROXY_SOCKS: {
+    case AS_PROXY_SOCKS: {
       CFDictionaryRef proxySettings = (__bridge CFDictionaryRef)
         [NSMutableDictionary dictionaryWithObjectsAndKeys:
           proxyHost, kCFStreamPropertySOCKSProxyHost,
@@ -742,7 +744,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       break;
     }
     default:
-    case PROXY_SYSTEM: {
+    case AS_PROXY_SYSTEM: {
       CFDictionaryRef proxySettings = CFNetworkCopySystemProxySettings();
       CFReadStreamSetProperty(stream, kCFStreamPropertyHTTPProxy, proxySettings);
       CFRelease(proxySettings);
@@ -903,8 +905,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   UInt8 bytes[bufferSize];
   CFIndex length;
-  int i;
-  for (i = 0;
+  for (int i = 0;
        i < 3 && ![self isDone] && CFReadStreamHasBytesAvailable(stream);
        i++) {
     length = CFReadStreamRead(stream, bytes, (CFIndex)sizeof(bytes));

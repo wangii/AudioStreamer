@@ -219,7 +219,7 @@
 //
 - (IBAction)sliderMoved:(UISlider *)aSlider
 {
-  double duration;
+	double duration;
 	if ([streamer duration:&duration])
 	{
 		double newSeekTime = (aSlider.value / 100.0) * duration;
@@ -258,7 +258,7 @@
 //
 - (void)updateProgress:(NSTimer *)updatedTimer
 {
-  double bitRate;
+	double bitRate;
 	if ([streamer calculatedBitRate:&bitRate])
 	{
 		double progress;
