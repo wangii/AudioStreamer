@@ -32,10 +32,11 @@
 #define PROXY_SOCKS  1
 #define PROXY_HTTP   2
 
-/* Default number and size of audio queue buffers */
+/* Defaults */
 #define kDefaultNumAQBufs 256
 #define kDefaultAQDefaultBufSize 4096
 #define kDefaultNumAQBufsToStart 32
+#define kDefaultAudioFileType kAudioFileMP3Type
 
 #define CHECK_ERR_NORET(err, code, reasonStr) {                                 \
     if (err) { [self failWithErrorCode:code reason:reasonStr]; return; }        \
@@ -680,6 +681,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                  (__bridge CFURLRef) _url,
                                  kCFHTTPVersion1_1);
 
+  /* ICY metadata */
+  CFHTTPMessageSetHeaderFieldValue(message, CFSTR("Icy-MetaData"), CFSTR("1"));
+  icyStream = false;
+  icyMetaBytesRemaining = 0;
+  icyDataBytesRead = 0;
+  icyHeadersParsed = false;
+  icyMetadata = [NSMutableString string];
+
   /* When seeking to a time within the stream, we both already know the file
      length and the seekByteOffset will be set to know what to send to the
      remote server */
@@ -846,13 +855,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
   LOG(@"data");
 
+  CFHTTPMessageRef message = (CFHTTPMessageRef)CFReadStreamCopyProperty(stream, kCFStreamPropertyHTTPResponseHeader);
+  CFIndex statusCode = CFHTTPMessageGetResponseStatusCode(message);
+
   /* Read off the HTTP headers into our own class if we haven't done so */
   if (!_httpHeaders) {
-    CFTypeRef message =
-        CFReadStreamCopyProperty(stream, kCFStreamPropertyHTTPResponseHeader);
     _httpHeaders = (__bridge_transfer NSDictionary *)
-        CFHTTPMessageCopyAllHeaderFields((CFHTTPMessageRef) message);
-    CFRelease(message);
+        CFHTTPMessageCopyAllHeaderFields(message);
 
     //
     // Only read the content length if we seeked to time zero, otherwise
@@ -862,6 +871,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       fileLength = (UInt64)[_httpHeaders[@"Content-Length"] longLongValue];
     }
   }
+
+  CFRelease(message);
 
   OSStatus osErr;
 
@@ -874,8 +885,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         _fileType = [[self class] hintForFileExtension:
                       [[_url path] pathExtension]];
         if (_fileType == 0) {
-          _fileType = kAudioFileMP3Type;
-          defaultFileTypeUsed = true;
+          _fileType = kDefaultAudioFileType;
         }
       }
     }
@@ -915,8 +925,24 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     didConnect = true;
 
     // Shoutcast support.
-    if (defaultFileTypeUsed) {
-      NSUInteger streamStart = 0;
+    UInt8 bytesNoMetadata[bufferSize]; // Bytes without the ICY metadata
+    UInt32 lengthNoMetadata = 0;
+    NSUInteger streamStart = 0;
+
+    if (!icyStream && statusCode == 200) {
+      NSString *icyCheck = [[NSString alloc] initWithBytes:bytes length:10 encoding:NSUTF8StringEncoding];
+      if (icyCheck && [icyCheck caseInsensitiveCompare:@"ICY 200 OK"] == NSOrderedSame) {
+        icyStream = true;
+      } else {
+        if (_httpHeaders[@"icy-metaint"]) {
+          icyStream = true;
+          icyMetaInterval = [_httpHeaders[@"icy-metaint"] intValue];
+          icyHeadersParsed = true;
+        }
+      }
+    }
+
+    if (!icyHeadersParsed) {
       NSUInteger lineStart = 0;
       while (YES)
       {
@@ -936,6 +962,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                                   length:streamStart
                                                 encoding:NSISOLatin1StringEncoding];
           }
+
           NSArray *lineItems = [[fullString substringWithRange:NSMakeRange(lineStart,
                                                                   streamStart-lineStart)]
                                    componentsSeparatedByString:@":"];
@@ -943,33 +970,36 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
           if ([lineItems count] >= 2)
           {
             if ([lineItems[0] caseInsensitiveCompare:@"Content-Type"] == NSOrderedSame) {
-              LOG(@"Shoutcast Stream Content-Type: %@", lineItems[1]);
-              AudioFileStreamClose(audioFileStream);
-              AudioQueueStop(audioQueue, true);
-              AudioQueueReset(audioQueue);
-              if (buffers) {
-                for (UInt32 j = 0; j < _bufferCount; ++j) {
-                  AudioQueueFreeBuffer(audioQueue, buffers[j]);
-                }
-              }
-
+              AudioFileTypeID oldFileType = _fileType;
               _fileType = [[self class] hintForMIMEType:lineItems[1]];
               if (_fileType == 0) {
                 // Okay, we can now default to this now.
-                _fileType = kAudioFileMP3Type;
+                _fileType = kDefaultAudioFileType;
               }
-              defaultFileTypeUsed = false;
 
-              osErr = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
-                                            ASPacketsProc, _fileType, &audioFileStream);
-              CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, @"");
+              if (_fileType != oldFileType) {
+                LOG(@"ICY stream Content-Type: %@", lineItems[1]);
+                AudioFileStreamClose(audioFileStream);
+                AudioQueueStop(audioQueue, true);
+                AudioQueueReset(audioQueue);
+                if (buffers) {
+                  for (UInt32 j = 0; j < _bufferCount; ++j) {
+                    AudioQueueFreeBuffer(audioQueue, buffers[j]);
+                  }
+                }
 
-              break; // We're not interested in any other metadata here.
+                osErr = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
+                                              ASPacketsProc, _fileType, &audioFileStream);
+                CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, @"");
+              }
+            }
+            else if ([lineItems[0] caseInsensitiveCompare:@"icy-metaint"] == NSOrderedSame) {
+              icyMetaInterval = [lineItems[1] intValue];
             }
           }
 
-          if (bytes[streamStart+2] == '\r' && bytes[streamStart+3] == '\n')
-          {
+          if (bytes[streamStart+2] == '\r' && bytes[streamStart+3] == '\n') {
+            icyHeadersParsed = true;
             break;
           }
 
@@ -978,17 +1008,78 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
         streamStart++;
       }
+
+      if (icyHeadersParsed) {
+        streamStart = streamStart + 4;
+      }
+    }
+
+    if (icyHeadersParsed) {
+      for (CFIndex byte = (CFIndex)streamStart; byte < length; byte++) {
+        if (icyMetaBytesRemaining > 0) {
+          [icyMetadata appendFormat:@"%c", bytes[byte]];
+
+          icyMetaBytesRemaining--;
+
+          if (icyMetaBytesRemaining == 0) {
+            // Ready for parsing
+            NSArray *metadataArr = [icyMetadata componentsSeparatedByString:@";"];
+            for (NSString *metadataLine in metadataArr) {
+              NSString *key;
+              NSString *value;
+              NSScanner *scanner = [NSScanner scannerWithString:metadataLine];
+              [scanner scanUpToString:@"=" intoString:&key];
+              if ([scanner isAtEnd] || ![key isEqualToString:@"StreamTitle"]) continue; // Not interested in other metadata
+              [scanner scanString:@"=" intoString:nil];
+              [scanner scanString:@"'" intoString:nil];
+              [scanner scanUpToString:@"'" intoString:&value];
+
+              LOG(@"ICY stream title (current song): %@", value);
+
+              _currentSong = value;
+            }
+            icyDataBytesRead = 0;
+          }
+
+          continue;
+        }
+
+        if (icyMetaInterval > 0 && icyDataBytesRead == icyMetaInterval) {
+          icyMetaBytesRemaining = bytes[byte] * 16;
+
+          icyMetadata = [NSMutableString string];
+
+          if (icyMetaBytesRemaining == 0) {
+            icyDataBytesRead = 0;
+          }
+
+          continue;
+        }
+
+        icyDataBytesRead++;
+        bytesNoMetadata[lengthNoMetadata] = bytes[byte];
+        lengthNoMetadata++;
+      }
     }
 
     isParsing = true;
+    UInt32 parseFlags;
     if (discontinuous) {
-      osErr = AudioFileStreamParseBytes(audioFileStream, (UInt32) length, bytes,
-                                        kAudioFileStreamParseFlag_Discontinuity);
+      parseFlags = kAudioFileStreamParseFlag_Discontinuity;
     } else {
-      osErr = AudioFileStreamParseBytes(audioFileStream, (UInt32) length,
-                                        bytes, 0);
+      parseFlags = 0;
+    }
+    if (lengthNoMetadata > 0) {
+      osErr = AudioFileStreamParseBytes(audioFileStream, lengthNoMetadata,
+                                        bytesNoMetadata, parseFlags);
+    } else if (icyMetaInterval == 0) {
+      osErr = AudioFileStreamParseBytes(audioFileStream, (UInt32)length,
+                                        bytes, parseFlags);
+    } else {
+      osErr = 0;
     }
     isParsing = false;
+
     if ([self isDone]) [self closeFileStream];
     CHECK_ERR(osErr, AS_FILE_STREAM_PARSE_BYTES_FAILED, @"");
   }

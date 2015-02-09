@@ -315,7 +315,6 @@ struct queued_packet;
   int             proxyType;  /* defaults to whatever the system says */
   NSString        *proxyHost;
   int             proxyPort;
-  bool            defaultFileTypeUsed;
 
   /* Created as part of the <start> method */
   CFReadStreamRef stream;
@@ -360,6 +359,14 @@ struct queued_packet;
 
   /* Internal metadata about state */
   AudioStreamerState state_;
+
+  /* ICY stream metadata */
+  bool   icyStream;           /* Is this an ICY stream? */
+  bool   icyHeadersParsed;    /* Are all the ICY headers parsed? */
+  int    icyMetaInterval;     /* The interval between ICY metadata bytes */
+  UInt16 icyMetaBytesRemaining;     /* How many bytes of ICY metadata are left? */
+  int    icyDataBytesRead;    /* How many data bytes have been read in an ICY stream since metadata? */
+  NSMutableString *icyMetadata;     /* The string of metadata itself, as it is being read */
 
   /* Miscellaneous metadata */
   bool   discontinuous;      /* flag to indicate the middle of a stream */
@@ -509,6 +516,16 @@ struct queued_packet;
  * See Apple's AudioStreamBasicDescription documentation for more information
  */
 @property (readonly) AudioStreamBasicDescription streamDescription;
+
+/**
+ * @brief The current song playing in an ICY stream.
+ *
+ * @details This property only works for ICY streams (eg. Shoutcast). This will return
+ * nil if the stream is not an ICY stream or there is no current song metadata available.
+ *
+ * The current song field is sometimes used as the stream title on some streams.
+ */
+@property (readonly) NSString *currentSong;
 
 @property (readwrite) UInt32 bufferCnt __attribute__((unavailable("Use the 'bufferCount' property instead.")));
 
