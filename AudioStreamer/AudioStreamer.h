@@ -22,7 +22,7 @@
 //
 
 /* This file has been heavily modified since its original distribution by
-   Alex Crichton for the Hermes project */
+ * Alex Crichton for the Hermes project */
 
 #import <AudioToolbox/AudioToolbox.h>
 #import <Foundation/Foundation.h>

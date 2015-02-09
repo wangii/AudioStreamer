@@ -22,7 +22,7 @@
 //
 
 /* This file has been heavily modified since its original distribution by
-   Alex Crichton for the Hermes project */
+ * Alex Crichton for the Hermes project */
 
 #import "AudioStreamer.h"
 
@@ -505,10 +505,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return @"Audio buffer too small";
     case AS_TIMED_OUT:
       return @"Timed out";
-    default:
-      break;
   }
-  return @"Audio streaming failed";
 }
 
 //
@@ -1277,7 +1274,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         return;
       }
 
-      for (unsigned long i = 0; i * sizeof(AudioFormatListItem) < formatListSize;
+      for (UInt32 i = 0; i * sizeof(AudioFormatListItem) < formatListSize;
            i += sizeof(AudioFormatListItem)) {
         AudioStreamBasicDescription pasbd = formatList[i].mASBD;
 
@@ -1320,7 +1317,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     OSStatus status = 0;
     UInt32 ioFlags = 0;
-    long long byteOffset;
+    SInt64 byteOffset;
     SInt64 lower = 0;
     SInt64 upper = 1000000;
     SInt64 current;
@@ -1453,7 +1450,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   // copy data to the audio queue buffer
   AudioQueueBufferRef buf = buffers[fillBufferIndex];
-  memcpy(buf->mAudioData + bytesFilled, data, (unsigned long)packetSize);
+  memcpy(buf->mAudioData + bytesFilled, data, (size_t)packetSize);
 
   // fill out packet description to pass to enqueue() later on
   packetDescs[packetsFilled] = *desc;
