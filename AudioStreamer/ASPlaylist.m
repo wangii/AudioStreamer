@@ -20,11 +20,11 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 @synthesize streamer=stream;
 @synthesize playlist=urls;
 
-- (id)init {
+- (instancetype)init {
   return [self initWithCapacity:10];
 }
 
-- (id)initWithCapacity:(NSUInteger)capacity {
+- (instancetype)initWithCapacity:(NSUInteger)capacity {
   if ((self = [super init])) {
     urls = [NSMutableArray arrayWithCapacity:capacity];
   }

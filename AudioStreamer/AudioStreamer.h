@@ -394,6 +394,53 @@ struct queued_packet;
 /** @name Properties of the audio stream */
 
 /**
+ * @brief Tests whether the stream is playing
+ *
+ * @details Returns YES if the stream is playing, NO Otherwise
+ */
+@property (nonatomic, getter=isPlaying, readonly) BOOL playing;
+
+/**
+ * @brief Tests whether the stream is paused
+ *
+ * @details A stream is not paused if it is waiting for data. A stream is paused if and
+ * only if it used to be playing, but the it was paused via the <pause> method.
+ *
+ * Returns YES if the stream is paused, NO Otherwise
+ */
+@property (nonatomic, getter=isPaused, readonly) BOOL paused;
+
+/**
+ * @brief Tests whether the stream is waiting
+ *
+ * @details This could either mean that we're waiting on data from the network or waiting
+ * for some event with the AudioQueue instance.
+ *
+ * Returns YES if the stream is waiting, NO Otherwise
+ */
+@property (nonatomic, getter=isWaiting, readonly) BOOL waiting;
+
+/**
+ * @brief Tests whether the stream is done with all operation
+ *
+ * @details A stream can be 'done' if it either hits an error or consumes all audio data
+ * from the remote source. This method also checks if the stream has been stopped.
+ *
+ * Returns YES if the stream is done, NO Otherwise
+ */
+@property (nonatomic, getter=isDone, readonly) BOOL done;
+
+/**
+ * @brief Returns the reason that the streamer is done
+ *
+ * @details When isDone returns true, this will return the reason that the stream has
+ * been flagged as being done. AS_NOT_DONE will be returned otherwise.
+ *
+ * @see AudioStreamerDoneReason
+ */
+@property (nonatomic, readonly) AudioStreamerDoneReason doneReason;
+
+/**
  * @brief The error the streamer threw
  *
  * @details If an error occurs on the stream, then this variable is set with the
@@ -601,7 +648,7 @@ struct queued_packet;
  */
 - (void)setSOCKSProxy:(NSString*)host port:(int)port;
 
-/** @name Management of the stream and testing state */
+/** @name Management of the stream */
 
 /**
  * @brief Starts playback of this audio stream.
@@ -640,55 +687,6 @@ struct queued_packet;
  *         any other error or bad state was encountered.
  */
 - (BOOL)play;
-
-/**
- * @brief Tests whether the stream is playing
- *
- * @return YES if the stream is playing, or NO Otherwise
- */
-- (BOOL)isPlaying;
-
-/**
- * @brief Tests whether the stream is paused
- *
- * @details A stream is not paused if it is waiting for data. A stream is paused if and
- * only if it used to be playing, but the it was paused via the <pause> method.
- *
- * @return YES if the stream is paused, or NO Otherwise
- */
-- (BOOL)isPaused;
-
-/**
- * @brief Tests whether the stream is waiting
- *
- * @details This could either mean that we're waiting on data from the network or waiting
- * for some event with the AudioQueue instance.
- *
- * @return YES if the stream is waiting, or NO Otherwise
- */
-- (BOOL)isWaiting;
-
-/**
- * @brief Tests whether the stream is done with all operation
- *
- * @details A stream can be 'done' if it either hits an error or consumes all audio data
- * from the remote source. This method also checks if the stream has been stopped.
- *
- * @return YES if the stream is done, or NO Otherwise
- */
-- (BOOL) isDone;
-
-/**
- * @brief Returns the reason that the streamer is done
- *
- * @details When isDone returns true, this will return the reason that the stream has
- * been flagged as being done.
- *
- * @see AudioStreamerDoneReason
- *
- * @return The reason for the stream being done, or that it's not done.
- */
-- (AudioStreamerDoneReason)doneReason;
 
 /** @name Calculated properties and modifying the stream (all can fail) */
 

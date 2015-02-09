@@ -65,7 +65,7 @@ extern NSString * const ASAttemptingNewSong;
  * @param capacity How many songs the ASPlaylist should be able to hold
  * @return The created ASPlaylist object
  */
-- (id)initWithCapacity:(NSUInteger)capacity;
+- (instancetype)initWithCapacity:(NSUInteger)capacity NS_DESIGNATED_INITIALIZER;
 
 /** @name Managing the playlist */
 
@@ -128,28 +128,28 @@ extern NSString * const ASAttemptingNewSong;
 
 /**
  * @brief Tests if the stream is paused
- * @return YES if the stream is paused, NO otherwise
+ * @details Returns YES if the stream is paused, NO otherwise
  * @see [AudioStreamer isPaused]
  */
-- (BOOL)isPaused;
+@property (nonatomic, getter=isPaused, readonly) BOOL paused;
 /**
  * @brief Tests if the stream is playing
- * @return YES if the stream is playing, NO otherwise
+ * @details Returns YES if the stream is playing, NO otherwise
  * @see [AudioStreamer isPlaying]
  */
-- (BOOL)isPlaying;
+@property (nonatomic, getter=isPlaying, readonly) BOOL playing;
 /**
  * @brief Tests if the stream is idle
- * @return YES if the stream is idle, NO otherwise
+ * @details Returns YES if the stream is idle, NO otherwise
  * @see [AudioStreamer isDone]
  */
-- (BOOL)isIdle;
+@property (nonatomic, getter=isIdle, readonly) BOOL idle;
 /**
  * @brief Tests if the stream has encountered an error
- * @return YES if the stream has encountered an error, NO otherwise
+ * @details Returns YES if the stream has encountered an error, NO otherwise
  * @see [AudioStreamer doneReason]
  */
-- (BOOL)isError;
+@property (nonatomic, getter=isError, readonly) BOOL error;
 /**
  * @brief Attempts to set the stream volume
  * @param volume The volume to set the stream to in the range 0.0 to 1.0 where 1.0
