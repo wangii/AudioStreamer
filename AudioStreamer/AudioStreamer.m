@@ -902,7 +902,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     if (length < 0) {
       if (didConnect) {
         didConnect = false;
-        // Ignore. A network connection likely happened so we should wait for that to throw.
+        // Ignore. A network connection error likely happened so we should wait for that to throw.
         // If this happens again, throw a audio data not found error.
         return;
       }
@@ -1226,7 +1226,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       if (audioDataByteCount) {
         fileLength = dataOffset + audioDataByteCount;
       }
-      LOG(@"have data offset: %llx", dataOffset);
+      LOG(@"have data offset: %llu", dataOffset);
       break;
     }
 
@@ -1237,7 +1237,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                                   &byteCountSize, &audioDataByteCount);
       CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
       fileLength = dataOffset + audioDataByteCount;
-      LOG(@"have byte count: %llx", audioDataByteCount);
+      LOG(@"have byte count: %llu", audioDataByteCount);
       break;
     }
 
