@@ -31,6 +31,8 @@ extern NSString * const ASAttemptingNewSong;
   NSInteger tries;            /* # of retry attempts */
 }
 
+/** @name Properties */
+
 /**
  * @brief The playlist array.
  *

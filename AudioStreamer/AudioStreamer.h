@@ -73,7 +73,7 @@ typedef NS_ENUM(NSUInteger, AudioStreamerState) {
 /**
  * Error codes that the streamer could throw.
  *
- * These are mainly used internally but can be used to as comparison with
+ * These are mainly used internally but can be used for comparison with
  * the <[AudioStreamer error]> property.
  *
  * ```

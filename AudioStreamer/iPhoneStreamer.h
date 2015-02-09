@@ -25,6 +25,8 @@
  */
 @interface iPhoneStreamer : AudioStreamer <AVAudioSessionDelegate>
 
+/** @name Properties */
+
 /**
  * @brief Whether the stream is currently interrupted
  *
