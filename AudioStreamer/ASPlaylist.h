@@ -43,7 +43,10 @@ extern NSString * const ASAttemptingNewSong;
  *
  * @details This is nil of no url has ever been playing.
  */
-@property (readonly) NSURL *playing;
+@property (readonly) NSURL *playingURL;
+
+/* Backwards compatibility */
+- (NSURL *)playing __attribute__((unavailable("Use the 'playingURL' property instead.")));
 
 /**
  * @brief The streamer that is playing the current song.

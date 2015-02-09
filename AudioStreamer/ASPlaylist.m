@@ -59,7 +59,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
                 object:stream];
     [stream stop];
   }
-  stream = [AudioStreamer streamWithURL:_playing];
+  stream = [AudioStreamer streamWithURL:_playingURL];
   [[NSNotificationCenter defaultCenter]
         postNotificationName:ASCreatedNewStream
                       object:self
@@ -86,7 +86,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   [[NSNotificationCenter defaultCenter]
         postNotificationName:ASNewSongPlaying
                       object:self
-                    userInfo:@{@"url": _playing}];
+                    userInfo:@{@"url": _playingURL}];
 
   if (lastKnownSeekTime == 0)
     return;
@@ -166,7 +166,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
     return;
   }
 
-  _playing = urls[0];
+  _playingURL = urls[0];
   [urls removeObjectAtIndex:0];
   [self setAudioStream];
   tries = 0;
@@ -233,7 +233,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
                 object:stream];
   }
   stream = nil;
-  _playing = nil;
+  _playingURL = nil;
   stopping = NO;
 }
 
