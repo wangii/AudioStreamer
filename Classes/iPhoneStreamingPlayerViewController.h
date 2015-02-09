@@ -36,8 +36,6 @@
 }
 
 - (IBAction)buttonPressed:(id)sender;
-- (void)spinButton;
-- (void)updateProgress:(NSTimer *)aNotification;
 - (IBAction)sliderMoved:(UISlider *)aSlider;
 
 @end

@@ -25,10 +25,7 @@
 
 @class iPhoneStreamingPlayerViewController;
 
-@interface iPhoneStreamingPlayerAppDelegate : NSObject <UIApplicationDelegate> {
-    UIWindow *window;
-    iPhoneStreamingPlayerViewController *viewController;
-}
+@interface iPhoneStreamingPlayerAppDelegate : NSObject <UIApplicationDelegate>
 
 @property (nonatomic, retain) IBOutlet UIWindow *window;
 @property (nonatomic, retain) IBOutlet iPhoneStreamingPlayerViewController *viewController;

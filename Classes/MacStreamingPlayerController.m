@@ -29,7 +29,7 @@
 
 - (void)awakeFromNib
 {
-  [NSApp activateIgnoringOtherApps:YES];
+	[NSApp activateIgnoringOtherApps:YES];
 }
 
 //
