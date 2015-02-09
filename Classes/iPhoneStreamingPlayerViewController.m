@@ -283,6 +283,18 @@
 	{
 		positionLabel.text = @"Time Played:";
 	}
+
+	NSString *currentSong = [streamer currentSong];
+	if (currentSong && [streamInfoBody text] != currentSong)
+	{
+		[streamInfoTitle setText:@"Current song:"];
+		[streamInfoBody setText:currentSong];
+	}
+	else if (!currentSong && ![[streamInfoBody text] isEqualToString:@""])
+	{
+		[streamInfoTitle setText:@""];
+		[streamInfoBody setText:@""];
+	}
 }
 
 //

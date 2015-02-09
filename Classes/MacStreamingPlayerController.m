@@ -30,6 +30,10 @@
 - (void)awakeFromNib
 {
 	[NSApp activateIgnoringOtherApps:YES];
+	NSRect frame = [window frame];
+	frame.size.height = 159;
+	[window setMinSize:frame.size];
+	[window setMaxSize:frame.size];
 }
 
 //
@@ -152,6 +156,20 @@
 }
 
 //
+// restartButtonAnimation
+//
+// If the button is spinning, this will restart the animation
+//
+- (void)restartButtonAnimation
+{
+	if ([streamer isWaiting])
+	{
+		[button.layer removeAllAnimations];
+		[self spinButton];
+	}
+}
+
+//
 // animationDidStop:finished:
 //
 // Restarts the spin animation on the button when it ends. Again, this is
@@ -269,6 +287,48 @@
 	{
 		[positionLabel setStringValue:@"Time Played:"];
 	}
+
+	NSString *currentSong = [streamer currentSong];
+	if (currentSong && [streamInfoLabel stringValue] != currentSong)
+	{
+		[streamInfoLabel setStringValue:currentSong];
+		NSRect frame = [window frame];
+		frame.size.height = 184;
+		[window setMinSize:frame.size];
+		[window setMaxSize:frame.size];
+		[window setFrame:frame display:YES];
+		[self adjustStreamInfoFontSize];
+		[self restartButtonAnimation];
+	}
+	else if (!currentSong && ![[streamInfoLabel stringValue] isEqualToString:@""])
+	{
+		[streamInfoLabel setStringValue:@""];
+		NSRect frame = [window frame];
+		frame.size.height = 159;
+		[window setMinSize:frame.size];
+		[window setMaxSize:frame.size];
+		[window setFrame:frame display:YES];
+		[self restartButtonAnimation];
+	}
+}
+
+//
+// adjustStreamInfoFontSize
+//
+// Adjusts the font size of the streamInfoLabel to fit the width.
+//
+- (void)adjustStreamInfoFontSize
+{
+	NSString *fontName = [[streamInfoLabel font] fontName];
+	NSSize targetSize = [streamInfoLabel frame].size;
+	int i;
+	for (i = 9; i <= 14; i++)
+	{
+		NSDictionary *attrs = @{NSFontAttributeName : [NSFont fontWithName:fontName size:i]};
+		NSSize strSize = [[streamInfoLabel stringValue] sizeWithAttributes:attrs];
+		if (strSize.width > targetSize.width) break;
+	}
+	[streamInfoLabel setFont:[NSFont fontWithName:fontName size:i-1]];
 }
 
 //

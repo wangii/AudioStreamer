@@ -32,6 +32,7 @@
 	IBOutlet NSButton *button;
 	IBOutlet NSTextField *positionLabel;
 	IBOutlet NSSlider *progressSlider;
+    IBOutlet NSTextField *streamInfoLabel;
 	AudioStreamer *streamer;
 	NSTimer *progressUpdateTimer;
 }

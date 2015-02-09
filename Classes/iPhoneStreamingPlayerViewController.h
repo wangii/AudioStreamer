@@ -31,6 +31,8 @@
 	IBOutlet UIView *volumeSlider;
 	IBOutlet UILabel *positionLabel;
 	IBOutlet UISlider *progressSlider;
+    IBOutlet UILabel *streamInfoTitle;
+    IBOutlet UILabel *streamInfoBody;
 	iPhoneStreamer *streamer;
 	NSTimer *progressUpdateTimer;
 }
