@@ -404,10 +404,20 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
   else if (vbr)
   {
-    double sampleRate     = _streamDescription.mSampleRate;
-    double packetDuration = _streamDescription.mFramesPerPacket / sampleRate;
+    double packetsPerSec = _streamDescription.mSampleRate / _streamDescription.mFramesPerPacket;
+    if (!packetsPerSec) return NO;
 
-    if (packetDuration && processedPacketsCount > BitRateEstimationMinPackets) {
+    Float64 bytesPerPacket;
+    UInt32 bytesPerPacketSize = sizeof(bytesPerPacket);
+    OSStatus status = AudioFileStreamGetProperty(audioFileStream,
+                                                 kAudioFileStreamProperty_AverageBytesPerPacket,
+                                                 &bytesPerPacketSize, &bytesPerPacket);
+    if (status == 0) {
+      *rate = 8.0 * bytesPerPacket * packetsPerSec;
+      return YES;
+    }
+
+    if (processedPacketsCount > BitRateEstimationMinPackets) {
       double averagePacketByteSize = processedPacketsSizeTotal /
                                       processedPacketsCount;
       /* bits/byte x bytes/packet x packets/sec = bits/sec */
