@@ -445,7 +445,7 @@ struct queued_packet;
  *
  * @see AudioStreamerDelegate
  */
-@property (readwrite, weak) id <AudioStreamerDelegate> delegate;
+@property (nonatomic, readwrite, weak) id <AudioStreamerDelegate> delegate;
 
 /**
  * @brief Tests whether the stream is playing

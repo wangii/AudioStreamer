@@ -8,6 +8,40 @@
 #import "AudioStreamer.h"
 #import <AVFoundation/AVAudioSession.h>
 
+@class iOSStreamer;
+
+/**
+ * The iOSStreamerDelegate protocol extends the <AudioStreamerDelegate> and provides
+ * callbacks for the interruption events that the <iOSStreamer> class deals with.
+ * You can use these callbacks to override the default behaviour on interruption.
+ */
+@protocol iOSStreamerDelegate <AudioStreamerDelegate>
+
+@optional
+/**
+ * @brief Called when the stream is interrupted
+ *
+ * @param sender The streamer that called this method
+ *
+ * @return YES to override the default behaviour of pausing the stream
+ */
+- (BOOL)streamerInterruptionDidBegin:(iOSStreamer *)sender;
+/**
+ * @brief Called when the stream interruption has ended
+ *
+ * @param sender The streamer that called this method
+ * @param flags The flags received indicating whether the stream should resume.
+ * This will be AVAudioSessionInterruptionFlags_ShouldResume (all supported iOS versions
+ * - deprecated in iOS 6) / AVAudioSessionInterruptionOptionShouldResume (iOS 6 and later)
+ * if it should resume or 0 if it should not.
+ *
+ * @return YES to override the default behaviour of playing the stream if the flag
+ * allows and stopping if it does not
+ */
+- (BOOL)streamer:(iOSStreamer *)sender interruptionDidEndWithFlags:(NSUInteger)flags;
+
+@end
+
 /**
  * The iOSStreamer subclass is for those using <AudioStreamer> on iOS.
  * This class adds extra iOS features that are unavailable or not required
@@ -26,6 +60,14 @@
 @interface iOSStreamer : AudioStreamer <AVAudioSessionDelegate>
 
 /** @name Properties */
+
+/**
+ * @brief Sets the delegate for event callbacks
+ *
+ * @see iOSStreamerDelegate
+ * @see AudioStreamerDelegate
+ */
+@property (nonatomic, readwrite, weak) id <iOSStreamerDelegate> delegate;
 
 /**
  * @brief Whether the stream is currently interrupted

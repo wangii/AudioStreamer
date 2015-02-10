@@ -21,6 +21,8 @@
 
 @implementation iOSStreamer
 
+@synthesize delegate=_delegate; // Required
+
 - (BOOL)start {
     if (![super start]) return NO;
 
@@ -57,6 +59,12 @@
     }
 }
 
+- (void)setDelegate:(id<iOSStreamerDelegate>)delegate
+{
+    [super setDelegate:delegate];
+    _delegate = delegate;
+}
+
 - (void)beginInterruption
 {
     if ([self isPlaying])
@@ -64,6 +72,16 @@
         LOG(@"Interrupted");
 
         _interrupted = YES;
+
+        __strong id <iOSStreamerDelegate> delegate = _delegate;
+        BOOL override;
+        if (delegate && [delegate respondsToSelector:@selector(streamerInterruptionDidBegin:)]) {
+            override = [delegate streamerInterruptionDidBegin:self];
+        } else {
+            override = NO;
+        }
+
+        if (override) return;
 
         [self pause];
     }
@@ -75,6 +93,18 @@
     {
         LOG(@"Interruption ended");
 
+        _interrupted = NO;
+
+        __strong id <iOSStreamerDelegate> delegate = _delegate;
+        BOOL override;
+        if (delegate && [delegate respondsToSelector:@selector(streamer:interruptionDidEndWithFlags:)]) {
+            override = [delegate streamer:self interruptionDidEndWithFlags:flags];
+        } else {
+            override = NO;
+        }
+
+        if (override) return;
+
         if (flags & AVAudioSessionInterruptionFlags_ShouldResume)
         {
             LOG(@"Resuming after interruption...");
@@ -85,8 +115,6 @@
             LOG(@"Not resuming after interruption");
             [self stop];
         }
-
-        _interrupted = NO;
     }
 }
 

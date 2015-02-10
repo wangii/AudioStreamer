@@ -31,7 +31,7 @@ The iOSStreamer class is a subclass of AudioStreamer which handles possible inte
 * Siri
 * Playing audio in another app (eg. Music) after the stream has started.
 
-iOSStreamer uses `AVAudioSessionDelegate` so you may handle these interruptions yourself. For example, you may want to stop the stream instead of pausing it when playing a livestream. AVAudioSession is shared in your app so all you need to do is set the delegate after iOSStreamer.
+iOSStreamer introduces `iOSStreamerDelegate` which extends `AudioStreamerDelegate`. This delegate may be used to handle interruptions yourself. For example, you may want to stop the stream instead of pausing it when playing a livestream.
 
 ## Sample Usage (`AudioStreamer`)
 
