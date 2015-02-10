@@ -301,7 +301,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   // Calculate the byte offset for seeking
   //
   seekByteOffset = dataOffset +
-    (UInt64)(newSeekTime / duration) * (fileLength - dataOffset);
+    (UInt64)((newSeekTime / duration) * (fileLength - dataOffset));
 
   //
   // Attempt to leave 1 useful packet at the end of the file (although in
@@ -333,8 +333,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     osErr = AudioFileStreamSeek(audioFileStream, seekPacket,
                                 &packetAlignedByteOffset, &ioFlags);
     if (!osErr) {
+      seekTime -= ((SInt64)(seekByteOffset - dataOffset) - packetAlignedByteOffset) * 8.0 / bitrate;
       seekByteOffset = (UInt64)packetAlignedByteOffset + dataOffset;
-      seekTime -= ((seekByteOffset - dataOffset) - (UInt64)packetAlignedByteOffset) * 8.0 / bitrate;
     }
   }
 
