@@ -98,7 +98,7 @@ The sample apps use some additional frameworks but these are specific to the sam
 
 ## Supported OS versions
 
-AudioStreamer currently targets a minimum of iOS 5.1.1 and OS X 10.6. All later versions are supported too.
+AudioStreamer currently targets a minimum of iOS 5.1.1 and OS X 10.7. All later versions are supported too.
 
 ## Problems/Question?
 
