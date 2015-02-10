@@ -270,7 +270,9 @@
 		}
 		else
 		{
-			[positionLabel setStringValue:@"Time Played:"];
+			if ([[positionLabel stringValue] isEqualToString:@"Time Played: 0/0"]) {
+				[positionLabel setStringValue:@"Time Played:"];
+			}
 			[progressSlider setEnabled:NO];
 			[progressSlider setDoubleValue:0.0];
 		}

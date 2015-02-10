@@ -917,7 +917,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       fileLength = (UInt64)[_httpHeaders[@"Content-Length"] longLongValue];
     }
 
-    seekable = [[_httpHeaders[@"Accept-Ranges"] stringValue] caseInsensitiveCompare:@"bytes"] == NSOrderedSame;
+    seekable = [_httpHeaders[@"Accept-Ranges"] caseInsensitiveCompare:@"bytes"] == NSOrderedSame;
   }
 
   CFRelease(message);
