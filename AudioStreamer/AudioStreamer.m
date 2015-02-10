@@ -688,7 +688,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return kAudioFileWAVEType;
   } else if ([fileExtension isEqual:@"aifc"]) {
     return kAudioFileAIFCType;
-  } else if ([fileExtension isEqual:@"aiff"]) {
+  } else if ([fileExtension isEqual:@"aiff"] ||
+             [fileExtension isEqual:@"aif"]) {
     return kAudioFileAIFFType;
   } else if ([fileExtension isEqual:@"m4a"]) {
     return kAudioFileM4AType;
@@ -698,6 +699,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return kAudioFileCAFType;
   } else if ([fileExtension isEqual:@"aac"]) {
     return kAudioFileAAC_ADTSType;
+  } else if ([fileExtension isEqual:@"au"] ||
+             [fileExtension isEqual:@"snd"]) {
+    return kAudioFileNextType;
   }
   return 0;
 }
@@ -713,7 +717,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return kAudioFileMP3Type;
   } else if ([mimeType isEqual:@"audio/x-wav"]) {
     return kAudioFileWAVEType;
-  } else if ([mimeType isEqual:@"audio/x-aiff"]) {
+  } else if ([mimeType isEqual:@"audio/x-aiff"] ||
+             [mimeType isEqual:@"audio/aiff"]) {
     return kAudioFileAIFFType;
   } else if ([mimeType isEqual:@"audio/x-m4a"]) {
     return kAudioFileM4AType;
@@ -724,6 +729,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   } else if ([mimeType isEqual:@"audio/aac"] ||
              [mimeType isEqual:@"audio/aacp"]) {
     return kAudioFileAAC_ADTSType;
+  } else if ([mimeType isEqual:@"audio/basic"]) {
+    return kAudioFileNextType;
   }
   return 0;
 }
