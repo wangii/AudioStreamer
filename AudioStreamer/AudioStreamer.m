@@ -389,7 +389,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (BOOL)calculatedBitRate:(double*)rate {
-  if (vbr)
+  if (icyBitrate)
+  {
+    *rate = icyBitrate;
+    return YES;
+  }
+  else if (vbr)
   {
     double sampleRate     = _streamDescription.mSampleRate;
     double packetDuration = _streamDescription.mFramesPerPacket / sampleRate;
@@ -957,6 +962,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         if (_httpHeaders[@"icy-metaint"]) {
           icyStream = true;
           icyMetaInterval = [_httpHeaders[@"icy-metaint"] intValue];
+          icyBitrate = [_httpHeaders[@"icy-br"] doubleValue] * 1000.0;
           icyHeadersParsed = true;
         }
       }
@@ -1015,6 +1021,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
             }
             else if ([lineItems[0] caseInsensitiveCompare:@"icy-metaint"] == NSOrderedSame) {
               icyMetaInterval = [lineItems[1] intValue];
+            }
+            else if ([lineItems[0] caseInsensitiveCompare:@"icy-br"] == NSOrderedSame) {
+              icyBitrate = [lineItems[1] doubleValue] * 1000.0;
             }
           }
 

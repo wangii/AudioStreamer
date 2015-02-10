@@ -403,6 +403,7 @@ struct queued_packet;
   UInt16 icyMetaBytesRemaining;     /* How many bytes of ICY metadata are left? */
   int    icyDataBytesRead;    /* How many data bytes have been read in an ICY stream since metadata? */
   NSMutableString *icyMetadata;     /* The string of metadata itself, as it is being read */
+  double icyBitrate;          /* The bitrate of the ICY stream */
 
   /* Miscellaneous metadata */
   bool   discontinuous;      /* flag to indicate the middle of a stream */
