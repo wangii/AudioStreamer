@@ -182,7 +182,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
 /* Deprecated. */
 + (NSString *)stringForErrorCode:(AudioStreamerErrorCode)anErrorCode {
-  return [[self class] descriptionForErrorCode:anErrorCode]; // Internal method.
+  return [[self class] descriptionForASErrorCode:anErrorCode]; // Internal method.
 }
 
 - (BOOL)isPlaying {
@@ -237,7 +237,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (state_ != AS_PLAYING) return NO;
   assert(audioQueue != NULL);
   OSStatus osErr = AudioQueuePause(audioQueue);
-  CHECK_ERR(osErr, AS_AUDIO_QUEUE_PAUSE_FAILED, @"", NO);
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_PAUSE_FAILED, [[self class] descriptionforAQErrorCode:osErr], NO);
   queuePaused = true;
   [self setState:AS_PAUSED];
   return YES;
@@ -361,7 +361,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   osErr = AudioQueueStop(audioQueue, true);
   if (osErr) {
     seeking = false;
-    [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED reason:@""];
+    [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED reason:[[self class] descriptionforAQErrorCode:osErr]];
     return NO;
   }
 
@@ -514,7 +514,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
 #pragma mark - Internal functions
 
-+ (NSString *)descriptionForErrorCode:(AudioStreamerErrorCode)anErrorCode {
++ (NSString *)descriptionForASErrorCode:(AudioStreamerErrorCode)anErrorCode {
   switch (anErrorCode) {
     case 0: /* Deprecated */
       return @"No error";
@@ -567,6 +567,102 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 }
 
++ (NSString *)descriptionForAFSErrorCode:(OSStatus)osErr {
+  switch (osErr) {
+    case kAudioFileStreamError_BadPropertySize:
+      return @"The size for an internal property call to the file stream was incorrect. This is a bug.";
+    case kAudioFileStreamError_DataUnavailable:
+      return @"The file stream could not get data for an internal property call. This is a bug.";
+    case kAudioFileStreamError_DiscontinuityCantRecover:
+      return @"The file stream reached a state where it could not recover.";
+    case kAudioFileStreamError_IllegalOperation:
+      return @"An illegal operation on the file stream was attempted. This is a bug.";
+    case kAudioFileStreamError_InvalidFile:
+      return @"The given HTTP stream is invalid. Perhaps an unsupported format?";
+    case kAudioFileStreamError_InvalidPacketOffset:
+      return @"The packet offset for the file stream is invalid. The HTTP stream could be malformed.";
+    case kAudioFileStreamError_NotOptimized:
+      return @"The given HTTP stream is not optimized for streaming.";
+    case kAudioFileStreamError_UnspecifiedError:
+      return @"An unknown error occurred in the file stream.";
+    case kAudioFileStreamError_UnsupportedDataFormat:
+    case kAudioFileStreamError_UnsupportedFileType:
+      return @"The given HTTP stream is of an unsupported format.";
+    case kAudioFileStreamError_UnsupportedProperty:
+      return @"An internal property call is unsupported for this stream. This is a bug.";
+    case kAudioFileStreamError_ValueUnknown:
+      return @"An internal property call to the file stream could not retrieve a value. This is a bug.";
+    default:
+      break;
+  }
+  return [NSString stringWithFormat:@"AudioFileStream error code %s", OSSTATUS_TO_STR(osErr)];
+}
+
++ (NSString *)descriptionforAQErrorCode:(OSStatus)osErr {
+  switch (osErr) {
+    case kAudioQueueErr_BufferEmpty:
+      return @"A buffer of data was generated but no audio was found.";
+    // Not documented
+    /*case kAudioQueueErr_BufferEnqueuedTwice:
+      return @"A buffer of data was enqueued for play twice. This is a bug.";*/
+    case kAudioQueueErr_BufferInQueue:
+      return @"An attempt was made to dispose a buffer of data while it was enqueued for play. This is a bug.";
+    case kAudioQueueErr_CannotStart:
+      return @"The audio queue (player) encountered a problem and could not start.";
+    case kAudioQueueErr_CodecNotFound:
+      return @"A codec could not be found for the audio.";
+    case kAudioQueueErr_DisposalPending:
+      return @"An interaction on the audio queue (player) was made while it was being disposed. This is a bug.";
+    case kAudioQueueErr_EnqueueDuringReset:
+      return @"A buffer of data was enqueued for play while the audio queue (player) was stopping. This is a bug.";
+    case kAudioQueueErr_InvalidBuffer:
+      return @"An invalid buffer was passed to the audio queue (player). This is a bug.";
+    case kAudioQueueErr_InvalidCodecAccess:
+      return @"The codec for playback could not be accessed.";
+    case kAudioQueueErr_InvalidDevice:
+      return @"Hardware for playback could not be found.";
+    case kAudioQueueErr_InvalidOfflineMode:
+      return @"The audio queue (player) was in an incorrect mode for an operation. This is a bug.";
+    case kAudioQueueErr_InvalidParameter:
+      return @"An internal parameter call to the audio queue (player) was invalid. This is a bug.";
+    case kAudioQueueErr_InvalidProperty:
+      return @"An internal property call to the audio queue (player) was invalid. This is a bug.";
+    case kAudioQueueErr_InvalidPropertySize:
+      return @"The size for an internal property call to the audio queue (player) was incorrect. This is a bug.";
+    case kAudioQueueErr_InvalidPropertyValue:
+      return @"The value given to an internal property call to the audio queue (player) was invalid. This is a bug.";
+    case kAudioQueueErr_InvalidQueueType:
+      return @"The audio queue (player) type is incorrect for an operation. This is a bug.";
+    case kAudioQueueErr_InvalidRunState:
+      return @"The audio queue (player) was in an incorrect state for an operation. This is a bug.";
+    // Not documented
+    /*case kAudioQueueErr_InvalidTapContext:
+      return @"???";*/
+    /*case kAudioQueueErr_InvalidTapType:
+      return @"???";*/
+    case kAudioQueueErr_Permissions:
+      return @"The audio queue (player) did not have sufficient permissions for an operation. This is a bug.";
+    case kAudioQueueErr_PrimeTimedOut:
+      return @"The audio queue (player) timed out during a prime call. This is a bug.";
+    case kAudioQueueErr_QueueInvalidated:
+      return @"The audio queue (player) was invalidated as the OS audio server died.";
+    // OS X 10.8. Should never happen anyway
+    /*case kAudioQueueErr_RecordUnderrun:
+      return @"";*/
+    // Not documented
+    /*case kAudioQueueErr_TooManyTaps:
+      return @"???";*/
+    case kAudioFormatUnsupportedDataFormatError:
+      return @"The audio queue (player) got data of a format that is unsupported.";
+    // Can happen for AudioQueues for some reason
+    case kAudioFileStreamError_IllegalOperation:
+      return @"An illegal operation was attempted on the audio queue (player). Did you seek past the file end?";
+    default:
+      break;
+  }
+  return [NSString stringWithFormat:@"AudioQueue error code %s", OSSTATUS_TO_STR(osErr)];
+}
+
 //
 // failWithErrorCode:reason:
 //
@@ -602,11 +698,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Attempt to save our last point of progress */
   [self progress:&lastProgress];
 
-  LOG(@"got an error: %@ (%@)", [[self class] descriptionForErrorCode:errorCode], reason);
+  LOG(@"got an error: %@ (%@)", [[self class] descriptionForASErrorCode:errorCode], reason);
   _errorCode = errorCode; // Deprecated.
 
   NSDictionary *userInfo = @{NSLocalizedDescriptionKey:
-                               NSLocalizedString([[self class] descriptionForErrorCode:errorCode], nil),
+                               NSLocalizedString([[self class] descriptionForASErrorCode:errorCode], nil),
                              NSLocalizedFailureReasonErrorKey:
                                NSLocalizedString(reason, nil)};
   _error = [NSError errorWithDomain:ASErrorDomain code:errorCode userInfo:userInfo];
@@ -992,7 +1088,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     // create an audio file stream parser
     osErr = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
                                          ASPacketsProc, _fileType, &audioFileStream);
-    CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, @"");
+    CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
   }
 
   UInt32 bufferSize = (packetBufferSize > 0) ? packetBufferSize : _bufferSize;
@@ -1089,7 +1185,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
                 osErr = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
                                               ASPacketsProc, _fileType, &audioFileStream);
-                CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, @"");
+                CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
               }
             }
             else if ([lineItems[0] caseInsensitiveCompare:@"icy-metaint"] == NSOrderedSame) {
@@ -1183,7 +1279,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     isParsing = false;
 
     if ([self isDone]) [self closeFileStream];
-    CHECK_ERR(osErr, AS_FILE_STREAM_PARSE_BYTES_FAILED, @"");
+    CHECK_ERR(osErr, AS_FILE_STREAM_PARSE_BYTES_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
   }
 }
 
@@ -1216,7 +1312,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   } else {
     osErr = AudioQueueEnqueueBuffer(audioQueue, fillBuf, 0, NULL);
   }
-  CHECK_ERR(osErr, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"", -1);
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_ENQUEUE_FAILED, [[self class] descriptionforAQErrorCode:osErr], -1);
 
   LOG(@"committed buffer %d", fillBufferIndex);
 
@@ -1240,7 +1336,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (queued_head == NULL &&
       CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
     osErr = AudioQueueFlush(audioQueue);
-    CHECK_ERR(osErr, AS_AUDIO_QUEUE_FLUSH_FAILED, @"", -1);
+    CHECK_ERR(osErr, AS_AUDIO_QUEUE_FLUSH_FAILED, [[self class] descriptionforAQErrorCode:osErr], -1);
   }
 
   if (inuse[fillBufferIndex]) {
@@ -1275,14 +1371,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   OSStatus osErr = AudioQueueNewOutput(&_streamDescription, ASAudioQueueOutputCallback,
                                        (__bridge void*) self, CFRunLoopGetMain(), NULL,
                                        0, &audioQueue);
-  CHECK_ERR(osErr, AS_AUDIO_QUEUE_CREATION_FAILED, @"");
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_CREATION_FAILED, [[self class] descriptionforAQErrorCode:osErr]);
 
   // start the queue if it has not been started already
   // listen to the "isRunning" property
   osErr = AudioQueueAddPropertyListener(audioQueue, kAudioQueueProperty_IsRunning,
                                         ASAudioQueueIsRunningCallback,
                                         (__bridge void*) self);
-  CHECK_ERR(osErr, AS_AUDIO_QUEUE_ADD_LISTENER_FAILED, @"");
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_ADD_LISTENER_FAILED, [[self class] descriptionforAQErrorCode:osErr]);
 
   if (vbr) {
     /* Try to determine the packet size, eventually falling back to some
@@ -1315,7 +1411,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   for (UInt32 i = 0; i < _bufferCount; ++i) {
     osErr = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
                                    &buffers[i]);
-    CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
+    CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, [[self class] descriptionforAQErrorCode:osErr]);
   }
 
   /* Some audio formats have a "magic cookie" which needs to be transferred from
@@ -1376,7 +1472,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (BOOL)startAudioQueue
 {
   OSStatus osErr = AudioQueueStart(audioQueue, NULL);
-  CHECK_ERR(osErr, AS_AUDIO_QUEUE_START_FAILED, @"", NO);
+  CHECK_ERR(osErr, AS_AUDIO_QUEUE_START_FAILED, [[self class] descriptionforAQErrorCode:osErr], NO);
 
   if (queuePaused) {
     queuePaused = false;
@@ -1415,7 +1511,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       OSStatus osErr = AudioFileStreamGetProperty(inAudioFileStream,
                                                   kAudioFileStreamProperty_DataOffset,
                                                   &offsetSize, &offset);
-      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
+      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
       dataOffset = (UInt64)offset;
 
       if (audioDataByteCount) {
@@ -1430,7 +1526,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       OSStatus osErr = AudioFileStreamGetProperty(inAudioFileStream,
                                                   kAudioFileStreamProperty_AudioDataByteCount,
                                                   &byteCountSize, &audioDataByteCount);
-      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
+      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
       fileLength = dataOffset + audioDataByteCount;
       LOG(@"have byte count: %llu", audioDataByteCount);
       break;
@@ -1444,7 +1540,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         OSStatus osErr = AudioFileStreamGetProperty(inAudioFileStream,
                                                     kAudioFileStreamProperty_DataFormat,
                                                     &descSize, &_streamDescription);
-        CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
+        CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
       }
       LOG(@"have data format");
       break;
@@ -1456,7 +1552,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       OSStatus osErr = AudioFileStreamGetPropertyInfo(inAudioFileStream,
                                                       kAudioFileStreamProperty_FormatList,
                                                       &formatListSize, &outWriteable);
-      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
+      CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
 
       AudioFormatListItem *formatList = malloc(formatListSize);
       CHECK_ERR(formatList == NULL, AS_FILE_STREAM_GET_PROPERTY_FAILED, @"");
@@ -1465,7 +1561,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                          &formatListSize, formatList);
       if (osErr) {
         free(formatList);
-        [self failWithErrorCode:AS_FILE_STREAM_GET_PROPERTY_FAILED reason:@""];
+        [self failWithErrorCode:AS_FILE_STREAM_GET_PROPERTY_FAILED reason:[[self class] descriptionForAFSErrorCode:osErr]];
         return;
       }
 
@@ -1820,7 +1916,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     {
       /* No previous error occurred so we simply aren't buffering fasting enough */
       OSStatus osErr = AudioQueuePause(audioQueue);
-      CHECK_ERR(osErr, AS_AUDIO_QUEUE_PAUSE_FAILED, @"");
+      CHECK_ERR(osErr, AS_AUDIO_QUEUE_PAUSE_FAILED, [[self class] descriptionforAQErrorCode:osErr]);
       queuePaused = true;
 
       /* This can either fix or delay the problem
@@ -1833,7 +1929,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         for (UInt32 i = 0; i < _bufferCount; ++i) {
           osErr = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
                                            &buffers[i]);
-          CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
+          CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, [[self class] descriptionforAQErrorCode:osErr]);
         }
       }
 
