@@ -22,7 +22,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "iPhoneStreamer.h"
+#import "iOSStreamer.h"
 
 @interface iPhoneStreamingPlayerViewController : UIViewController <AudioStreamerDelegate>
 {
@@ -33,7 +33,7 @@
 	IBOutlet UISlider *progressSlider;
     IBOutlet UILabel *streamInfoTitle;
     IBOutlet UILabel *streamInfoBody;
-	iPhoneStreamer *streamer;
+	iOSStreamer *streamer;
 	NSTimer *progressUpdateTimer;
 }
 

@@ -97,7 +97,7 @@
 			kCFStringEncodingUTF8);
 
 	NSURL *url = [NSURL URLWithString:escapedValue];
-	streamer = [iPhoneStreamer streamWithURL:url];
+	streamer = [iOSStreamer streamWithURL:url];
 	[streamer setDelegate:self];
 
 	progressUpdateTimer =

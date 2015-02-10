@@ -1,5 +1,5 @@
 //
-//  iPhoneStreamer.h
+//  iOSStreamer.h
 //  AudioStreamer
 //
 //  Created by Bo Anderson on 07/09/2012.
@@ -9,7 +9,7 @@
 #import <AVFoundation/AVAudioSession.h>
 
 /**
- * The iPhoneStreamer subclass is for those using <AudioStreamer> on iOS.
+ * The iOSStreamer subclass is for those using <AudioStreamer> on iOS.
  * This class adds extra iOS features that are unavailable or not required
  * on OS X.
  *
@@ -19,11 +19,11 @@
  * - Interruption handling (eg. phone calls)
  * - Ability to play concurrent streams
  *
- * You only need to replace "AudioStreamer" with "iPhoneStreamer" in your
+ * You only need to replace "AudioStreamer" with "iOSStreamer" in your
  * code. Everything else is handled for you which is why there is little
  * additional properties and methods.
  */
-@interface iPhoneStreamer : AudioStreamer <AVAudioSessionDelegate>
+@interface iOSStreamer : AudioStreamer <AVAudioSessionDelegate>
 
 /** @name Properties */
 
@@ -37,3 +37,5 @@
 @property (readonly, getter=isInterrupted) BOOL interrupted;
 
 @end
+
+@compatibility_alias iPhoneStreamer iOSStreamer; // Backwards compatibility

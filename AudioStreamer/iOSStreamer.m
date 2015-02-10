@@ -1,11 +1,11 @@
 //
-//  iPhoneStreamer.m
+//  iOSStreamer.m
 //  AudioStreamer
 //
 //  Created by Bo Anderson on 07/09/2012.
 //
 
-#import "iPhoneStreamer.h"
+#import "iOSStreamer.h"
 
 #if defined(DEBUG) && 0
 #define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
@@ -13,13 +13,13 @@
 #define LOG(...)
 #endif
 
-@interface AudioStreamer (iPhoneStreamer)
+@interface AudioStreamer (iOSStreamer)
 
 - (void)createQueue;
 
 @end
 
-@implementation iPhoneStreamer
+@implementation iOSStreamer
 
 - (BOOL)start {
     if (![super start]) return NO;

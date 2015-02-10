@@ -23,17 +23,15 @@ It is NOT the job of the AudioStreamer to:
 * Play multiple songs (see the `ASPlaylist` class)
 * Automatically perform actions in response to playback events
 
-## The `iPhoneStreamer` class
+## The `iOSStreamer` class
 
-The iPhoneStreamer class is a subclass of AudioStreamer which handles possible interruptions to the stream. These include, but are not limited to:
+The iOSStreamer class is a subclass of AudioStreamer which handles possible interruptions to the stream. These include, but are not limited to:
 
 * Phone calls (including FaceTime)
 * Siri
 * Playing audio in another app (eg. Music) after the stream has started.
 
-iPhoneStreamer uses `AVAudioSessionDelegate` so you may handle these interruptions yourself. For example, you may want to stop the stream instead of pausing it when playing a livestream. AVAudioSession is shared in your app so all you need to do is set the delegate after iPhoneStreamer.
-
-Despite the name, iPhoneStreamer also works on iPad.
+iOSStreamer uses `AVAudioSessionDelegate` so you may handle these interruptions yourself. For example, you may want to stop the stream instead of pausing it when playing a livestream. AVAudioSession is shared in your app so all you need to do is set the delegate after iOSStreamer.
 
 ## Sample Usage (`AudioStreamer`)
 
@@ -87,7 +85,7 @@ All files related to the AudioStreamer library are located in the [AudioStreamer
 You must also link against some frameworks to build:
 
 * OS X - AudioToolbox, CoreServices, and Foundation (last 2 can be replaced with Cocoa)
-* iOS - AudioToolbox, AVFoundation (if using the iPhoneStreamer class), CFNetwork and Foundation
+* iOS - AudioToolbox, AVFoundation (if using the iOSStreamer class), CFNetwork and Foundation
 
 The sample apps use some additional frameworks but these are specific to the sample apps.
 
