@@ -47,9 +47,14 @@
 #define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
 #define OSSTATUS_TO_STR(status) ({                                              \
   char str[8];                                                                  \
-  *(UInt32 *)(str + 1) = CFSwapInt32HostToBig((uint32_t)status);                \
-  str[0] = str[5] = '\'';                                                       \
-  str[6] = '\0';                                                                \
+  if (status != 0) {                                                            \
+    *(UInt32 *)(str + 1) = CFSwapInt32HostToBig((uint32_t)status);              \
+    str[0] = str[5] = '\'';                                                     \
+    str[6] = '\0';                                                              \
+  } else {                                                                      \
+    str[0] = str[1] = '\'';                                                     \
+    str[2] = '\0';                                                              \
+  }                                                                             \
   str;                                                                          \
 })
 #else
@@ -409,16 +414,29 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     double packetsPerSec = _streamDescription.mSampleRate / _streamDescription.mFramesPerPacket;
     if (!packetsPerSec) return NO;
 
+    // Method one - exact
+    UInt32 bitrate;
+    UInt32 bitrateSize = sizeof(bitrate);
+    OSStatus status = AudioFileStreamGetProperty(audioFileStream,
+                                                 kAudioFileStreamProperty_BitRate,
+                                                 &bitrateSize, &bitrate);
+    if (status == 0) {
+      *rate = bitrate;
+      return YES;
+    }
+
+    // Method two - average
     Float64 bytesPerPacket;
     UInt32 bytesPerPacketSize = sizeof(bytesPerPacket);
-    OSStatus status = AudioFileStreamGetProperty(audioFileStream,
-                                                 kAudioFileStreamProperty_AverageBytesPerPacket,
-                                                 &bytesPerPacketSize, &bytesPerPacket);
+    status = AudioFileStreamGetProperty(audioFileStream,
+                                        kAudioFileStreamProperty_AverageBytesPerPacket,
+                                        &bytesPerPacketSize, &bytesPerPacket);
     if (status == 0) {
       *rate = 8.0 * bytesPerPacket * packetsPerSec;
       return YES;
     }
 
+    // Method three (similar to two)
     if (processedPacketsCount > BitRateEstimationMinPackets) {
       double averagePacketByteSize = processedPacketsSizeTotal /
                                       processedPacketsCount;
