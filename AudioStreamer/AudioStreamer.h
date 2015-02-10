@@ -420,6 +420,7 @@ struct queued_packet;
   bool   vbr;                 /* Are we playing a VBR stream? */
   bool   didConnect;          /* Did we connect successfully at some point? */
   bool   queuePaused;         /* Is the audio queue paused? */
+  bool   bitrateEstimated;    /* Was the last bitrate calculation an estimate? */
 }
 
 /** @name Creating an audio stream */

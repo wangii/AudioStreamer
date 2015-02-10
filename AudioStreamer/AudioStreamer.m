@@ -347,8 +347,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     SInt64 seekPacket = (SInt64)floor(newSeekTime / packetDuration);
     osErr = AudioFileStreamSeek(audioFileStream, seekPacket,
                                 &packetAlignedByteOffset, &ioFlags);
-    if (!osErr) {
-      seekTime -= ((SInt64)(seekByteOffset - dataOffset) - packetAlignedByteOffset) * 8.0 / bitrate;
+    if (!osErr && !(ioFlags & kAudioFileStreamSeekFlag_OffsetIsEstimated)) {
+      if (!bitrateEstimated) {
+        seekTime = packetAlignedByteOffset * 8.0 / bitrate;
+      }
       seekByteOffset = (UInt64)packetAlignedByteOffset + dataOffset;
     }
   }
@@ -407,6 +409,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (icyBitrate)
   {
     *rate = icyBitrate;
+    bitrateEstimated = false;
     return YES;
   }
   else if (vbr)
@@ -422,6 +425,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                                  &bitrateSize, &bitrate);
     if (status == 0) {
       *rate = bitrate;
+      bitrateEstimated = false;
       return YES;
     }
 
@@ -433,6 +437,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                         &bytesPerPacketSize, &bytesPerPacket);
     if (status == 0) {
       *rate = 8.0 * bytesPerPacket * packetsPerSec;
+      bitrateEstimated = true;
       return YES;
     }
 
@@ -442,6 +447,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                       processedPacketsCount;
       /* bits/byte x bytes/packet x packets/sec = bits/sec */
       *rate = averagePacketByteSize;
+      bitrateEstimated = true;
       return YES;
     }
     return NO;
@@ -449,6 +455,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   else
   {
     *rate = 8.0 * _streamDescription.mSampleRate * _streamDescription.mBytesPerPacket * _streamDescription.mFramesPerPacket;
+    bitrateEstimated = false;
     return YES;
   }
 }

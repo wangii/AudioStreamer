@@ -33,6 +33,7 @@
 	frame.size.height = 159;
 	[window setMinSize:frame.size];
 	[window setMaxSize:frame.size];
+	[window setFrame:frame display:YES];
 }
 
 //
