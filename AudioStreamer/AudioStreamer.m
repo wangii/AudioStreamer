@@ -953,7 +953,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (!audioFileStream) {
     /* If a file type wasn't specified, we have to guess */
     if (_fileType == 0) {
-      _fileType = [[self class] hintForMIMEType: _httpHeaders[@"Content-Type"]];
+      _fileType = [[self class] hintForMIMEType:_httpHeaders[@"Content-Type"]];
       if (_fileType == 0) {
         _fileType = [[self class] hintForFileExtension:
                       [[_url path] pathExtension]];

@@ -267,7 +267,7 @@
 		}
 		else
 		{
-			([[positionLabel text] isEqualToString:@"Time Played: 0/0"]) {
+			if ([streamer isPlaying]) {
 				[positionLabel setText:@"Time Played:"];
 			}
 			[progressSlider setEnabled:NO];
