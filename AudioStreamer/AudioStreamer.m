@@ -45,8 +45,16 @@
 
 #if defined(DEBUG) && 0
 #define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
+#define OSSTATUS_TO_STR(status) ({                                              \
+  char str[8];                                                                  \
+  *(UInt32 *)(str + 1) = CFSwapInt32HostToBig((uint32_t)status);                \
+  str[0] = str[5] = '\'';                                                       \
+  str[6] = '\0';                                                                \
+  str;                                                                          \
+})
 #else
 #define LOG(...)
+#define OSSTATUS_TO_STR(...)
 #endif
 
 typedef NS_ENUM(NSUInteger, AudioStreamerProxyType) {

@@ -270,6 +270,7 @@
 		}
 		else
 		{
+			[positionLabel setStringValue:@"Time Played:"];
 			[progressSlider setEnabled:NO];
 			[progressSlider setDoubleValue:0.0];
 		}

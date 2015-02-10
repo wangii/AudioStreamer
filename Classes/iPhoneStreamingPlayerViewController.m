@@ -267,6 +267,7 @@
 		}
 		else
 		{
+			[positionLabel setText:@"Time Played:"];
 			[progressSlider setEnabled:NO];
 			[progressSlider setValue:0];
 		}
