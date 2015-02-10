@@ -421,6 +421,7 @@ struct queued_packet;
   bool   didConnect;          /* Did we connect successfully at some point? */
   bool   queuePaused;         /* Is the audio queue paused? */
   bool   bitrateEstimated;    /* Was the last bitrate calculation an estimate? */
+  bool   defaultBufferSizeUsed;     /* Was the default buffer size used? */
 }
 
 /** @name Creating an audio stream */
