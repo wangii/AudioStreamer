@@ -14,7 +14,7 @@ The AudioStreamer class is a wrapper around the AudioQueue, AudioFileStream, and
 
 * An AudioStreamer instance can only be used once for one song
 * Once an error has been encountered, it is impossible for any more playback to occur using this instance of an AudioStreamer
-* All notifications of state and error are sent through the default NSNotificationCenter, and this is how the stream should be managed/watched
+* All notifications of state and error are sent through `AudioStreamerDelegate`, and this is how the stream should be managed/watched. See the [AudioStreamerDelegate documentation page](http://alexcrichton.com/AudioStreamer/Protocols/AudioStreamerDelegate.html)
 
 It is NOT the job of the AudioStreamer to:
 
@@ -41,26 +41,21 @@ Despite the name, iPhoneStreamer also works on iPad.
 - (void) play {
   NSURL *url = ...;
   AudioStreamer *stream = [AudioStreamer streamWithUrl:url];
+  [stream setDelegate:self];
 
   /* Optional: Set some properties like proxies, buffer sizes, formats, etc. on stream */
 
   [stream start];
-  [[NSNotificationCenter defaultNotificationCenter]
-      addObserver:self
-         selector:@selector(stateChanged:)
-             name:ASStatusChangedNotification
-           object:stream];
 }
 
-- (void) stateChanged:(NSNotification*) notification {
-  AudioStreamer *stream = [notification object];
-  if ([stream error] != nil) {
+- (void)streamerStatusDidChange:(AudioStreamer *)sender {
+  if ([sender error] != nil) {
     // handle the error via a UI, retrying the stream, etc.
-  } else if ([stream isPlaying]) {
+  } else if ([sender isPlaying]) {
     [self setIcon:pause];
-  } else if ([stream isPaused]) {
+  } else if ([sender isPaused]) {
     [self setIcon:play];
-  } else if ([stream isDone]) {
+  } else if ([sender isDone]) {
     [self playNextSong];
   } else {
     // stream is waiting for data, probably nothing to do
@@ -75,7 +70,7 @@ The AudioStreamer class has heavily changed from the original version, and all o
 * [Header](https://github.com/alexcrichton/AudioStreamer/blob/master/AudioStreamer/AudioStreamer.h)
 * [Implementation](https://github.com/alexcrichton/AudioStreamer/blob/master/AudioStreamer/AudioStreamer.m)
 
-## Using AudioStreamer as a Framework
+## Using AudioStreamer as a Framework (OS X)
 
 ```bash
 git clone git://github.com/alexcrichton/AudioStreamer
@@ -91,8 +86,8 @@ All files related to the AudioStreamer library are located in the [AudioStreamer
 
 You must also link against some frameworks to build:
 
-* Mac - AudioToolbox, CoreServices, and Foundation (last 2 can be replaced with Cocoa)
-* iPhone - AudioToolbox, AVFoundation (if using the iPhoneStreamer class), CFNetwork and Foundation
+* OS X - AudioToolbox, CoreServices, and Foundation (last 2 can be replaced with Cocoa)
+* iOS - AudioToolbox, AVFoundation (if using the iPhoneStreamer class), CFNetwork and Foundation
 
 The sample apps use some additional frameworks but these are specific to the sample apps.
 
