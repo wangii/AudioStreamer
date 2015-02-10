@@ -682,9 +682,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 // returns a file type hint that can be passed to the AudioFileStream
 //
 + (AudioFileTypeID)hintForFileExtension:(NSString *)fileExtension {
+  fileExtension = [fileExtension lowercaseString];
   if ([fileExtension isEqual:@"mp3"]) {
     return kAudioFileMP3Type;
-  } else if ([fileExtension isEqual:@"wav"]) {
+  } else if ([fileExtension isEqual:@"wav"] ||
+             [fileExtension isEqual:@"wave"]) {
     return kAudioFileWAVEType;
   } else if ([fileExtension isEqual:@"aifc"]) {
     return kAudioFileAIFCType;
@@ -702,6 +704,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   } else if ([fileExtension isEqual:@"au"] ||
              [fileExtension isEqual:@"snd"]) {
     return kAudioFileNextType;
+  } else if ([fileExtension isEqual:@"3gp"]) {
+    return kAudioFile3GPType;
+  } else if ([fileExtension isEqual:@"3g2"]) {
+    return kAudioFile3GP2Type;
   }
   return 0;
 }
@@ -709,18 +715,22 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 /**
  * @brief Guess the file type based on the listed MIME type in the http response
  *
- * Code from:
+ * Based from:
  * https://github.com/DigitalDJ/AudioStreamer/blob/master/Classes/AudioStreamer.m
  */
 + (AudioFileTypeID)hintForMIMEType:(NSString*)mimeType {
   if ([mimeType isEqual:@"audio/mpeg"]) {
     return kAudioFileMP3Type;
-  } else if ([mimeType isEqual:@"audio/x-wav"]) {
+  } else if ([mimeType isEqual:@"audio/vnd.wave"] ||
+             [mimeType isEqual:@"audio/wav"] ||
+             [mimeType isEqual:@"audio/wave"] ||
+             [mimeType isEqual:@"audio/x-wav"]) {
     return kAudioFileWAVEType;
   } else if ([mimeType isEqual:@"audio/x-aiff"] ||
              [mimeType isEqual:@"audio/aiff"]) {
     return kAudioFileAIFFType;
-  } else if ([mimeType isEqual:@"audio/x-m4a"]) {
+  } else if ([mimeType isEqual:@"audio/x-m4a"] ||
+             [mimeType isEqual:@"audio/m4a"]) {
     return kAudioFileM4AType;
   } else if ([mimeType isEqual:@"audio/mp4"]) {
     return kAudioFileMPEG4Type;
@@ -731,6 +741,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     return kAudioFileAAC_ADTSType;
   } else if ([mimeType isEqual:@"audio/basic"]) {
     return kAudioFileNextType;
+  } else if ([mimeType isEqual:@"audio/3gpp"]) {
+    return kAudioFile3GPType;
+  } else if ([mimeType isEqual:@"audio/3gpp2"]) {
+    return kAudioFile3GP2Type;
   }
   return 0;
 }
