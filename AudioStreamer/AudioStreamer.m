@@ -437,7 +437,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
   else
   {
-    *ret = packetCount * _streamDescription.mFramesPerPacket / _streamDescription.mSampleRate;
+    *ret = packetCount * packetDuration;
   }
 
   return YES;
@@ -1787,7 +1787,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     OSStatus osErr = AudioQueueGetProperty(audioQueue, kAudioQueueProperty_IsRunning,
                                            &running, &output);
     if (!osErr && !running) {
-      [self setState:AS_DONE];
+      state_ = AS_DONE;
+      // Let the method exit before notifying the world.
+      dispatch_async(dispatch_get_main_queue(), ^{
+        __strong id <AudioStreamerDelegate> delegate = _delegate;
+        if (delegate && [delegate respondsToSelector:@selector(streamerStatusDidChange:)]) {
+          [delegate streamerStatusDidChange:self];
+        }
+      });
     }
   }
 }
