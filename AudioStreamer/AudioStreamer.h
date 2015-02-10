@@ -688,7 +688,7 @@ struct queued_packet;
  *
  * Default: 1.0
  *
- * @available iOS 7 and later, OS X 10.6 and later
+ * @available iOS 7 and later, all supported OS X versions
  */
 @property (readwrite) float playbackRate;
 
