@@ -24,7 +24,7 @@
 #import <UIKit/UIKit.h>
 #import "iPhoneStreamer.h"
 
-@interface iPhoneStreamingPlayerViewController : UIViewController
+@interface iPhoneStreamingPlayerViewController : UIViewController <AudioStreamerDelegate>
 {
 	IBOutlet UITextField *downloadSourceField;
 	IBOutlet UIButton *button;

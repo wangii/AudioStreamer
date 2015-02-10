@@ -53,35 +53,20 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
 - (void)setAudioStream {
   if (stream != nil) {
-    [[NSNotificationCenter defaultCenter]
-        removeObserver:self
-                  name:nil
-                object:stream];
     [stream stop];
   }
   stream = [AudioStreamer streamWithURL:_playingURL];
+  [stream setDelegate:self];
   [[NSNotificationCenter defaultCenter]
         postNotificationName:ASCreatedNewStream
                       object:self
                     userInfo:@{@"stream": stream}];
   volumeSet = [stream setVolume:volume];
-
-  /* Watch for error notifications */
-  [[NSNotificationCenter defaultCenter]
-    addObserver:self
-       selector:@selector(playbackStateChanged:)
-           name:ASStatusChangedNotification
-         object:stream];
-  [[NSNotificationCenter defaultCenter]
-    addObserver:self
-       selector:@selector(bitrateReady:)
-           name:ASBitrateReadyNotification
-         object:stream];
 }
 
-- (void)bitrateReady: (NSNotification*)notification {
-  NSAssert([notification object] == stream,
-           @"Should only receive notifications for the current stream");
+- (void)streamerBitrateIsReady:(AudioStreamer *)sender {
+  NSAssert(sender == stream,
+           @"Should only receive delegate calls for the current stream");
 
   [[NSNotificationCenter defaultCenter]
         postNotificationName:ASNewSongPlaying
@@ -90,17 +75,17 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
 
   if (lastKnownSeekTime == 0)
     return;
-  if (![stream seekToTime:lastKnownSeekTime])
+  if (![sender seekToTime:lastKnownSeekTime])
     return;
   retrying = NO;
   lastKnownSeekTime = 0;
 }
 
-- (void)playbackStateChanged: (NSNotification *)notification {
-  NSAssert([notification object] == stream,
-           @"Should only receive notifications for the current stream");
+- (void)streamerStatusDidChange:(AudioStreamer *)sender {
+  NSAssert(sender == stream,
+           @"Should only receive delegate calls for the current stream");
   if (!volumeSet) {
-    volumeSet = [stream setVolume:volume];
+    volumeSet = [sender setVolume:volume];
   }
 
   if (stopping) {
@@ -111,7 +96,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
        establish a connection, so that way we don't blow away the original
        progress from when the error first happened */
     if (!retrying) {
-      if (![stream progress:&lastKnownSeekTime]) {
+      if (![sender progress:&lastKnownSeekTime]) {
         lastKnownSeekTime = 0;
       }
     }
@@ -121,7 +106,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
        reason. Most likely this is some network trouble and we should have the
        opportunity to hit a button to retry this specific connection so we can
        at least hope to regain our current place in the song */
-    NSInteger code = [[stream error] code];
+    NSInteger code = [[sender error] code];
     if (code == AS_NETWORK_CONNECTION_FAILED || code == AS_TIMED_OUT) {
       [[NSNotificationCenter defaultCenter]
             postNotificationName:ASStreamError
@@ -135,7 +120,7 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
     }
 
   /* When the stream has finished, move on to the next song */
-  } else if ([stream isDone]) {
+  } else if ([sender isDone]) {
     [self performSelectorOnMainThread:@selector(next) withObject:nil waitUntilDone:NO];
   }
 }
@@ -226,12 +211,6 @@ NSString * const ASAttemptingNewSong = @"ASAttemptingNewSong";
   assert(!stopping);
   stopping = YES;
   [stream stop];
-  if (stream != nil) {
-    [[NSNotificationCenter defaultCenter]
-        removeObserver:self
-                  name:nil
-                object:stream];
-  }
   stream = nil;
   _playingURL = nil;
   stopping = NO;

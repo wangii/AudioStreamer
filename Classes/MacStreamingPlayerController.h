@@ -22,10 +22,9 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "AudioStreamer.h"
 
-@class AudioStreamer;
-
-@interface MacStreamingPlayerController : NSObject <NSTextFieldDelegate>
+@interface MacStreamingPlayerController : NSObject <AudioStreamerDelegate, NSTextFieldDelegate>
 {
     IBOutlet NSWindow *window;
 	IBOutlet NSTextField *downloadSourceField;

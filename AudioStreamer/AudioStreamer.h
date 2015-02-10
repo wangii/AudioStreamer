@@ -214,11 +214,46 @@ typedef NS_ENUM(NSUInteger, AudioStreamerDoneReason) {
 };
 
 /* Notifications */
-extern NSString * const ASStatusChangedNotification;
-extern NSString * const ASBitrateReadyNotification;
+extern NSString * const ASStatusChangedNotification DEPRECATED_MSG_ATTRIBUTE("Use AudioStreamerDelegate instead.");
+extern NSString * const ASBitrateReadyNotification DEPRECATED_MSG_ATTRIBUTE("Use AudioStreamerDelegate instead.");
 
 enum AudioStreamerProxyType : NSUInteger;
 struct queued_packet;
+
+@class AudioStreamer;
+
+/**
+ * The AudioStreamerDelegate protocol provides callbacks for events that may happen
+ * during the stream. This replaces the former NSNotification system used in Matt
+ * Gallagher's original version.
+ */
+@protocol AudioStreamerDelegate <NSObject>
+
+@optional
+/**
+ * @brief Called when the stream status has changed
+ *
+ * @param sender The streamer that called this method
+ *
+ * @see [AudioStreamer isPlaying]
+ * @see [AudioStreamer isPaused]
+ * @see [AudioStreamer isDone]
+ * @see [AudioStreamer isWaiting]
+ */
+- (void)streamerStatusDidChange:(AudioStreamer *)sender;
+/**
+ * @brief Called when the stream has collected enough data to calculate the bitrate
+ *
+ * @details This is the earliest that seeks can be performed and, in some streams,
+ * the earliest that the duration can be calculated.
+ *
+ * @param sender The streamer that called this method
+ *
+ * @see [AudioStreamer calculatedBitRate:]
+ */
+- (void)streamerBitrateIsReady:(AudioStreamer *)sender;
+
+@end
 
 /**
  * This class is implemented on top of Apple's AudioQueue framework. This
@@ -400,6 +435,13 @@ struct queued_packet;
 + (instancetype)streamWithURL:(NSURL*)url;
 
 /** @name Properties of the audio stream */
+
+/**
+ * @brief Sets the delegate for event callbacks
+ *
+ * @see AudioStreamerDelegate
+ */
+@property (readwrite, weak) id <AudioStreamerDelegate> delegate;
 
 /**
  * @brief Tests whether the stream is playing

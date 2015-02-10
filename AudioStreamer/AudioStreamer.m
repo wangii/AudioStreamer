@@ -66,9 +66,11 @@ typedef struct queued_packet {
 /* Errors, not an 'extern' */
 NSString * const ASErrorDomain = @"com.alexcrichton.audiostreamer";
 
-/* Notifcations */
-NSString * const ASStatusChangedNotification = @"ASStatusChangedNotification";
-NSString * const ASBitrateReadyNotification = @"ASBitrateReadyNotification";
+/* Notifications - deprecated. Defines to avoid internal warning */
+#define _ASStatusChangedNotification @"ASStatusChangedNotification"
+NSString * const ASStatusChangedNotification = _ASStatusChangedNotification;
+#define _ASBitrateReadyNotification @"ASBitrateReadyNotification"
+NSString * const ASBitrateReadyNotification = _ASBitrateReadyNotification;
 
 /* Woohoo, actual implementation now! */
 @implementation AudioStreamer
@@ -275,8 +277,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   if (prevState != state_) {
     [[NSNotificationCenter defaultCenter]
-          postNotificationName:ASStatusChangedNotification
+          postNotificationName:_ASStatusChangedNotification // Deprecated
                         object:self];
+    __strong id <AudioStreamerDelegate> delegate = _delegate;
+    if (delegate && [delegate respondsToSelector:@selector(streamerStatusDidChange:)]) {
+      [delegate streamerStatusDidChange:self];
+    }
   }
 }
 
@@ -562,8 +568,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     [self stop];
 
     [[NSNotificationCenter defaultCenter]
-          postNotificationName:ASStatusChangedNotification
+          postNotificationName:_ASStatusChangedNotification // Deprecated
                         object:self];
+    __strong id <AudioStreamerDelegate> delegate = _delegate;
+    if (delegate && [delegate respondsToSelector:@selector(streamerStatusDidChange:)]) {
+      [delegate streamerStatusDidChange:self];
+    }
   }
 }
 
@@ -574,8 +584,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   state_ = aStatus;
 
   [[NSNotificationCenter defaultCenter]
-        postNotificationName:ASStatusChangedNotification
+        postNotificationName:_ASStatusChangedNotification // Deprecated
                       object:self];
+  __strong id <AudioStreamerDelegate> delegate = _delegate;
+  if (delegate && [delegate respondsToSelector:@selector(streamerStatusDidChange:)]) {
+    [delegate streamerStatusDidChange:self];
+  }
 }
 
 /**
@@ -816,8 +830,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         state_ = AS_DONE; // Delay notification to avoid race conditions
         [self stop];
         [[NSNotificationCenter defaultCenter]
-              postNotificationName:ASStatusChangedNotification
+              postNotificationName:_ASStatusChangedNotification // Deprecated
                             object:self];
+        __strong id <AudioStreamerDelegate> delegate = _delegate;
+        if (delegate && [delegate respondsToSelector:@selector(streamerStatusDidChange:)]) {
+          [delegate streamerStatusDidChange:self];
+        }
       }
       return;
 
@@ -1537,8 +1555,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       !bitrateNotification) {
     bitrateNotification = true;
     [[NSNotificationCenter defaultCenter]
-          postNotificationName:ASBitrateReadyNotification
+          postNotificationName:_ASBitrateReadyNotification // Deprecated
                         object:self];
+    __strong id <AudioStreamerDelegate> delegate = _delegate;
+    if (delegate && [delegate respondsToSelector:@selector(streamerBitrateIsReady:)]) {
+      [delegate streamerBitrateIsReady:self];
+    }
   }
 
   // copy data to the audio queue buffer
@@ -1587,8 +1609,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (!bitrateNotification) {
     bitrateNotification = true;
     [[NSNotificationCenter defaultCenter]
-          postNotificationName:ASBitrateReadyNotification
+          postNotificationName:_ASBitrateReadyNotification // Deprecated
                         object:self];
+    __strong id <AudioStreamerDelegate> delegate = _delegate;
+    if (delegate && [delegate respondsToSelector:@selector(streamerBitrateIsReady:)]) {
+      [delegate streamerBitrateIsReady:self];
+    }
   }
 
   return 1;
@@ -1694,8 +1720,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         state_ = AS_DONE; // Delay notification to avoid race conditions
         [self stop];
         [[NSNotificationCenter defaultCenter]
-         postNotificationName:ASStatusChangedNotification
-         object:self];
+              postNotificationName:_ASStatusChangedNotification // Deprecated
+                            object:self];
+        __strong id <AudioStreamerDelegate> delegate = _delegate;
+        if (delegate && [delegate respondsToSelector:@selector(streamerStatusDidChange:)]) {
+          [delegate streamerStatusDidChange:self];
+        }
       }
       /* Try to reconnect */
       double progress;

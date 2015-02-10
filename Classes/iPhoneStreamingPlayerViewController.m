@@ -60,16 +60,12 @@
 //
 // destroyStreamer
 //
-// Removes the streamer, the UI update timer and the change notification
+// Removes the streamer and the UI update timer
 //
 - (void)destroyStreamer
 {
 	if (streamer)
 	{
-		[[NSNotificationCenter defaultCenter]
-			removeObserver:self
-			name:ASStatusChangedNotification
-			object:streamer];
 		[progressUpdateTimer invalidate];
 		progressUpdateTimer = nil;
 
@@ -102,6 +98,7 @@
 
 	NSURL *url = [NSURL URLWithString:escapedValue];
 	streamer = [iPhoneStreamer streamWithURL:url];
+	[streamer setDelegate:self];
 
 	progressUpdateTimer =
 		[NSTimer
@@ -110,11 +107,6 @@
 			selector:@selector(updateProgress:)
 			userInfo:nil
 			repeats:YES];
-	[[NSNotificationCenter defaultCenter]
-		addObserver:self
-		selector:@selector(playbackStateChanged:)
-		name:ASStatusChangedNotification
-		object:streamer];
 }
 
 //
@@ -228,22 +220,22 @@
 }
 
 //
-// playbackStateChanged:
+// streamerStatusDidChange:
 //
 // Invoked when the AudioStreamer
 // reports that its playback status has changed.
 //
-- (void)playbackStateChanged:(NSNotification *)aNotification
+- (void)streamerStatusDidChange:(AudioStreamer *)sender
 {
-	if ([streamer isWaiting])
+	if ([sender isWaiting])
 	{
 		[self setButtonImage:[UIImage imageNamed:@"loadingbutton.png"]];
 	}
-	else if ([streamer isPlaying])
+	else if ([sender isPlaying])
 	{
 		[self setButtonImage:[UIImage imageNamed:@"stopbutton.png"]];
 	}
-	else if ([streamer isDone])
+	else if ([sender isDone])
 	{
 		[self destroyStreamer];
 		[self setButtonImage:[UIImage imageNamed:@"playbutton.png"]];

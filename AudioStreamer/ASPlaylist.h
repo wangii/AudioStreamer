@@ -20,7 +20,7 @@ extern NSString * const ASAttemptingNewSong;
  * of songs to play and automatically switches from one song to the next when
  * playback finishes.
  */
-@interface ASPlaylist : NSObject {
+@interface ASPlaylist : NSObject <AudioStreamerDelegate> {
   BOOL retrying;              /* Are we retrying the current url? */
   BOOL nexting;               /* Are we in the middle of nexting? */
   BOOL stopping;              /* Are we in the middle of stopping? */
