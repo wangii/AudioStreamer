@@ -950,6 +950,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   CFHTTPMessageRef message = (CFHTTPMessageRef)CFReadStreamCopyProperty(stream, kCFStreamPropertyHTTPResponseHeader);
   CFIndex statusCode = CFHTTPMessageGetResponseStatusCode(message);
 
+  if (statusCode >= 400) {
+    [self failWithErrorCode:AS_AUDIO_DATA_NOT_FOUND
+                     reason:[NSString stringWithFormat:@"Server returned HTTP %ld", statusCode]];
+  }
+
   /* Read off the HTTP headers into our own class if we haven't done so */
   if (!_httpHeaders) {
     _httpHeaders = (__bridge_transfer NSDictionary *)
@@ -1036,7 +1041,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       }
     }
 
-    if (!icyHeadersParsed) {
+    if (icyStream && !icyHeadersParsed) {
       NSUInteger lineStart = 0;
       while (YES)
       {
@@ -1610,7 +1615,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   UInt32 packetSize = desc->mDataByteSize;
 
   /* This shouldn't happen because most of the time we read the packet buffer
-     size from the file stream, but if we restored to guessing it we could
+     size from the file stream, but if we resorted to guessing it we could
      come up too small here. Developers may have to set the bufferCount property. */
   CHECK_ERR(packetSize > packetBufferSize, AS_AUDIO_BUFFER_TOO_SMALL,
             @"The audio buffer was too small to handle the audio packets.", -1);
