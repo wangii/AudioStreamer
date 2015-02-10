@@ -295,6 +295,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (BOOL)seekToTime:(double)newSeekTime {
+  if (!seekable) return NO;
+
   double bitrate;
   double duration;
   if (![self calculatedBitRate:&bitrate]) return NO;
@@ -909,11 +911,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     //
     // Only read the content length if we seeked to time zero, otherwise
-    // we only have a subset of the total bytes.
+    // we may only have a subset of the total bytes.
     //
     if ((seekByteOffset - dataOffset) == 0) {
       fileLength = (UInt64)[_httpHeaders[@"Content-Length"] longLongValue];
     }
+
+    seekable = [[_httpHeaders[@"Accept-Ranges"] stringValue] caseInsensitiveCompare:@"bytes"] == NSOrderedSame;
   }
 
   CFRelease(message);

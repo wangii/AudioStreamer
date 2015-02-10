@@ -408,6 +408,7 @@ struct queued_packet;
   /* Miscellaneous metadata */
   bool   discontinuous;      /* flag to indicate the middle of a stream */
   UInt64 seekByteOffset;     /* position with the file to seek */
+  bool   seekable;           /* Does the stream accept the range header? */
   double seekTime;
   bool   seeking;            /* Are we currently in the process of seeking? */
   double lastProgress;       /* last calculated progress point */
