@@ -79,13 +79,20 @@ NSString * const ASBitrateReadyNotification = _ASBitrateReadyNotification;
  * The return value should be freed when done */
 static char* OSStatusToStr(OSStatus status) {
   char *str = malloc(sizeof(char) * 7);
-  if (status != 0) {
-    *(UInt32 *)(str + 1) = CFSwapInt32HostToBig((uint32_t)status);
+  *(UInt32 *)(str + 1) = CFSwapInt32HostToBig((uint32_t)status);
+  if (isprint(str[1]) && isprint(str[2]) && isprint(str[3]) && isprint(str[4])) {
     str[0] = str[5] = '\'';
     str[6] = '\0';
+  } else if (status > -200000 && status < 200000) {
+    free(str);
+    size_t needed = (size_t)snprintf(NULL, 0, "%d", status);
+    str = malloc(needed+1);
+    sprintf(str, "%d", status);
   } else {
-    str[0] = str[1] = '\'';
-    str[2] = '\0';
+    free(str);
+    size_t needed = (size_t)snprintf(NULL, 0, "0x%x", status);
+    str = malloc(needed+1);
+    sprintf(str, "0x%x", status);
   }
   return str;
 }
@@ -598,7 +605,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       break;
   }
   char *str = OSStatusToStr(osErr);
-  NSString *ret = [NSString stringWithFormat:@"AudioFileStream error code %s", OSStatusToStr(osErr)];
+  NSString *ret = [NSString stringWithFormat:@"AudioFileStream error code %s", str];
   free(str);
   return ret;
 }
@@ -666,7 +673,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       break;
   }
   char *str = OSStatusToStr(osErr);
-  NSString *ret = [NSString stringWithFormat:@"AudioQueue error code %s", OSStatusToStr(osErr)];
+  NSString *ret = [NSString stringWithFormat:@"AudioQueue error code %s", str];
   free(str);
   return ret;
 }
