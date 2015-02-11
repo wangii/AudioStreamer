@@ -361,10 +361,17 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         seekTime = packetAlignedByteOffset * 8.0 / bitrate;
       }
       seekByteOffset = (UInt64)packetAlignedByteOffset + dataOffset;
+      if (seekByteOffset >= fileLength - 1) {
+        // End of the file. We're done here.
+        [self setState:AS_DONE];
+        return YES;
+      }
     }
   }
 
   [self closeReadStream];
+
+  [self setState:AS_WAITING_FOR_DATA];
 
   /* Stop audio for now */
   osErr = AudioQueueStop(audioQueue, true);
@@ -373,6 +380,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED reason:[[self class] descriptionforAQErrorCode:osErr]];
     return NO;
   }
+  fillBufferIndex = 0;
+  packetsFilled = 0;
+  bytesFilled = 0;
 
   /* Open a new stream with a new offset */
   BOOL ret = [self openReadStream];
@@ -1191,7 +1201,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                 LOG(@"ICY stream Content-Type: %@", lineItems[1]);
                 AudioFileStreamClose(audioFileStream);
                 AudioQueueStop(audioQueue, true);
-                AudioQueueReset(audioQueue);
                 if (buffers) {
                   for (UInt32 j = 0; j < _bufferCount; ++j) {
                     AudioQueueFreeBuffer(audioQueue, buffers[j]);
