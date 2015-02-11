@@ -45,21 +45,8 @@
 
 #if defined(DEBUG) && 0
 #define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
-#define OSSTATUS_TO_STR(status) ({                                              \
-  char str[8];                                                                  \
-  if (status != 0) {                                                            \
-    *(UInt32 *)(str + 1) = CFSwapInt32HostToBig((uint32_t)status);              \
-    str[0] = str[5] = '\'';                                                     \
-    str[6] = '\0';                                                              \
-  } else {                                                                      \
-    str[0] = str[1] = '\'';                                                     \
-    str[2] = '\0';                                                              \
-  }                                                                             \
-  str;                                                                          \
-})
 #else
 #define LOG(...)
-#define OSSTATUS_TO_STR(...)
 #endif
 
 typedef NS_ENUM(NSUInteger, AudioStreamerProxyType) {
@@ -87,6 +74,21 @@ NSString * const ASBitrateReadyNotification = _ASBitrateReadyNotification;
 
 /* Woohoo, actual implementation now! */
 @implementation AudioStreamer
+
+/* Converts a given OSStatus to a friendly string.
+ * The return value should be freed when done */
+static char* OSStatusToStr(OSStatus status) {
+  char *str = malloc(sizeof(char) * 7);
+  if (status != 0) {
+    *(UInt32 *)(str + 1) = CFSwapInt32HostToBig((uint32_t)status);
+    str[0] = str[5] = '\'';
+    str[6] = '\0';
+  } else {
+    str[0] = str[1] = '\'';
+    str[2] = '\0';
+  }
+  return str;
+}
 
 /* AudioFileStream callback when properties are available */
 static void ASPropertyListenerProc(void *inClientData,
@@ -595,7 +597,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     default:
       break;
   }
-  return [NSString stringWithFormat:@"AudioFileStream error code %s", OSSTATUS_TO_STR(osErr)];
+  char *str = OSStatusToStr(osErr);
+  NSString *ret = [NSString stringWithFormat:@"AudioFileStream error code %s", OSStatusToStr(osErr)];
+  free(str);
+  return ret;
 }
 
 + (NSString *)descriptionforAQErrorCode:(OSStatus)osErr {
@@ -660,7 +665,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     default:
       break;
   }
-  return [NSString stringWithFormat:@"AudioQueue error code %s", OSSTATUS_TO_STR(osErr)];
+  char *str = OSStatusToStr(osErr);
+  NSString *ret = [NSString stringWithFormat:@"AudioQueue error code %s", OSStatusToStr(osErr)];
+  free(str);
+  return ret;
 }
 
 //
