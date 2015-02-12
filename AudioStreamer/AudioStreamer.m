@@ -1848,7 +1848,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Queue up as many packets as possible into the buffers */
   queued_vbr_packet_t *cur_vbr = queued_vbr_head;
   queued_cbr_packet_t *cur_cbr = queued_cbr_head;
-  while (cur_vbr != NULL && cur_cbr != NULL) {
+  while (cur_vbr != NULL || cur_cbr != NULL) {
     if (cur_cbr != NULL) {
       size_t copySize;
       int ret = [self handleCBRPacket:cur_cbr->data
@@ -1856,16 +1856,16 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                              copySize:&copySize];
       CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
       if (ret == 0) break;
-      queued_vbr_packet_t *next_vbr = cur_vbr->next;
-      free(cur_vbr);
-      cur_vbr = next_vbr;
+      queued_cbr_packet_t *next_cbr = cur_cbr->next;
+      free(cur_cbr);
+      cur_cbr = next_cbr;
     } else {
       int ret = [self handleVBRPacket:cur_vbr->data desc:&cur_vbr->desc];
       CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
       if (ret == 0) break;
-      queued_cbr_packet_t *next_cbr = cur_cbr->next;
-      free(cur_cbr);
-      cur_cbr = next_cbr;
+      queued_vbr_packet_t *next_vbr = cur_vbr->next;
+      free(cur_vbr);
+      cur_vbr = next_vbr;
     }
   }
   queued_vbr_head = cur_vbr;
@@ -2037,7 +2037,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (waitingOnBuffer) waitingOnBuffer = false;
   queued_vbr_packet_t *cur_vbr = queued_vbr_head;
   queued_cbr_packet_t *cur_cbr = queued_cbr_head;
-  while (cur_vbr != NULL && cur_cbr != NULL) {
+  while (cur_vbr != NULL || cur_cbr != NULL) {
     if (cur_vbr != NULL) {
       queued_vbr_packet_t *tmp = cur_vbr->next;
       free(cur_vbr);
