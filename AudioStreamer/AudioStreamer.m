@@ -30,7 +30,7 @@
 
 /* Defaults */
 #define kDefaultNumAQBufs 256
-#define kDefaultAQDefaultBufSize 4096
+#define kDefaultAQDefaultBufSize 8192
 #define kDefaultNumAQBufsToStart 32
 #define kDefaultAudioFileType kAudioFileMP3Type
 
@@ -892,6 +892,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* ICY metadata */
   CFHTTPMessageSetHeaderFieldValue(message, CFSTR("Icy-MetaData"), CFSTR("1"));
   icyStream = false;
+  icyChecked = false;
   icyMetaBytesRemaining = 0;
   icyDataBytesRead = 0;
   icyHeadersParsed = false;
@@ -1123,9 +1124,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   UInt8 bytes[bufferSize];
   CFIndex length;
-  for (int i = 0;
-       i < 3 && ![self isDone] && CFReadStreamHasBytesAvailable(stream);
-       i++) {
+  while (CFReadStreamHasBytesAvailable(stream) && ![self isDone]) {
     length = CFReadStreamRead(stream, bytes, (CFIndex)sizeof(bytes));
 
     if (length < 0) {
@@ -1148,7 +1147,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     UInt32 lengthNoMetadata = 0;
     NSUInteger streamStart = 0;
 
-    if (!icyStream && statusCode == 200) {
+    if (!icyChecked && statusCode == 200) {
       NSString *icyCheck = [[NSString alloc] initWithBytes:bytes length:10 encoding:NSUTF8StringEncoding];
       if (icyCheck && [icyCheck caseInsensitiveCompare:@"ICY 200 OK"] == NSOrderedSame) {
         icyStream = true;
@@ -1160,6 +1159,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
           icyHeadersParsed = true;
         }
       }
+      icyChecked = true;
     }
 
     if (icyStream && !icyHeadersParsed) {

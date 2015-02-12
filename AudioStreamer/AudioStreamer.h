@@ -398,6 +398,7 @@ struct queued_packet;
 
   /* ICY stream metadata */
   bool   icyStream;           /* Is this an ICY stream? */
+  bool   icyChecked;          /* Have we already checked if this is an ICY stream? */
   bool   icyHeadersParsed;    /* Are all the ICY headers parsed? */
   int    icyMetaInterval;     /* The interval between ICY metadata bytes */
   UInt16 icyMetaBytesRemaining;     /* How many bytes of ICY metadata are left? */
