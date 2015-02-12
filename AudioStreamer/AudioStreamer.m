@@ -189,11 +189,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return NO;
 }
 
-/* Deprecated. */
-+ (NSString *)stringForErrorCode:(AudioStreamerErrorCode)anErrorCode {
-  return [[self class] descriptionForASErrorCode:anErrorCode]; // Internal method.
-}
-
 - (BOOL)isPlaying {
   return state_ == AS_PLAYING;
 }
@@ -531,7 +526,17 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return [self fadeTo:0.0 duration:duration];
 }
 
-#pragma mark - Internal functions
+#pragma mark - Deprecated methods
+
+- (AudioStreamerErrorCode)errorCode {
+  return [_error code];
+}
+
++ (NSString *)stringForErrorCode:(AudioStreamerErrorCode)anErrorCode {
+  return [[self class] descriptionForASErrorCode:anErrorCode]; // Internal method.
+}
+
+#pragma mark - Internal methods
 
 + (NSString *)descriptionForASErrorCode:(AudioStreamerErrorCode)anErrorCode {
   switch (anErrorCode) {
@@ -724,7 +729,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   [self progress:&lastProgress];
 
   LOG(@"got an error: %@ (%@)", [[self class] descriptionForASErrorCode:errorCode], reason);
-  _errorCode = errorCode; // Deprecated.
 
   NSDictionary *userInfo = @{NSLocalizedDescriptionKey:
                                NSLocalizedString([[self class] descriptionForASErrorCode:errorCode], nil),
