@@ -85,14 +85,14 @@ static char* OSStatusToStr(OSStatus status) {
     str[6] = '\0';
   } else if (status > -200000 && status < 200000) {
     free(str);
-    size_t needed = (size_t)snprintf(NULL, 0, "%d", status);
+    size_t needed = (size_t)snprintf(NULL, 0, "%d", (int)status);
     str = malloc(needed+1);
-    sprintf(str, "%d", status);
+    sprintf(str, "%d", (int)status);
   } else {
     free(str);
-    size_t needed = (size_t)snprintf(NULL, 0, "0x%x", status);
+    size_t needed = (size_t)snprintf(NULL, 0, "0x%x", (int)status);
     str = malloc(needed+1);
-    sprintf(str, "0x%x", status);
+    sprintf(str, "0x%x", (int)status);
   }
   return str;
 }
