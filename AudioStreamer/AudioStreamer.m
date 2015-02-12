@@ -1124,7 +1124,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   UInt8 bytes[bufferSize];
   CFIndex length;
-  while (CFReadStreamHasBytesAvailable(stream) && ![self isDone]) {
+  while (stream && CFReadStreamHasBytesAvailable(stream) && ![self isDone]) {
     length = CFReadStreamRead(stream, bytes, (CFIndex)sizeof(bytes));
 
     if (length < 0) {
