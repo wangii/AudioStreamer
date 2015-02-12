@@ -789,7 +789,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   [self failWithErrorCode:AS_TIMED_OUT
-                   reason:[NSString stringWithFormat:@"No data was received in %d seconds while expecting data.", _timeoutInterval]];
+                   reason:[NSString stringWithFormat:@"No data was received in %d seconds while expecting data.", _timeoutInterval]
+               shouldStop:NO];
 }
 
 //
@@ -1934,7 +1935,17 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       /* Try to reconnect */
       double progress;
       [self progress:&progress];
-      [self seekToTime:progress];
+      if (![self seekToTime:progress]) {
+        state_ = AS_DONE; // Delay notification to avoid race conditions
+        [self stop];
+        [[NSNotificationCenter defaultCenter]
+              postNotificationName:_ASStatusChangedNotification // Deprecated
+                            object:self];
+        __strong id <AudioStreamerDelegate> delegate = _delegate;
+        if (delegate && [delegate respondsToSelector:@selector(streamerStatusDidChange:)]) {
+          [delegate streamerStatusDidChange:self];
+        }
+      }
     }
     else
     {
