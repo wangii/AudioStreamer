@@ -82,7 +82,7 @@ NSString * const ASBitrateReadyNotification = _ASBitrateReadyNotification;
 /* Converts a given OSStatus to a friendly string.
  * The return value should be freed when done */
 static char* OSStatusToStr(OSStatus status) {
-  char *str = malloc(sizeof(char) * 7);
+  char *str = calloc(7, sizeof(char));
   *(UInt32 *)(str + 1) = CFSwapInt32HostToBig((uint32_t)status);
   if (isprint(str[1]) && isprint(str[2]) && isprint(str[3]) && isprint(str[4])) {
     str[0] = str[5] = '\'';
