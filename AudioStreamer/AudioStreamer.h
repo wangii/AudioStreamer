@@ -218,7 +218,8 @@ extern NSString * const ASStatusChangedNotification DEPRECATED_MSG_ATTRIBUTE("Us
 extern NSString * const ASBitrateReadyNotification DEPRECATED_MSG_ATTRIBUTE("Use AudioStreamerDelegate instead.");
 
 enum AudioStreamerProxyType : NSUInteger;
-struct queued_packet;
+struct queued_vbr_packet;
+struct queued_cbr_packet;
 
 @class AudioStreamer;
 
@@ -390,8 +391,10 @@ struct queued_packet;
 
   /* cache state (see above description) */
   bool waitingOnBuffer;
-  struct queued_packet *queued_head;
-  struct queued_packet *queued_tail;
+  struct queued_vbr_packet *queued_vbr_head;
+  struct queued_vbr_packet *queued_vbr_tail;
+  struct queued_cbr_packet *queued_cbr_head;
+  struct queued_cbr_packet *queued_cbr_tail;
 
   /* Internal metadata about state */
   AudioStreamerState state_;

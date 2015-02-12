@@ -55,13 +55,17 @@ typedef NS_ENUM(NSUInteger, AudioStreamerProxyType) {
   AS_PROXY_HTTP,
 };
 
-typedef struct queued_packet {
+typedef struct queued_vbr_packet {
   AudioStreamPacketDescription desc;
-  struct queued_packet *next;
-  size_t offset;
+  struct queued_vbr_packet *next;
+  char data[];
+} queued_vbr_packet_t;
+
+typedef struct queued_cbr_packet {
+  struct queued_cbr_packet *next;
   UInt32 byteSize;
   char data[];
-} queued_packet_t;
+} queued_cbr_packet_t;
 
 /* Errors, not an 'extern' */
 NSString * const ASErrorDomain = @"com.alexcrichton.audiostreamer";
@@ -162,8 +166,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
 - (void)dealloc {
   [self stop];
-  assert(queued_head == NULL);
-  assert(queued_tail == NULL);
+  assert(queued_vbr_head == NULL);
+  assert(queued_vbr_tail == NULL);
+  assert(queued_cbr_head == NULL);
+  assert(queued_cbr_tail == NULL);
   assert(timeout == nil);
   assert(buffers == NULL);
   assert(inuse == NULL);
@@ -1362,7 +1368,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* If we have no more queued data, and the stream has reached its end, then
      we're not going to be enqueueing any more buffers to the audio stream. In
      this case flush it out and asynchronously stop it */
-  if (queued_head == NULL &&
+  if (queued_vbr_head == NULL && queued_cbr_head == NULL &&
       CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
     osErr = AudioQueueFlush(audioQueue);
     CHECK_ERR(osErr, AS_AUDIO_QUEUE_FLUSH_FAILED, [[self class] descriptionforAQErrorCode:osErr], -1);
@@ -1669,7 +1675,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     /* Place each packet into a buffer and then send each buffer into the audio
        queue */
     UInt32 i;
-    for (i = 0; i < inNumberPackets && !waitingOnBuffer && queued_head == NULL; i++) {
+    for (i = 0; i < inNumberPackets && !waitingOnBuffer && queued_vbr_head == NULL; i++) {
       AudioStreamPacketDescription *desc = &inPacketDescriptions[i];
       int ret = [self handleVBRPacket:(inInputData + desc->mStartOffset)
                               desc:desc];
@@ -1681,27 +1687,26 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     for (; i < inNumberPackets; i++) {
       /* Allocate the packet */
       UInt32 size = inPacketDescriptions[i].mDataByteSize;
-      queued_packet_t *packet = malloc(sizeof(queued_packet_t) + size);
+      queued_vbr_packet_t *packet = malloc(sizeof(queued_vbr_packet_t) + size);
       CHECK_ERR(packet == NULL, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
 
       /* Prepare the packet */
       packet->next = NULL;
       packet->desc = inPacketDescriptions[i];
       packet->desc.mStartOffset = 0;
-      packet->byteSize = 0; // Not used when we have a desc.
       memcpy(packet->data, inInputData + inPacketDescriptions[i].mStartOffset,
              size);
 
-      if (queued_head == NULL) {
-        queued_head = queued_tail = packet;
+      if (queued_vbr_head == NULL) {
+        queued_vbr_head = queued_vbr_tail = packet;
       } else {
-        queued_tail->next = packet;
-        queued_tail = packet;
+        queued_vbr_tail->next = packet;
+        queued_vbr_tail = packet;
       }
     }
   } else {
     size_t offset = 0;
-    while (inNumberBytes && !waitingOnBuffer && queued_head == NULL) {
+    while (inNumberBytes && !waitingOnBuffer && queued_cbr_head == NULL) {
       size_t copySize;
       int ret = [self handleCBRPacket:(inInputData + offset)
                              byteSize:inNumberBytes
@@ -1714,20 +1719,19 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     while (inNumberBytes) {
       /* Allocate the packet */
       size_t size = MIN(packetBufferSize - bytesFilled, inNumberBytes);
-      queued_packet_t *packet = malloc(sizeof(queued_packet_t) + size);
+      queued_cbr_packet_t *packet = malloc(sizeof(queued_cbr_packet_t) + size);
       CHECK_ERR(packet == NULL, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
 
       /* Prepare the packet */
       packet->next = NULL;
       packet->byteSize = inNumberBytes;
-      packet->offset = offset;
       memcpy(packet->data, inInputData + offset, size);
 
-      if (queued_head == NULL) {
-        queued_head = queued_tail = packet;
+      if (queued_cbr_head == NULL) {
+        queued_cbr_head = queued_cbr_head = packet;
       } else {
-        queued_tail->next = packet;
-        queued_tail = packet;
+        queued_cbr_head->next = packet;
+        queued_cbr_head = packet;
       }
 
       inNumberBytes -= size;
@@ -1842,30 +1846,36 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   LOG(@"processing some cached data");
 
   /* Queue up as many packets as possible into the buffers */
-  queued_packet_t *cur = queued_head;
-  while (cur != NULL) {
-    if (cur->byteSize) {
+  queued_vbr_packet_t *cur_vbr = queued_vbr_head;
+  queued_cbr_packet_t *cur_cbr = queued_cbr_head;
+  while (cur_vbr != NULL && cur_cbr != NULL) {
+    if (cur_cbr != NULL) {
       size_t copySize;
-      int ret = [self handleCBRPacket:cur->data
-                             byteSize:cur->byteSize
+      int ret = [self handleCBRPacket:cur_cbr->data
+                             byteSize:cur_cbr->byteSize
                              copySize:&copySize];
       CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
       if (ret == 0) break;
+      queued_vbr_packet_t *next_vbr = cur_vbr->next;
+      free(cur_vbr);
+      cur_vbr = next_vbr;
     } else {
-      int ret = [self handleVBRPacket:cur->data desc:&cur->desc];
+      int ret = [self handleVBRPacket:cur_vbr->data desc:&cur_vbr->desc];
       CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
       if (ret == 0) break;
+      queued_cbr_packet_t *next_cbr = cur_cbr->next;
+      free(cur_cbr);
+      cur_cbr = next_cbr;
     }
-    queued_packet_t *next = cur->next;
-    free(cur);
-    cur = next;
   }
-  queued_head = cur;
+  queued_vbr_head = cur_vbr;
+  queued_cbr_head = cur_cbr;
 
   /* If we finished queueing all our saved packets, we can re-schedule the
    * stream to run */
-  if (cur == NULL) {
-    queued_tail = NULL;
+  if (cur_vbr == NULL && cur_cbr == NULL) {
+    queued_vbr_tail = NULL;
+    queued_cbr_tail = NULL;
     rescheduled = true;
     if (!_bufferInfinite) {
       CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
@@ -1912,8 +1922,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   /* If there is absolutely no more data which will ever come into the stream,
    * then we're done with the audio */
-  } else if (buffersUsed == 0 && queued_head == NULL && stream != nil &&
-      CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
+  } else if (buffersUsed == 0 && queued_vbr_head == NULL && queued_cbr_head == NULL &&
+      stream != nil && CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
     assert(!waitingOnBuffer);
     AudioQueueStop(audioQueue, false);
 
@@ -2025,13 +2035,21 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  */
 - (void)closeReadStream {
   if (waitingOnBuffer) waitingOnBuffer = false;
-  queued_packet_t *cur = queued_head;
-  while (cur != NULL) {
-    queued_packet_t *tmp = cur->next;
-    free(cur);
-    cur = tmp;
+  queued_vbr_packet_t *cur_vbr = queued_vbr_head;
+  queued_cbr_packet_t *cur_cbr = queued_cbr_head;
+  while (cur_vbr != NULL && cur_cbr != NULL) {
+    if (cur_vbr != NULL) {
+      queued_vbr_packet_t *tmp = cur_vbr->next;
+      free(cur_vbr);
+      cur_vbr = tmp;
+    } else {
+      queued_cbr_packet_t *tmp = cur_cbr->next;
+      free(cur_cbr);
+      cur_cbr = tmp;
+    }
   }
-  queued_head = queued_tail = NULL;
+  queued_vbr_head = queued_vbr_tail = NULL;
+  queued_cbr_head = queued_cbr_tail = NULL;
 
   if (stream) {
     CFReadStreamClose(stream);
