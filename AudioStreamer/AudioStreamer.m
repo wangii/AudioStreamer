@@ -1641,30 +1641,32 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (!audioQueue) {
     vbr = (inPacketDescriptions != NULL);
 
-    OSStatus status = 0;
-    UInt32 ioFlags = 0;
-    SInt64 byteOffset;
-    SInt64 lower = 0;
-    SInt64 upper = 1000000;
-    SInt64 current;
-    while (upper - lower > 1 || status != 0)
-    {
-      current = (upper + lower) / 2;
-      status = AudioFileStreamSeek(audioFileStream, current, &byteOffset, &ioFlags);
-      if (status == 0)
+    if (fileLength != 0) {
+      OSStatus status = 0;
+      UInt32 ioFlags = 0;
+      SInt64 byteOffset;
+      SInt64 lower = 0;
+      SInt64 upper = 1000000;
+      SInt64 current;
+      while (upper - lower > 1 || status != 0)
       {
-        lower = current;
+        current = (upper + lower) / 2;
+        status = AudioFileStreamSeek(audioFileStream, current, &byteOffset, &ioFlags);
+        if (status == 0)
+        {
+          lower = current;
+        }
+        else
+        {
+          upper = current;
+        }
       }
-      else
-      {
-        upper = current;
-      }
+      AudioFileStreamSeek(audioFileStream, 0, &byteOffset, &ioFlags);
+      totalAudioPackets = (UInt64)current + 1;
+      seekByteOffset = (UInt64)byteOffset + dataOffset;
+      [self closeReadStream];
+      [self openReadStream];
     }
-    AudioFileStreamSeek(audioFileStream, 0, &byteOffset, &ioFlags);
-    totalAudioPackets = (UInt64)current + 1;
-    seekByteOffset = (UInt64)byteOffset + dataOffset;
-    [self closeReadStream];
-    [self openReadStream];
 
     assert(!waitingOnBuffer);
     [self createQueue];
