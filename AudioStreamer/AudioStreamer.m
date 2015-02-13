@@ -55,6 +55,17 @@ typedef NS_ENUM(NSUInteger, AudioStreamerProxyType) {
   AS_PROXY_HTTP,
 };
 
+typedef NS_ENUM(NSUInteger, AudioStreamerID3ParserState) {
+  ID3_STATE_INITIAL = 0,
+  ID3_STATE_READY_TO_PARSE,
+  ID3_STATE_PARSED
+};
+
+typedef NS_OPTIONS(NSUInteger, AudioStreamerID3FlagInfo) {
+  ID3_FLAG_UNSYNC = (1 << 0),
+  ID3_FLAG_EXTENDED_HEADER = (1 << 1)
+};
+
 typedef struct queued_vbr_packet {
   AudioStreamPacketDescription desc;
   struct queued_vbr_packet *next;
@@ -899,6 +910,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                  CFSTR("GET"),
                                  (__bridge CFURLRef) _url,
                                  kCFHTTPVersion1_1);
+  /* ID3 support */
+  id3ParserState = ID3_STATE_INITIAL;
 
   /* ICY metadata */
   CFHTTPMessageSetHeaderFieldValue(message, CFSTR("Icy-MetaData"), CFSTR("1"));
@@ -1128,11 +1141,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
   }
 
-  UInt32 bufferSize = (packetBufferSize > 0) ? packetBufferSize : _bufferSize;
-  if (bufferSize <= 0) {
-    bufferSize = kDefaultAQDefaultBufSize;
-  }
-
+  UInt32 bufferSize = (_bufferSize > 0) ? _bufferSize : kDefaultAQDefaultBufSize;
   UInt8 bytes[bufferSize];
   CFIndex length;
   while (stream && CFReadStreamHasBytesAvailable(stream) && ![self isDone]) {
@@ -1160,6 +1169,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     if (!icyChecked && statusCode == 200) {
       NSString *icyCheck = [[NSString alloc] initWithBytes:bytes length:10 encoding:NSUTF8StringEncoding];
+      if (icyCheck == nil) {
+        icyCheck = [[NSString alloc] initWithBytes:bytes length:10 encoding:NSISOLatin1StringEncoding];
+      }
       if (icyCheck && [icyCheck caseInsensitiveCompare:@"ICY 200 OK"] == NSOrderedSame) {
         icyStream = true;
       } else {
@@ -1173,9 +1185,12 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       icyChecked = true;
     }
 
-    if (icyStream && !icyHeadersParsed) {
+    if (!icyStream && id3ParserState != ID3_STATE_PARSED) {
+      // ID3 support
+      [self parseID3TagsInBytes:bytes length:length];
+    } else if (icyStream && !icyHeadersParsed) {
       NSUInteger lineStart = 0;
-      while (YES)
+      while (true)
       {
         if (streamStart + 3 > (NSUInteger)length)
         {
@@ -1318,6 +1333,265 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 }
 
+- (void)parseID3TagsInBytes:(UInt8[])bytes length:(CFIndex)length
+{
+  UInt8 id3Version;
+  int id3TagSize;
+  AudioStreamerID3FlagInfo id3FlagInfo = 0;
+  int id3PosStart;
+  UInt8 syncedBytes[length];
+  while (true) {
+    if (id3ParserState == ID3_STATE_INITIAL) {
+      if (length <= 10) {
+        /* Not enough bytes */
+        id3ParserState = ID3_STATE_PARSED;
+        break;
+      }
+
+      if (bytes[0] != 'I' || bytes[1] != 'D' || bytes[2] != '3') {
+        id3ParserState = ID3_STATE_PARSED; // Done here
+        break;
+      }
+
+      id3Version = bytes[3];
+      LOG(@"ID3 version 2.%hhu", id3Version);
+      if (id3Version != 2 && id3Version != 3 && id3Version != 4) { /* Only supporting ID3v2.2, v2.3 and v2.4 */
+        id3ParserState = ID3_STATE_PARSED;
+        break;
+      }
+
+      if ((bytes[5] & 0x80) != 0) {
+        id3FlagInfo |= ID3_FLAG_UNSYNC;
+      }
+      if ((bytes[5] & 0x40) != 0) {
+        if (id3Version >= 3) {
+          id3FlagInfo |= ID3_FLAG_EXTENDED_HEADER;
+        } else {
+          id3ParserState = ID3_STATE_PARSED;
+          break;
+        }
+      }
+
+      id3TagSize = ((bytes[6] & 0x7F) << 21) | ((bytes[7] & 0x7F) << 14) |
+      ((bytes[8] & 0x7F) << 7) | (bytes[9] & 0x7F);
+
+      if (length < id3TagSize) {
+        LOG(@"Not enough data received to parse ID3.");
+        id3ParserState = ID3_STATE_PARSED;
+        break;
+      }
+
+      if (id3TagSize > 0) {
+        if (id3Version <= 3 && (id3FlagInfo & ID3_FLAG_UNSYNC)) {
+          for (int pos = 10, last = 0, i = 0; pos < id3TagSize; pos++) {
+            UInt8 byte = bytes[pos];
+            if (last != 0xFF || byte != 0) {
+              syncedBytes[i++] = byte;
+            }
+            last = byte;
+          }
+        } else {
+          for (int pos = 10, i = 0; pos < id3TagSize; pos++, i++) {
+            syncedBytes[i] = bytes[pos];
+          }
+        }
+
+        if (id3FlagInfo & ID3_FLAG_EXTENDED_HEADER) {
+          int extendedHeaderSize = ((syncedBytes[0] << 24) | (syncedBytes[1] << 16) |
+                                    (syncedBytes[2] << 8) | syncedBytes[3]);
+          if (extendedHeaderSize > id3TagSize) {
+            id3ParserState = ID3_STATE_PARSED;
+            break;
+          }
+          int extendedPadding = ((syncedBytes[5] << 24) | (syncedBytes[6] << 16) |
+                                 (syncedBytes[7] << 8) | syncedBytes[8]);
+          id3PosStart = ((id3Version <= 3) ? 4 : 0) + extendedHeaderSize;
+          if (extendedPadding < id3TagSize) {
+            id3TagSize -= extendedPadding;
+          } else {
+            id3ParserState = ID3_STATE_PARSED;
+            break;
+          }
+        } else {
+          id3PosStart = 0;
+        }
+
+        id3ParserState = ID3_STATE_READY_TO_PARSE;
+        continue;
+      }
+    } else if (id3ParserState == ID3_STATE_READY_TO_PARSE) {
+      int pos = id3PosStart;
+
+      NSString *id3Title;
+      NSString *id3Artist;
+
+      while ((pos + 10) < id3TagSize) {
+        int startPos = pos;
+
+        int frameSize;
+        if (id3Version >= 3) {
+          pos += 4;
+          frameSize = ((syncedBytes[pos] << 24) + (syncedBytes[pos+1] << 16) +
+                       (syncedBytes[pos+2] << 8) + syncedBytes[pos+3]);
+          pos += 4;
+        } else {
+          pos += 3;
+          frameSize = (syncedBytes[pos] << 16) + (syncedBytes[pos+1] << 8) + syncedBytes[pos+2];
+          pos += 3;
+        }
+        if ((frameSize+pos+2) > id3TagSize || frameSize == 0) {
+          break;
+        }
+
+        int flags = 0;
+        if (id3Version >= 3) {
+          flags = (syncedBytes[pos] << 8) + syncedBytes[pos+1];
+
+          if ((id3Version == 3 && (flags & 0x80) > 0) || (id3Version >= 4 && (flags & 0x8) > 0) || /* compressed */
+              (id3Version == 3 && (flags & 0x40) > 0) || (id3Version >= 4 && (flags & 0x4) > 0) /* encrypted */) {
+            // Unsupported - skip to next frame
+            pos += 10 + frameSize;
+            continue;
+          }
+
+          if ((id3Version == 3 && (flags & 0x20)) || (id3Version >= 4 && (flags & 0x40))) {
+            pos++;
+            frameSize--;
+          }
+
+          pos += 2;
+        }
+
+        CFStringEncoding encoding;
+
+        UInt8 syncedFrameBytes[frameSize];
+        if (id3Version >= 4 && (flags & 0x2)) {
+          for (int pos2 = pos, last = 0, i = 0; pos2 < (frameSize+pos); pos2++) {
+            UInt8 byte = syncedBytes[pos2];
+            if (last != 0xFF || byte != 0) {
+              if (i == 0) {
+                if (byte == 3) {
+                  encoding = kCFStringEncodingUTF8;
+                } else if (byte == 2) {
+                  encoding = kCFStringEncodingUTF16BE;
+                } else if (byte == 1) {
+                  encoding = kCFStringEncodingUTF16;
+                } else {
+                  // Default encoding
+                  encoding = kCFStringEncodingISOLatin1;
+                }
+              }
+              if ((pos+i-1) > pos) {
+                // I hate UTF-16
+                if ((encoding == kCFStringEncodingUTF16 || encoding == kCFStringEncodingUTF16BE) &&
+                    i >= 4 && (i % 2) == 0 && syncedFrameBytes[i-3] == 0 && syncedFrameBytes[i-2] == 0 &&
+                    (syncedFrameBytes[i-1] != 0 || byte != 0)) {
+                  bool bigEndian = (encoding == kCFStringEncodingUTF16BE);
+                  UInt8 prevByte = syncedFrameBytes[i-1];
+                  syncedFrameBytes[bigEndian ? (i-2) : (i-3)] = ' ';
+                  syncedFrameBytes[i-1] = bigEndian ? 0 : '&';
+                  syncedFrameBytes[i] = bigEndian ? '&' : 0;
+                  i++;
+                  syncedFrameBytes[i] = bigEndian ? 0 : ' ';
+                  i++;
+                  syncedFrameBytes[i] = bigEndian ? ' ' : 0;
+                  i++;
+                  syncedFrameBytes[i] = prevByte;
+                  i++;
+                } else if ((encoding == kCFStringEncodingUTF8 || encoding == kCFStringEncodingISOLatin1) &&
+                           syncedFrameBytes[i-1] == 0 && byte != 0) {
+                  syncedFrameBytes[i-1] = ' ';
+                  syncedFrameBytes[i] = '&';
+                  i++;
+                  syncedFrameBytes[i] = ' ';
+                  i++;
+                }
+              }
+              syncedFrameBytes[i++] = byte;
+            }
+            last = byte;
+          }
+        } else {
+          for (int pos2 = pos, i = 0; pos2 < (frameSize+pos); pos2++, i++) {
+            UInt8 byte = syncedBytes[pos2];
+            if (i == 0) {
+              if (byte == 3) {
+                encoding = kCFStringEncodingUTF8;
+              } else if (byte == 2) {
+                encoding = kCFStringEncodingUTF16BE;
+              } else if (byte == 1) {
+                encoding = kCFStringEncodingUTF16;
+              } else {
+                // Default encoding
+                encoding = kCFStringEncodingISOLatin1;
+              }
+            }
+            if ((pos2-1) > pos) {
+              // I hate UTF-16
+              if ((encoding == kCFStringEncodingUTF16 || encoding == kCFStringEncodingUTF16BE) &&
+                  i >= 4 && (i % 2) == 0 && syncedFrameBytes[i-3] == 0 && syncedFrameBytes[i-2] == 0 &&
+                  (syncedFrameBytes[i-1] != 0 || byte != 0)) {
+                bool bigEndian = (encoding == kCFStringEncodingUTF16BE);
+                UInt8 prevByte = syncedFrameBytes[i-1];
+                syncedFrameBytes[bigEndian ? (i-2) : (i-3)] = ' ';
+                syncedFrameBytes[i-1] = bigEndian ? 0 : '&';
+                syncedFrameBytes[i] = bigEndian ? '&' : 0;
+                i++;
+                syncedFrameBytes[i] = bigEndian ? 0 : ' ';
+                i++;
+                syncedFrameBytes[i] = bigEndian ? ' ' : 0;
+                i++;
+                syncedFrameBytes[i] = prevByte;
+                i++;
+              } else if ((encoding == kCFStringEncodingUTF8 || encoding == kCFStringEncodingISOLatin1) &&
+                         syncedFrameBytes[i-1] == 0 && byte != 0) {
+                syncedFrameBytes[i-1] = ' ';
+                syncedFrameBytes[i] = '&';
+                i++;
+                syncedFrameBytes[i] = ' ';
+                i++;
+              }
+            }
+            syncedFrameBytes[i] = byte;
+          }
+        }
+
+        size_t tagLen = (id3Version <= 2) ? 3 : 4;
+        if (!strncmp((char*)syncedBytes+startPos, id3Version <= 2 ? "TT2" : "TIT2", tagLen)) {
+          id3Title = @([(__bridge_transfer NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
+                                                                              &syncedFrameBytes[1],
+                                                                              frameSize - 1, encoding,
+                                                                              encoding == kCFStringEncodingUTF16)
+                        UTF8String]);
+        } else if (!strncmp((char*)syncedBytes+startPos, id3Version <= 2 ? "TP1" : "TPE1", tagLen)) {
+          id3Artist = @([(__bridge_transfer NSString *)CFStringCreateWithBytes(kCFAllocatorDefault,
+                                                                               &syncedFrameBytes[1],
+                                                                               frameSize - 1, encoding,
+                                                                               encoding == kCFStringEncodingUTF16)
+                         UTF8String]);
+        }
+
+        pos += frameSize;
+      }
+
+      if (id3Title && id3Artist) {
+        _currentSong = [NSString stringWithFormat:@"%@ - %@", id3Artist, id3Title];
+      } else if (id3Title) {
+        _currentSong = [NSString stringWithFormat:@"Unknown Artist - %@", id3Title];
+      } else if (id3Artist) {
+        _currentSong = [NSString stringWithFormat:@"%@ - Unknown Title", id3Artist];
+      }
+
+      LOG(@"ID3 Current Song: %@", _currentSong);
+
+      id3ParserState = ID3_STATE_PARSED;
+      break;
+    } else {
+      break;
+    }
+  }
+}
+
 //
 // enqueueBuffer
 //
@@ -1449,6 +1723,21 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, [[self class] descriptionforAQErrorCode:osErr]);
   }
 
+  /* Playback rate */
+
+  UInt32 propVal = 1;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
+
+  propVal = kAudioQueueTimePitchAlgorithm_Spectral;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
+
+  propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
+  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
+
+  if (_playbackRate != 1.0f && fileLength > 0) {
+    AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
+  }
+
   /* Some audio formats have a "magic cookie" which needs to be transferred from
      the file stream to the audio queue. If any of this fails it's "OK" because
      the stream either doesn't have a magic or error will propagate later */
@@ -1480,21 +1769,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   AudioQueueSetProperty(audioQueue, kAudioQueueProperty_MagicCookie, cookieData,
                         cookieSize);
   free(cookieData);
-
-  /* Playback rate */
-
-  UInt32 propVal = 1;
-  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_EnableTimePitch, &propVal, sizeof(propVal));
-
-  propVal = kAudioQueueTimePitchAlgorithm_Spectral;
-  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchAlgorithm, &propVal, sizeof(propVal));
-
-  propVal = (_playbackRate == 1.0f || fileLength == 0) ? 1 : 0;
-  AudioQueueSetProperty(audioQueue, kAudioQueueProperty_TimePitchBypass, &propVal, sizeof(propVal));
-
-  if (_playbackRate != 1.0f && fileLength > 0) {
-    AudioQueueSetParameter(audioQueue, kAudioQueueParam_PlayRate, _playbackRate);
-  }
 }
 
 /**

@@ -218,6 +218,7 @@ extern NSString * const ASStatusChangedNotification DEPRECATED_MSG_ATTRIBUTE("Us
 extern NSString * const ASBitrateReadyNotification DEPRECATED_MSG_ATTRIBUTE("Use AudioStreamerDelegate instead.");
 
 enum AudioStreamerProxyType : NSUInteger;
+enum AudioStreamerID3ParserState : NSUInteger;
 struct queued_vbr_packet;
 struct queued_cbr_packet;
 
@@ -399,6 +400,9 @@ struct queued_cbr_packet;
   /* Internal metadata about state */
   AudioStreamerState state_;
 
+  /* ID3 support */
+  enum AudioStreamerID3ParserState id3ParserState;
+
   /* ICY stream metadata */
   bool   icyStream;           /* Is this an ICY stream? */
   bool   icyChecked;          /* Have we already checked if this is an ICY stream? */
@@ -569,12 +573,15 @@ struct queued_cbr_packet;
 @property (readonly) AudioStreamBasicDescription streamDescription;
 
 /**
- * @brief The current song playing in an ICY stream.
+ * @brief The current song playing in an ICY or ID3v2 stream.
  *
- * @details This property only works for ICY streams (eg. Shoutcast). This will return
- * nil if the stream is not an ICY stream or there is no current song metadata available.
+ * @details This property only works for ICY streams (eg. Shoutcast) and streams with
+ * ID3v2 tags (some MP3s). This will return nil if the stream is not a valid stream or
+ * there is no current song metadata available.
  *
- * The current song field is sometimes used as the stream title on some streams.
+ * The format of the property in ID3v2 streams is "Artist - Title".
+ *
+ * The current song field is sometimes used as the stream title on some ICY streams.
  */
 @property (readonly) NSString *currentSong;
 
