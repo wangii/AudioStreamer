@@ -1373,7 +1373,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       }
 
       id3TagSize = ((bytes[6] & 0x7F) << 21) | ((bytes[7] & 0x7F) << 14) |
-      ((bytes[8] & 0x7F) << 7) | (bytes[9] & 0x7F);
+                    ((bytes[8] & 0x7F) << 7) | (bytes[9] & 0x7F);
 
       if (length < id3TagSize) {
         LOG(@"Not enough data received to parse ID3.");
@@ -1403,9 +1403,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
             id3ParserState = ID3_STATE_PARSED;
             break;
           }
-          int extendedPadding = ((syncedBytes[5] << 24) | (syncedBytes[6] << 16) |
-                                 (syncedBytes[7] << 8) | syncedBytes[8]);
-          id3PosStart = ((id3Version <= 3) ? 4 : 0) + extendedHeaderSize;
+          int extendedPadding;
+          if (id3Version == 3) {
+            extendedPadding = ((syncedBytes[5] << 24) | (syncedBytes[6] << 16) |
+                               (syncedBytes[7] << 8) | syncedBytes[8]);
+          } else {
+            extendedPadding = 0;
+          }
+          id3PosStart = ((id3Version == 3) ? 4 : 0) + extendedHeaderSize;
           if (extendedPadding < id3TagSize) {
             id3TagSize -= extendedPadding;
           } else {
