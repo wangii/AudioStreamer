@@ -194,7 +194,7 @@ typedef NS_ENUM(NSInteger, AudioStreamerErrorCode)
 /**
  * Possible reasons of why the streamer is now done.
  */
-typedef NS_ENUM(NSUInteger, AudioStreamerDoneReason) {
+typedef NS_ENUM(NSInteger, AudioStreamerDoneReason) {
   /**
    * The streamer has ended with an error. Check <[AudioStreamer error]> for information
    */
