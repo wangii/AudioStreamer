@@ -7,7 +7,7 @@
 
 #import "iOSStreamer.h"
 
-#if defined(DEBUG) && 0
+#if defined(DEBUG)
 #define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
 #else
 #define LOG(...)

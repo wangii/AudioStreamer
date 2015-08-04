@@ -43,10 +43,31 @@
 #define CHECK_ERR_X(x, err, code, reasonStr, retVal, FUNC, ...) FUNC
 #define CHECK_ERR(...) CHECK_ERR_X(,##__VA_ARGS__, CHECK_ERR_RET(__VA_ARGS__), CHECK_ERR_NORET(__VA_ARGS__))
 
-#if defined(DEBUG) && 0
-#define LOG(fmt, args...) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
+#define LOG_LEVEL_NONE 0
+#define LOG_LEVEL_ERROR 1
+#define LOG_LEVEL_WARN 2
+#define LOG_LEVEL_INFO 3
+#define LOG_LEVEL_DEBUG 4
+#define LOG_LEVEL_VERBOSE 5
+
+#if defined(DEBUG)
+#define LOG_LEVEL LOG_LEVEL_DEBUG
+
+#define LOG(lvl, fmt, args...) if (lvl <= LOG_LEVEL) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
+#define LOG_ERROR(fmt, args...) LOG(LOG_LEVEL_ERROR, fmt, ##args)
+#define LOG_WARN(fmt, args...) LOG(LOG_LEVEL_WARN, fmt, ##args)
+#define LOG_INFO(fmt, args...) LOG(LOG_LEVEL_INFO, fmt, ##args)
+#define LOG_DEBUG(fmt, args...) LOG(LOG_LEVEL_DEBUG, fmt, ##args)
+#define LOG_VERBOSE(fmt, args...) LOG(LOG_LEVEL_VERBOSE, fmt, ##args)
 #else
+#define LOG_LEVEL LOG_LEVEL_ERROR
+
 #define LOG(...)
+#define LOG_ERROR(...)
+#define LOG_WARN(...)
+#define LOG_INFO(...)
+#define LOG_DEBUG(...)
+#define LOG_VERBOSE(...)
 #endif
 
 typedef NS_ENUM(NSUInteger, AudioStreamerProxyType) {
@@ -745,7 +766,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* Attempt to save our last point of progress */
   [self progress:&lastProgress];
 
-  LOG(@"got an error: %@ (%@)", [[self class] descriptionForASErrorCode:errorCode], reason);
+  LOG_ERROR(@"got an error: %@ (%@)", [[self class] descriptionForASErrorCode:errorCode], reason);
 
   NSDictionary *userInfo = @{NSLocalizedDescriptionKey:
                                NSLocalizedString([[self class] descriptionForASErrorCode:errorCode], nil),
@@ -770,7 +791,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (void)setState:(AudioStreamerState)aStatus {
-  LOG(@"transitioning to state:%tu", aStatus);
+  LOG_INFO(@"transitioning to state:%tu", aStatus);
 
   if (state_ == aStatus) return;
   state_ = aStatus;
@@ -1032,7 +1053,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   switch (eventType) {
     case kCFStreamEventErrorOccurred:
-      LOG(@"error");
+      LOG_INFO(@"error");
       /* Deprecated. Will eventually be a local variable. */
       _networkError = (__bridge_transfer NSError*) CFReadStreamCopyError(aStream);
       if (!_error) {
@@ -1057,7 +1078,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       return;
 
     case kCFStreamEventEndEncountered:
-      LOG(@"end");
+      LOG_INFO(@"end");
       [timeout invalidate];
       timeout = nil;
 
@@ -1091,7 +1112,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     case kCFStreamEventHasBytesAvailable:
       break;
   }
-  LOG(@"data");
+  LOG_VERBOSE(@"data");
 
   CFHTTPMessageRef message = (CFHTTPMessageRef)CFReadStreamCopyProperty(stream, kCFStreamPropertyHTTPResponseHeader);
   CFIndex statusCode = CFHTTPMessageGetResponseStatusCode(message);
@@ -1224,7 +1245,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               }
 
               if (_fileType != oldFileType) {
-                LOG(@"ICY stream Content-Type: %@", lineItems[1]);
+                LOG_INFO(@"ICY stream Content-Type: %@", lineItems[1]);
                 AudioFileStreamClose(audioFileStream);
                 AudioQueueStop(audioQueue, true);
                 if (buffers) {
@@ -1282,7 +1303,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
               [scanner scanString:@"'" intoString:nil];
               [scanner scanUpToString:@"'" intoString:&value];
 
-              LOG(@"ICY stream title (current song): %@", value);
+              LOG_INFO(@"ICY stream title (current song): %@", value);
 
               _currentSong = value;
             }
@@ -1354,7 +1375,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       }
 
       id3Version = bytes[3];
-      LOG(@"ID3 version 2.%hhu", id3Version);
+      LOG_INFO(@"ID3 version 2.%hhu", id3Version);
       if (id3Version != 2 && id3Version != 3 && id3Version != 4) { /* Only supporting ID3v2.2, v2.3 and v2.4 */
         id3ParserState = ID3_STATE_PARSED;
         break;
@@ -1376,7 +1397,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                     ((bytes[8] & 0x7F) << 7) | (bytes[9] & 0x7F);
 
       if (length < id3TagSize) {
-        LOG(@"Not enough data received to parse ID3.");
+        LOG_WARN(@"Not enough data received to parse ID3.");
         id3ParserState = ID3_STATE_PARSED;
         break;
       }
@@ -1587,7 +1608,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
         _currentSong = [NSString stringWithFormat:@"%@ - Unknown Title", id3Artist];
       }
 
-      LOG(@"ID3 Current Song: %@", _currentSong);
+      LOG_INFO(@"ID3 Current Song: %@", _currentSong);
 
       id3ParserState = ID3_STATE_PARSED;
       break;
@@ -1628,7 +1649,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
   CHECK_ERR(osErr, AS_AUDIO_QUEUE_ENQUEUE_FAILED, [[self class] descriptionforAQErrorCode:osErr], -1);
 
-  LOG(@"committed buffer %d", fillBufferIndex);
+  LOG_DEBUG(@"committed buffer %d", fillBufferIndex);
 
   if (state_ == AS_WAITING_FOR_DATA) {
     /* Once we have a small amount of queued data, then we can go ahead and
@@ -1654,7 +1675,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   if (inuse[fillBufferIndex]) {
-    LOG(@"waiting for buffer %d", fillBufferIndex);
+    LOG_DEBUG(@"waiting for buffer %d", fillBufferIndex);
     if (!_bufferInfinite) {
       CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(),
                                         kCFRunLoopCommonModes);
@@ -1815,7 +1836,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   switch (inPropertyID) {
     case kAudioFileStreamProperty_ReadyToProducePackets:
-      LOG(@"ready for packets");
+      LOG_INFO(@"ready for packets");
       discontinuous = true;
       break;
 
@@ -1831,7 +1852,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       if (audioDataByteCount) {
         fileLength = dataOffset + audioDataByteCount;
       }
-      LOG(@"have data offset: %llu", dataOffset);
+      LOG_DEBUG(@"have data offset: %llu", dataOffset);
       break;
     }
 
@@ -1842,7 +1863,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                                   &byteCountSize, &audioDataByteCount);
       CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
       fileLength = dataOffset + audioDataByteCount;
-      LOG(@"have byte count: %llu", audioDataByteCount);
+      LOG_DEBUG(@"have byte count: %llu", audioDataByteCount);
       break;
     }
 
@@ -1856,7 +1877,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                                                     &descSize, &_streamDescription);
         CHECK_ERR(osErr, AS_FILE_STREAM_GET_PROPERTY_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
       }
-      LOG(@"have data format");
+      LOG_INFO(@"have data format");
       break;
     }
 
@@ -2124,7 +2145,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(!waitingOnBuffer);
   assert(!inuse[fillBufferIndex]);
   assert(stream != NULL);
-  LOG(@"processing some cached data");
+  LOG_DEBUG(@"processing some cached data");
 
   /* Queue up as many packets as possible into the buffers */
   queued_vbr_packet_t *cur_vbr = queued_vbr_head;
@@ -2190,7 +2211,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   CHECK_ERR(idx >= _bufferCount, AS_AUDIO_QUEUE_BUFFER_MISMATCH, @"");
   assert(inuse[idx]);
 
-  LOG(@"buffer %u finished", (unsigned int)idx);
+  LOG_DEBUG(@"buffer %u finished", (unsigned int)idx);
 
   /* Signal the buffer is no longer in use */
   inuse[idx] = false;
