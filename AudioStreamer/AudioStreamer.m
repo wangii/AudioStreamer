@@ -927,10 +927,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   /* Create our GET request */
   CFHTTPMessageRef message =
-      CFHTTPMessageCreateRequest(NULL,
-                                 CFSTR("GET"),
-                                 (__bridge CFURLRef) _url,
-                                 kCFHTTPVersion1_1);
+  CFHTTPMessageCreateRequest(NULL,
+                             CFSTR("GET"),
+                             (__bridge CFURLRef) _url,
+                             kCFHTTPVersion1_1);
   /* ID3 support */
   id3ParserState = ID3_STATE_INITIAL;
 
@@ -1124,8 +1124,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   /* Read off the HTTP headers into our own class if we haven't done so */
   if (!_httpHeaders) {
-    _httpHeaders = (__bridge_transfer NSDictionary *)
-        CFHTTPMessageCopyAllHeaderFields(message);
+    _httpHeaders = (__bridge_transfer NSDictionary *)CFHTTPMessageCopyAllHeaderFields(message);
 
     //
     // Only read the content length if we seeked to time zero, otherwise
@@ -1148,8 +1147,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     if (_fileType == 0) {
       _fileType = [[self class] hintForMIMEType:_httpHeaders[@"Content-Type"]];
       if (_fileType == 0) {
-        _fileType = [[self class] hintForFileExtension:
-                      [[_url path] pathExtension]];
+        _fileType = [[self class] hintForFileExtension:[[_url path] pathExtension]];
         if (_fileType == 0) {
           _fileType = kDefaultAudioFileType;
         }
@@ -1158,7 +1156,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
     // create an audio file stream parser
     osErr = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
-                                         ASPacketsProc, _fileType, &audioFileStream);
+                                ASPacketsProc, _fileType, &audioFileStream);
     CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
   }
 
@@ -1255,7 +1253,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                 }
 
                 osErr = AudioFileStreamOpen((__bridge void*) self, ASPropertyListenerProc,
-                                              ASPacketsProc, _fileType, &audioFileStream);
+                                            ASPacketsProc, _fileType, &audioFileStream);
                 CHECK_ERR(osErr, AS_FILE_STREAM_OPEN_FAILED, [[self class] descriptionForAFSErrorCode:osErr]);
               }
             }
@@ -1773,8 +1771,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   Boolean writable;
   OSStatus ignorableError;
   ignorableError = AudioFileStreamGetPropertyInfo(audioFileStream,
-                     kAudioFileStreamProperty_MagicCookieData, &cookieSize,
-                     &writable);
+                                                  kAudioFileStreamProperty_MagicCookieData, &cookieSize,
+                                                  &writable);
   if (ignorableError) {
     return;
   }
@@ -1783,8 +1781,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   void *cookieData = calloc(1, cookieSize);
   if (cookieData == NULL) return;
   ignorableError = AudioFileStreamGetProperty(audioFileStream,
-                     kAudioFileStreamProperty_MagicCookieData, &cookieSize,
-                     cookieData);
+                                              kAudioFileStreamProperty_MagicCookieData, &cookieSize,
+                                              cookieData);
   if (ignorableError) {
     free(cookieData);
     return;
@@ -1980,7 +1978,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     for (i = 0; i < inNumberPackets && !waitingOnBuffer && queued_vbr_head == NULL; i++) {
       AudioStreamPacketDescription *desc = &inPacketDescriptions[i];
       int ret = [self handleVBRPacket:(inInputData + desc->mStartOffset)
-                              desc:desc];
+                                 desc:desc];
       CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
       if (!ret) break;
     }
@@ -2043,7 +2041,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (int)handleVBRPacket:(const void*)data
-                desc:(AudioStreamPacketDescription*)desc{
+                  desc:(AudioStreamPacketDescription*)desc{
   assert(audioQueue != NULL);
   UInt32 packetSize = desc->mDataByteSize;
 
@@ -2180,8 +2178,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     queued_cbr_tail = NULL;
     rescheduled = true;
     if (!_bufferInfinite) {
-      CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(),
-                                      kCFRunLoopCommonModes);
+      CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
     }
   }
 }
