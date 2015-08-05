@@ -311,8 +311,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
   if (audioQueue) {
     AudioQueueStop(audioQueue, true);
-    OSStatus osErr = AudioQueueDispose(audioQueue, true);
-    assert(!osErr);
+    assert(!AudioQueueDispose(audioQueue, true));
     audioQueue = nil;
   }
   if (buffers != NULL) {
@@ -2360,8 +2359,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
  * @brief Closes the file stream
  */
 - (void)closeFileStream {
-  OSStatus osErr = AudioFileStreamClose(audioFileStream);
-  assert(!osErr);
+  assert(!AudioFileStreamClose(audioFileStream));
   audioFileStream = nil;
 }
 
