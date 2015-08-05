@@ -2144,34 +2144,30 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   LOG_DEBUG(@"processing some cached data");
 
   /* Queue up as many packets as possible into the buffers */
-  queued_vbr_packet_t *cur_vbr = queued_vbr_head;
-  queued_cbr_packet_t *cur_cbr = queued_cbr_head;
-  while (cur_vbr != NULL || cur_cbr != NULL) {
-    if (cur_cbr != NULL) {
+  while (queued_vbr_head != NULL || queued_cbr_head != NULL) {
+    if (queued_cbr_head != NULL) {
       size_t copySize;
-      int ret = [self handleCBRPacket:cur_cbr->data
-                             byteSize:cur_cbr->byteSize
+      int ret = [self handleCBRPacket:queued_cbr_head->data
+                             byteSize:queued_cbr_head->byteSize
                              copySize:&copySize];
       CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
       if (ret == 0) break;
-      queued_cbr_packet_t *next_cbr = cur_cbr->next;
-      free(cur_cbr);
-      cur_cbr = next_cbr;
+      queued_cbr_packet_t *next_cbr = queued_cbr_head->next;
+      free(queued_cbr_head);
+      queued_cbr_head = next_cbr;
     } else {
-      int ret = [self handleVBRPacket:cur_vbr->data desc:&cur_vbr->desc];
+      int ret = [self handleVBRPacket:queued_vbr_head->data desc:&queued_vbr_head->desc];
       CHECK_ERR(ret < 0, AS_AUDIO_QUEUE_ENQUEUE_FAILED, @"");
       if (ret == 0) break;
-      queued_vbr_packet_t *next_vbr = cur_vbr->next;
-      free(cur_vbr);
-      cur_vbr = next_vbr;
+      queued_vbr_packet_t *next_vbr = queued_vbr_head->next;
+      free(queued_vbr_head);
+      queued_vbr_head = next_vbr;
     }
   }
-  queued_vbr_head = cur_vbr;
-  queued_cbr_head = cur_cbr;
 
   /* If we finished queueing all our saved packets, we can re-schedule the
    * stream to run */
-  if (cur_vbr == NULL && cur_cbr == NULL) {
+  if (queued_vbr_head == NULL && queued_cbr_head == NULL) {
     queued_vbr_tail = NULL;
     queued_cbr_tail = NULL;
     rescheduled = true;
