@@ -2027,10 +2027,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
       memcpy(packet->data, inInputData + offset, size);
 
       if (queued_cbr_head == NULL) {
-        queued_cbr_head = queued_cbr_head = packet;
+        queued_cbr_head = queued_cbr_tail = packet;
       } else {
-        queued_cbr_head->next = packet;
-        queued_cbr_head = packet;
+        queued_cbr_tail->next = packet;
+        queued_cbr_tail = packet;
       }
 
       inNumberBytes -= size;
