@@ -926,11 +926,10 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   NSAssert(stream == NULL, @"Download stream already initialized");
 
   /* Create our GET request */
-  CFHTTPMessageRef message =
-  CFHTTPMessageCreateRequest(NULL,
-                             CFSTR("GET"),
-                             (__bridge CFURLRef) _url,
-                             kCFHTTPVersion1_1);
+  CFHTTPMessageRef message = CFHTTPMessageCreateRequest(NULL,
+                                                        CFSTR("GET"),
+                                                        (__bridge CFURLRef) _url,
+                                                        kCFHTTPVersion1_1);
   /* ID3 support */
   id3ParserState = ID3_STATE_INITIAL;
 
