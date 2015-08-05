@@ -1293,13 +1293,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
             NSArray *metadataArr = [icyMetadata componentsSeparatedByString:@";"];
             for (NSString *metadataLine in metadataArr) {
               NSString *key;
-              NSString *value;
               NSScanner *scanner = [NSScanner scannerWithString:metadataLine];
               [scanner scanUpToString:@"=" intoString:&key];
               if ([scanner isAtEnd] || ![key isEqualToString:@"StreamTitle"]) continue; // Not interested in other metadata
               [scanner scanString:@"=" intoString:nil];
               [scanner scanString:@"'" intoString:nil];
-              [scanner scanUpToString:@"'" intoString:&value];
+              NSUInteger scanLoc = [scanner scanLocation];
+              NSString *value = [metadataLine substringWithRange:NSMakeRange(scanLoc, [metadataLine length] - scanLoc - 1)];
 
               LOG_INFO(@"ICY stream title (current song): %@", value);
 
