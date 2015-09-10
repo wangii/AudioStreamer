@@ -382,7 +382,7 @@
 		973BB664158AD07000A7D459 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0600;
+				LastUpgradeCheck = 0700;
 			};
 			buildConfigurationList = 973BB667158AD07000A7D459 /* Build configuration list for PBXProject "AudioStreamer" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -593,6 +593,7 @@
 				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_ENABLE_OBJC_EXCEPTIONS = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
@@ -735,6 +736,7 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				INFOPLIST_FILE = Resources/Mac/MacInfo.plist;
 				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexcrichton.macstreamer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = app;
@@ -754,6 +756,7 @@
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				INFOPLIST_FILE = Resources/Mac/MacInfo.plist;
+				PRODUCT_BUNDLE_IDENTIFIER = com.alexcrichton.macstreamer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				WRAPPER_EXTENSION = app;
@@ -779,6 +782,7 @@
 				INFOPLIST_FILE = Resources/iPhone/iPhoneInfo.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				OTHER_CFLAGS = "-DTARGET_OS_IPHONE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.mattgallagher.iphonestreamer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -802,6 +806,7 @@
 					"-DTARGET_OS_IPHONE",
 					"-DNDEBUG",
 				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.mattgallagher.iphonestreamer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
