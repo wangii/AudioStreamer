@@ -457,7 +457,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 }
 
 - (BOOL)calculatedBitRate:(double*)rate {
-  if (icyBitrate)
+  if (icyBitrate > 0)
   {
     *rate = icyBitrate;
     bitrateEstimated = false;
@@ -466,7 +466,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   else if (vbr)
   {
     double packetsPerSec = _streamDescription.mSampleRate / _streamDescription.mFramesPerPacket;
-    if (!packetsPerSec) return NO;
+    if (packetsPerSec <= 0) return NO;
 
     // Method one - exact
     UInt32 bitrate;
@@ -515,7 +515,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (fileLength == 0) return NO;
 
   double packetDuration = _streamDescription.mFramesPerPacket / _streamDescription.mSampleRate;
-  if (!packetDuration) return NO;
+  if (packetDuration <= 0) return NO;
 
   // Method one
   UInt64 packetCount;
