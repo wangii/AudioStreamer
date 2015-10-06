@@ -28,7 +28,7 @@
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application {
 	// Override point for customization after app launch
-    self.window.rootViewController = self.viewController;
+	self.window.rootViewController = self.viewController;
 	[self.window makeKeyAndVisible];
 
 	[self.viewController buttonPressed:nil];
