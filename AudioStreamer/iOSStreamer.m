@@ -27,7 +27,10 @@
     if (![super start]) return NO;
 
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-    [audioSession setDelegate:self];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleInterruption:)
+                                                 name:AVAudioSessionInterruptionNotification
+                                               object:audioSession];
 
     NSError *error;
 
@@ -50,13 +53,18 @@
 - (void)stop {
     [super stop];
 
+    AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     NSError *error;
 
-    BOOL success = [[AVAudioSession sharedInstance] setActive:NO error:&error];
+    BOOL success = [audioSession setActive:NO error:&error];
     if (!success)
     {
         LOG(@"Error deactivating AVAudioSession: %@", [error localizedDescription]);
     }
+
+    [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                    name:AVAudioSessionInterruptionNotification
+                                                  object:audioSession];
 }
 
 - (void)setDelegate:(id<iOSStreamerDelegate>)delegate
@@ -65,56 +73,64 @@
     _delegate = delegate;
 }
 
-- (void)beginInterruption
+- (void)handleInterruption:(NSNotification *)notification
 {
-    if ([self isPlaying])
-    {
-        LOG(@"Interrupted");
+    NSDictionary *userInfo = [notification userInfo];
+    AVAudioSessionInterruptionType interruptionType = [userInfo[AVAudioSessionInterruptionTypeKey] unsignedIntegerValue];
+    switch (interruptionType) {
+        case AVAudioSessionInterruptionTypeBegan:
+            if ([self isPlaying])
+            {
+                LOG(@"Interrupted");
 
-        _interrupted = YES;
+                _interrupted = YES;
 
-        __strong id <iOSStreamerDelegate> delegate = _delegate;
-        BOOL override;
-        if (delegate && [delegate respondsToSelector:@selector(streamerInterruptionDidBegin:)]) {
-            override = [delegate streamerInterruptionDidBegin:self];
-        } else {
-            override = NO;
-        }
+                __strong id <iOSStreamerDelegate> delegate = _delegate;
+                BOOL override;
+                if (delegate && [delegate respondsToSelector:@selector(streamerInterruptionDidBegin:)]) {
+                    override = [delegate streamerInterruptionDidBegin:self];
+                } else {
+                    override = NO;
+                }
 
-        if (override) return;
+                if (override) return;
 
-        [self pause];
-    }
-}
+                [self pause];
+            }
+            break;
+        case AVAudioSessionInterruptionTypeEnded:
+            if ([self isPaused] && _interrupted)
+            {
+                LOG(@"Interruption ended");
 
-- (void)endInterruptionWithFlags:(NSUInteger)flags
-{
-    if ([self isPaused] && _interrupted)
-    {
-        LOG(@"Interruption ended");
+                _interrupted = NO;
 
-        _interrupted = NO;
+                AVAudioSessionInterruptionOptions flags = [userInfo[AVAudioSessionInterruptionOptionKey] unsignedIntegerValue];
 
-        __strong id <iOSStreamerDelegate> delegate = _delegate;
-        BOOL override;
-        if (delegate && [delegate respondsToSelector:@selector(streamer:interruptionDidEndWithFlags:)]) {
-            override = [delegate streamer:self interruptionDidEndWithFlags:flags];
-        } else {
-            override = NO;
-        }
+                __strong id <iOSStreamerDelegate> delegate = _delegate;
+                BOOL override;
+                if (delegate && [delegate respondsToSelector:@selector(streamer:interruptionDidEndWithFlags:)]) {
+                    override = [delegate streamer:self interruptionDidEndWithFlags:flags];
+                } else {
+                    override = NO;
+                }
 
-        if (override) return;
+                if (override) return;
 
-        if (flags & AVAudioSessionInterruptionFlags_ShouldResume)
-        {
-            LOG(@"Resuming after interruption...");
-            [self play];
-        }
-        else
-        {
-            LOG(@"Not resuming after interruption");
-            [self stop];
-        }
+                if (flags & AVAudioSessionInterruptionOptionShouldResume)
+                {
+                    LOG(@"Resuming after interruption...");
+                    [self play];
+                }
+                else
+                {
+                    LOG(@"Not resuming after interruption");
+                    [self stop];
+                }
+            }
+            break;
+        default:
+            break;
     }
 }
 

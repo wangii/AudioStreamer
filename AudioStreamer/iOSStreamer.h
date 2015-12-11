@@ -31,14 +31,13 @@
  *
  * @param sender The streamer that called this method
  * @param flags The flags received indicating whether the stream should resume.
- * This will be AVAudioSessionInterruptionFlags_ShouldResume (all supported iOS versions
- * - deprecated in iOS 6) / AVAudioSessionInterruptionOptionShouldResume (iOS 6 and later)
- * if it should resume or 0 if it should not.
+ * This will be AVAudioSessionInterruptionOptionShouldResume if it should resume or 0
+ * if it should not.
  *
  * @return YES to override the default behaviour of playing the stream if the flag
  * allows and stopping if it does not
  */
-- (BOOL)streamer:(iOSStreamer *)sender interruptionDidEndWithFlags:(NSUInteger)flags;
+- (BOOL)streamer:(iOSStreamer *)sender interruptionDidEndWithFlags:(AVAudioSessionInterruptionOptions)flags;
 
 @end
 
@@ -57,7 +56,7 @@
  * code. Everything else is handled for you which is why there is little
  * additional properties and methods.
  */
-@interface iOSStreamer : AudioStreamer <AVAudioSessionDelegate>
+@interface iOSStreamer : AudioStreamer
 
 /** @name Properties */
 
