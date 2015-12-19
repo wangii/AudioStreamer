@@ -260,6 +260,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   return AS_NOT_DONE;
 }
 
+- (BOOL)isSeekable {
+  double tmp;
+  return seekable && [self duration:&tmp] && [self calculatedBitRate:&tmp] && tmp != 0.0;
+}
+
 - (BOOL)start {
   if (stream != NULL) return NO;
   assert(audioQueue == NULL);

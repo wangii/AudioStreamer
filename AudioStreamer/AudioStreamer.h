@@ -503,6 +503,26 @@ struct queued_cbr_packet;
 @property (nonatomic, readonly) AudioStreamerDoneReason doneReason;
 
 /**
+ * @brief Returns whether the stream can be seeked with the <seekToTime:> method
+ *
+ * @details The stream cannot be seeked if:
+ * - The bitrate cannot be calculated
+ * - The duration cannot be calculated
+ * - The Accept-Ranges HTTP header does not return "bytes"
+ *
+ * The <seekToTime:> method will always return this value but this property may be
+ * useful for those who want to know whether they can seek beforehand. An example could
+ * be if you wanted to disable user interaction if a seek bar.
+ *
+ * This property does not necessarily mean the current stream will never be seekable.
+ * This property *could* return NO before
+ * <[AudioStreamerDelegate streamerBitrateIsReady:]> is called, depending on the stream.
+ *
+ * Returns YES if the stream can be seeked, NO otherwise.
+ */
+@property (nonatomic, getter=isSeekable, readonly) BOOL seekable;
+
+/**
  * @brief The error the streamer threw
  *
  * @details If an error occurs on the stream, then this variable is set with the
@@ -516,7 +536,7 @@ struct queued_cbr_packet;
 
 /**
  * @brief The error code the streamer threw
- * @deprecated Use the -code method from the error property instead
+ * @deprecated Use the -code method from the <error> property instead
  *
  * @details If an error occurs on the stream, then this variable is set with the code
  * corresponding to the error
@@ -530,7 +550,7 @@ struct queued_cbr_packet;
 
 /**
  * @brief Converts an error code to a string
- * @deprecated Use the -localizedDescription method from the 'error' property instead
+ * @deprecated Use the -localizedDescription method from the <error> property instead
  *
  * @param anErrorCode The code to convert, usually from the <errorCode> property
  * @return The string description of the error code (as best as possible)
@@ -540,7 +560,7 @@ struct queued_cbr_packet;
 
 /**
  * @brief The network error the streamer threw
- * @deprecated Use the -localizedFailureReason method from 'error' property instead
+ * @deprecated Use the -localizedFailureReason method from <error> property instead
  *
  * On AS_NETWORK_CONNECTION_FAILED, this will contain the error details
  *
