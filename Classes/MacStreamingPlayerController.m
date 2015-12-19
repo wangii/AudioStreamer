@@ -89,11 +89,6 @@
 //
 - (void)createStreamer
 {
-	if (streamer)
-	{
-		return;
-	}
-
 	[self destroyStreamer];
 
 	NSString *escapedValue =
@@ -254,28 +249,33 @@
 //
 - (void)updateProgress:(NSTimer *)updatedTimer
 {
+	[progressSlider setEnabled:[streamer isSeekable]];
+
 	double bitrate;
 	if ([streamer calculatedBitRate:&bitrate])
 	{
 		double progress;
+		double bufferProgress;
 		double duration;
 
-		if ([streamer progress:&progress] && [streamer duration:&duration])
+		if ([streamer progress:&progress] && [streamer bufferProgress:&bufferProgress] && [streamer duration:&duration])
 		{
 			[positionLabel setStringValue:
 				[NSString stringWithFormat:@"Time Played: %@/%@",
 					[self stringFromSeconds:progress],
 					[self stringFromSeconds:duration]]];
-			[progressSlider setEnabled:YES];
 			[progressSlider setDoubleValue:100 * progress / duration];
+			[progressSlider setBufferValue:100 * bufferProgress / duration];
 		}
 		else
 		{
 			if ([streamer isPlaying]) {
 				[positionLabel setStringValue:@"Time Played:"];
 			}
-			[progressSlider setEnabled:NO];
-			[progressSlider setDoubleValue:0.0];
+			if (![streamer isWaiting]) {
+				[progressSlider setDoubleValue:0.0];
+				[progressSlider setBufferValue:0.0];
+			}
 		}
 	}
 	else

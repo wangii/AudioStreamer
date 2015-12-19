@@ -11,8 +11,12 @@
 		0515893419C9798A004A1E00 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0515893319C9798A004A1E00 /* MediaPlayer.framework */; };
 		0515893619C97B91004A1E00 /* Default-568h@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 0515893519C97B91004A1E00 /* Default-568h@2x.png */; };
 		0515893819C97E19004A1E00 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0515893719C97E19004A1E00 /* AVFoundation.framework */; };
+		0529A16B1A8CB9F5007D3B6E /* UIBufferSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = 0529A16A1A8CB9F5007D3B6E /* UIBufferSlider.m */; };
+		0529A16D1A8CBDBD007D3B6E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0529A16C1A8CBDBD007D3B6E /* CoreGraphics.framework */; };
 		0595FA0A1A36FA9100AE7040 /* iOSStreamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 05DFC73E15FA47420008E6D8 /* iOSStreamer.m */; };
 		0595FA0C1A36FBB600AE7040 /* libAudioStreamer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4965F2D91824D40700EF8875 /* libAudioStreamer.a */; };
+		05A1D58F1A8BC53300FE0BA4 /* NSBufferSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A1D58E1A8BC53300FE0BA4 /* NSBufferSlider.m */; };
+		05A1D5921A8BCC6700FE0BA4 /* NSBufferSliderCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 05A1D5911A8BCC6700FE0BA4 /* NSBufferSliderCell.m */; };
 		4965F2FE1824D48A00EF8875 /* AudioStreamer.m in Sources */ = {isa = PBXBuildFile; fileRef = 97B9D008158AD12F0085BC63 /* AudioStreamer.m */; };
 		4965F2FF1824D48A00EF8875 /* ASPlaylist.m in Sources */ = {isa = PBXBuildFile; fileRef = FA99E25215E4B6E1005AB6E6 /* ASPlaylist.m */; };
 		97B9D009158AD12F0085BC63 /* AudioStreamer.h in Headers */ = {isa = PBXBuildFile; fileRef = 97B9D007158AD12F0085BC63 /* AudioStreamer.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -86,6 +90,13 @@
 		0515893319C9798A004A1E00 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/MediaPlayer.framework; sourceTree = DEVELOPER_DIR; };
 		0515893519C97B91004A1E00 /* Default-568h@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default-568h@2x.png"; sourceTree = "<group>"; };
 		0515893719C97E19004A1E00 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/AVFoundation.framework; sourceTree = DEVELOPER_DIR; };
+		0529A1691A8CB9F5007D3B6E /* UIBufferSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIBufferSlider.h; sourceTree = "<group>"; };
+		0529A16A1A8CB9F5007D3B6E /* UIBufferSlider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIBufferSlider.m; sourceTree = "<group>"; };
+		0529A16C1A8CBDBD007D3B6E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.1.sdk/System/Library/Frameworks/CoreGraphics.framework; sourceTree = DEVELOPER_DIR; };
+		05A1D58D1A8BC53300FE0BA4 /* NSBufferSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSBufferSlider.h; sourceTree = "<group>"; };
+		05A1D58E1A8BC53300FE0BA4 /* NSBufferSlider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSBufferSlider.m; sourceTree = "<group>"; };
+		05A1D5901A8BCC6700FE0BA4 /* NSBufferSliderCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSBufferSliderCell.h; sourceTree = "<group>"; };
+		05A1D5911A8BCC6700FE0BA4 /* NSBufferSliderCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSBufferSliderCell.m; sourceTree = "<group>"; };
 		05DFC73D15FA47420008E6D8 /* iOSStreamer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = iOSStreamer.h; sourceTree = "<group>"; usesTabs = 0; };
 		05DFC73E15FA47420008E6D8 /* iOSStreamer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = iOSStreamer.m; sourceTree = "<group>"; usesTabs = 0; };
 		4965F2D91824D40700EF8875 /* libAudioStreamer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAudioStreamer.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -161,6 +172,7 @@
 				0515893819C97E19004A1E00 /* AVFoundation.framework in Frameworks */,
 				0515893419C9798A004A1E00 /* MediaPlayer.framework in Frameworks */,
 				97E48C22158AFC6C007288FB /* QuartzCore.framework in Frameworks */,
+				0529A16D1A8CBDBD007D3B6E /* CoreGraphics.framework in Frameworks */,
 				0515892D19C97761004A1E00 /* CFNetwork.framework in Frameworks */,
 				97E48C15158AF929007288FB /* AudioToolbox.framework in Frameworks */,
 				97E48C13158AF926007288FB /* Foundation.framework in Frameworks */,
@@ -223,8 +235,14 @@
 				97B9D033158AD53B0085BC63 /* iPhoneStreamingPlayerAppDelegate.m */,
 				97B9D034158AD53B0085BC63 /* iPhoneStreamingPlayerViewController.h */,
 				97B9D035158AD53B0085BC63 /* iPhoneStreamingPlayerViewController.m */,
+				0529A1691A8CB9F5007D3B6E /* UIBufferSlider.h */,
+				0529A16A1A8CB9F5007D3B6E /* UIBufferSlider.m */,
 				97B9D036158AD53B0085BC63 /* MacStreamingPlayerController.h */,
 				97B9D037158AD53B0085BC63 /* MacStreamingPlayerController.m */,
+				05A1D58D1A8BC53300FE0BA4 /* NSBufferSlider.h */,
+				05A1D58E1A8BC53300FE0BA4 /* NSBufferSlider.m */,
+				05A1D5901A8BCC6700FE0BA4 /* NSBufferSliderCell.h */,
+				05A1D5911A8BCC6700FE0BA4 /* NSBufferSliderCell.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -282,6 +300,7 @@
 				97E48C23158AFC77007288FB /* CoreMedia.framework */,
 				0515892C19C97761004A1E00 /* CFNetwork.framework */,
 				97E48C21158AFC6C007288FB /* QuartzCore.framework */,
+				0529A16C1A8CBDBD007D3B6E /* CoreGraphics.framework */,
 				97E48C16158AF938007288FB /* MobileCoreServices.framework */,
 				97E48C14158AF929007288FB /* AudioToolbox.framework */,
 				97E48C12158AF926007288FB /* Foundation.framework */,
@@ -467,6 +486,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				97B9D044158AD63D0085BC63 /* main.m in Sources */,
+				05A1D5921A8BCC6700FE0BA4 /* NSBufferSliderCell.m in Sources */,
+				05A1D58F1A8BC53300FE0BA4 /* NSBufferSlider.m in Sources */,
 				97B9D03E158AD5880085BC63 /* MacStreamingPlayerController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -477,6 +498,7 @@
 			files = (
 				97B9D08B158ADDBA0085BC63 /* iPhoneStreamingPlayerAppDelegate.m in Sources */,
 				97B9D08C158ADDBA0085BC63 /* iPhoneStreamingPlayerViewController.m in Sources */,
+				0529A16B1A8CB9F5007D3B6E /* UIBufferSlider.m in Sources */,
 				97B9D08A158ADDB20085BC63 /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

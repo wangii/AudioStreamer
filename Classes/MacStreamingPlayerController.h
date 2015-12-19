@@ -23,6 +23,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "AudioStreamer.h"
+#import "NSBufferSlider.h"
 
 @interface MacStreamingPlayerController : NSObject <AudioStreamerDelegate, NSTextFieldDelegate>
 {
@@ -30,7 +31,7 @@
 	IBOutlet NSTextField *downloadSourceField;
 	IBOutlet NSButton *button;
 	IBOutlet NSTextField *positionLabel;
-	IBOutlet NSSlider *progressSlider;
+	IBOutlet NSBufferSlider *progressSlider;
     IBOutlet NSTextField *streamInfoLabel;
 	AudioStreamer *streamer;
 	NSTimer *progressUpdateTimer;

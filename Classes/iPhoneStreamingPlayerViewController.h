@@ -23,6 +23,7 @@
 
 #import <UIKit/UIKit.h>
 #import "iOSStreamer.h"
+#import "UIBufferSlider.h"
 
 @interface iPhoneStreamingPlayerViewController : UIViewController <iOSStreamerDelegate>
 {
@@ -30,7 +31,7 @@
 	IBOutlet UIButton *button;
 	IBOutlet UIView *volumeSlider;
 	IBOutlet UILabel *positionLabel;
-	IBOutlet UISlider *progressSlider;
+	IBOutlet UIBufferSlider *progressSlider;
     IBOutlet UILabel *streamInfoTitle;
     IBOutlet UILabel *streamInfoBody;
 	iOSStreamer *streamer;

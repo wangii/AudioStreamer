@@ -219,6 +219,7 @@ extern NSString * const ASBitrateReadyNotification DEPRECATED_MSG_ATTRIBUTE("Use
 
 enum AudioStreamerProxyType : NSUInteger;
 enum AudioStreamerID3ParserState : NSUInteger;
+struct buffer;
 struct queued_vbr_packet;
 struct queued_cbr_packet;
 
@@ -382,12 +383,11 @@ struct queued_cbr_packet;
    * packets, so the packetDescs array is a list of packets which describes the
    * data in the next pending buffer (used to enqueue data into the AudioQueue
    * structure */
-  AudioQueueBufferRef *buffers;
+  struct buffer **buffers; /* Information for each buffer */
   AudioStreamPacketDescription packetDescs[kAQMaxPacketDescs];
   UInt32 packetsFilled;         /* number of valid entries in packetDescs */
   UInt32 bytesFilled;           /* bytes in use in the pending buffer */
   unsigned int fillBufferIndex; /* index of the pending buffer */
-  bool *inuse;                  /* which buffers have yet to be processed */
   UInt32 buffersUsed;           /* Number of buffers in use */
 
   /* cache state (see above description) */
@@ -420,7 +420,7 @@ struct queued_cbr_packet;
   double seekTime;
   bool   seeking;            /* Are we currently in the process of seeking? */
   double lastProgress;       /* last calculated progress point */
-  UInt64 processedPacketsCount;     /* bit rate calculation utility */
+  UInt32 processedPacketsCount;     /* bit rate calculation utility */
   UInt64 processedPacketsSizeTotal; /* helps calculate the bit rate */
   bool   bitrateNotification;       /* notified that the bitrate is ready */
   bool   isParsing;           /* Are we parsing the file stream? */
@@ -430,6 +430,8 @@ struct queued_cbr_packet;
   bool   queuePaused;         /* Is the audio queue paused? */
   bool   bitrateEstimated;    /* Was the last bitrate calculation an estimate? */
   bool   defaultBufferSizeUsed;     /* Was the default buffer size used? */
+  UInt64 audioBytesReceived;  /* The total number of audio bytes we have received so far */
+  UInt64 audioPacketsReceived;    /* The total number of audio packets we have received so far */
 }
 
 /** @name Creating an audio stream */
@@ -862,6 +864,20 @@ struct queued_cbr_packet;
  *         progress could not be determined at this time
  */
 - (BOOL)progress:(double*)ret;
+
+/**
+ * @brief Calculate the buffer progress into the stream, in seconds
+ *
+ * @details This calculates how far we have buffered into memory. You can stream up to
+ * the point returned by this method without the streamer having to reconnect. The
+ * streamer will read packets already fetched from its memory buffers.
+ *
+ * @param ret A double which is filled in with the buffer progress of the stream. The
+ *        contents are undefined if NO is returned
+ * @return YES if the buffer progress of the stream was determined, or NO if the buffer
+ *         progress could not be determined at this time
+ */
+- (BOOL)bufferProgress:(double*)ret;
 
 /**
  * @brief Fade in playback

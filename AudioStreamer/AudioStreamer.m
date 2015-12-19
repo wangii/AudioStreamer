@@ -99,6 +99,14 @@ typedef struct queued_cbr_packet {
   char data[];
 } queued_cbr_packet_t;
 
+typedef struct buffer {
+  AudioStreamPacketDescription packetDescs[kAQMaxPacketDescs];
+  AudioQueueBufferRef ref;
+  UInt32 packetCount;
+  UInt32 packetStart;
+  bool inuse;
+} buffer_t;
+
 /* Errors, not an 'extern' */
 NSString * const ASErrorDomain = @"com.alexcrichton.audiostreamer";
 
@@ -110,6 +118,8 @@ NSString * const ASBitrateReadyNotification = _ASBitrateReadyNotification;
 
 /* Woohoo, actual implementation now! */
 @implementation AudioStreamer
+
+@dynamic bufferCnt; // Unavailable property
 
 /* Converts a given OSStatus to a friendly string.
  * The return value should be freed when done */
@@ -204,7 +214,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   assert(queued_cbr_tail == NULL);
   assert(timeout == nil);
   assert(buffers == NULL);
-  assert(inuse == NULL);
 }
 
 - (void)setHTTPProxy:(NSString*)host port:(int)port {
@@ -320,12 +329,11 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     audioQueue = nil;
   }
   if (buffers != NULL) {
+    for (UInt32 i = 0; i < _bufferCount; i++) {
+      free(buffers[i]);
+    }
     free(buffers);
     buffers = NULL;
-  }
-  if (inuse != NULL) {
-    free(inuse);
-    inuse = NULL;
   }
 
   _httpHeaders     = nil;
@@ -359,20 +367,6 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   seeking = true;
 
   //
-  // Calculate the byte offset for seeking
-  //
-  seekByteOffset = dataOffset +
-    (UInt64)((newSeekTime / duration) * (fileLength - dataOffset));
-
-  //
-  // Attempt to leave 1 useful packet at the end of the file (although in
-  // reality, this may still seek too far if the file has a long trailer).
-  //
-  if (seekByteOffset > fileLength - 2 * packetBufferSize) {
-    seekByteOffset = fileLength - 2 * packetBufferSize;
-  }
-
-  //
   // Store the old time from the audio queue and the time that we're seeking
   // to so that we'll know the correct time progress after seeking.
   //
@@ -386,13 +380,226 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   //
   // Attempt to align the seek with a packet boundary
   //
+  SInt64 seekPacket = 0;
   double packetDuration = _streamDescription.mFramesPerPacket / _streamDescription.mSampleRate;
+  if (packetDuration > 0 && vbr) {
+    seekPacket = (SInt64)floor(newSeekTime / packetDuration);
+  } else if (!vbr) {
+    seekPacket = (SInt64)((bitrate / 8.0) * newSeekTime);
+  }
+
+  if (totalAudioPackets != 1000000 && (UInt64)(seekPacket + 5) >= totalAudioPackets) {
+    // Too little data to play anything useful
+    [self setState:AS_DONE];
+    return YES;
+  }
+
+  bool foundCachedPacket = false;
+  bool foundQueuedPacket = false;
+  if ((processedPacketsCount - 1) < (UInt64)seekPacket) {
+    queued_vbr_packet_t *cur_vbr = queued_vbr_head;
+    queued_cbr_packet_t *cur_cbr = queued_cbr_head;
+    for (UInt32 i = 0; cur_vbr != NULL || cur_cbr != NULL; i++) {
+      if ((processedPacketsCount + i) == (UInt64)seekPacket) {
+        foundCachedPacket = true;
+        break;
+      }
+      if (cur_vbr != NULL) {
+        queued_vbr_packet_t *tmp_vbr = cur_vbr->next;
+        cur_vbr = tmp_vbr;
+      } else if (cur_cbr != NULL) {
+        queued_cbr_packet_t *tmp_cbr = cur_cbr->next;
+        cur_cbr = tmp_cbr;
+      }
+    }
+  } else if ((UInt64)seekPacket < audioPacketsReceived && seekPacket != 0) {
+    foundQueuedPacket = true;
+  }
+
+  if (foundCachedPacket || foundQueuedPacket) {
+    CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+    unscheduled = true;
+    rescheduled = false;
+  }
+
+  buffer_t **oldBuffers;
+  if (foundQueuedPacket) {
+    oldBuffers = malloc(_bufferCount * sizeof(buffer_t*));
+    CHECK_ERR(oldBuffers == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"", NO);
+    memcpy(oldBuffers, buffers, _bufferCount * sizeof(AudioQueueBufferRef));
+  }
+
+  waitingOnBuffer = false;
+
+  /* Stop audio for now */
+  osErr = AudioQueueStop(audioQueue, true);
+  if (osErr) {
+    if (foundQueuedPacket) {
+      free(oldBuffers);
+    }
+    seeking = false;
+    [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED reason:[[self class] descriptionforAQErrorCode:osErr]];
+    return NO;
+  }
+
+  if (foundCachedPacket) {
+    UInt32 packetsRemoved = 0;
+    UInt32 bytesRemoved = 0;
+    queued_vbr_packet_t *cur_vbr = queued_vbr_head;
+    queued_cbr_packet_t *cur_cbr = queued_cbr_head;
+    for (UInt32 i = 0; cur_vbr != NULL || cur_cbr != NULL; i++) {
+      if ((processedPacketsCount + i) == (UInt64)seekPacket) {
+        break;
+      }
+      if (cur_vbr != NULL) {
+        queued_vbr_packet_t *tmp_vbr = cur_vbr->next;
+        free(cur_vbr);
+        cur_vbr = tmp_vbr;
+        packetsRemoved++;
+      } else if (cur_cbr != NULL) {
+        queued_cbr_packet_t *tmp_cbr = cur_cbr->next;
+        bytesRemoved += cur_cbr->byteSize;
+        free(cur_cbr);
+        cur_cbr = tmp_cbr;
+      }
+    }
+    queued_vbr_head = cur_vbr;
+    queued_cbr_head = cur_cbr;
+
+    processedPacketsCount += (vbr ? packetsRemoved : bytesRemoved);
+
+    //discontinuous = true;
+    [self enqueueCachedData];
+    waitingOnBuffer = (queued_vbr_head != NULL || queued_cbr_head != NULL);
+    if (packetDuration > 0 && vbr) {
+      seekTime = processedPacketsCount * packetDuration;
+    } else if (!vbr) {
+      seekTime = processedPacketsCount * 8.0 / bitrate;
+    }
+    if (![self startAudioQueue]) return NO;
+
+    CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+    rescheduled = true;
+
+    seeking = false;
+    return YES;
+  } else if (foundQueuedPacket) {
+    UInt32 seekPacketIdx = _bufferCount + 1;
+    UInt32 endPacketIdx = _bufferCount + 1;
+    SInt64 startPacket = seekPacket;
+    SInt64 endPacket = seekPacket;
+    UInt32 nextFillBuffer = fillBufferIndex +1;
+    if (nextFillBuffer >= _bufferCount) nextFillBuffer = 0;
+    UInt32 i = nextFillBuffer;
+    UInt32 last = 0;
+    while (i != fillBufferIndex) {
+      UInt32 packetStart = oldBuffers[i]->packetStart;
+      UInt32 packetCount = oldBuffers[i]->packetCount;
+      if (packetCount != 0) {
+        UInt32 packetEnd = packetStart + packetCount - 1;
+        last = packetEnd;
+        if (packetEnd >= seekPacket) {
+          if (packetEnd >= endPacket) {
+            endPacketIdx = i;
+            endPacket = packetEnd;
+          }
+          if (packetStart <= startPacket) {
+            seekPacketIdx = i;
+            startPacket = packetStart;
+          }
+        }
+      }
+      i++;
+      if (i >= _bufferCount) i = 0;
+    }
+    if (seekPacketIdx != (_bufferCount + 1)) {
+      i = seekPacketIdx;
+      UInt32 nextBuffer = endPacketIdx + 1;
+      if (nextBuffer >= _bufferCount) nextBuffer = 0;
+      bool start = true;
+      while (i != nextBuffer || start) {
+        start = false;
+        UInt32 packetStart = oldBuffers[i]->packetStart;
+        UInt32 packetCount = oldBuffers[i]->packetCount;
+        if (packetCount > 0) {
+          UInt32 packetEnd = packetStart + oldBuffers[i]->packetCount - 1;
+          buffers[i]->inuse = (packetEnd >= seekPacket);
+        }
+        i++;
+        if (i >= _bufferCount) i = 0;
+      }
+      i = seekPacketIdx;
+      buffersUsed = 0;
+      while (buffers[i]->inuse) {
+        AudioQueueBufferRef fillBuf = oldBuffers[i]->ref;
+
+        if (vbr) {
+          osErr = AudioQueueEnqueueBuffer(audioQueue, fillBuf, oldBuffers[i]->packetCount,
+                                          oldBuffers[i]->packetDescs);
+        } else {
+          osErr = AudioQueueEnqueueBuffer(audioQueue, fillBuf, 0, NULL);
+        }
+        if (osErr) {
+          free(oldBuffers);
+          [self failWithErrorCode:AS_AUDIO_QUEUE_ENQUEUE_FAILED reason:[[self class] descriptionforAQErrorCode:osErr]];
+          return NO;
+        }
+
+        buffersUsed++;
+        i++;
+        if (i >= _bufferCount) i = 0;
+        if (buffersUsed == _bufferCount) break;
+      }
+      fillBufferIndex = i;
+      processedPacketsCount -= packetsFilled;
+      packetsFilled = bytesFilled = 0;
+      [self enqueueCachedData];
+      waitingOnBuffer = (queued_vbr_head != NULL || queued_cbr_head != NULL);
+      if (packetDuration > 0 && vbr) {
+        seekTime = oldBuffers[seekPacketIdx]->packetStart * packetDuration;
+      } else if (!vbr) {
+        seekTime = oldBuffers[seekPacketIdx]->packetStart * 8.0 / bitrate;
+      }
+
+      free(oldBuffers);
+
+      if (![self startAudioQueue]) return NO;
+
+      CFReadStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopCommonModes);
+      rescheduled = true;
+
+      seeking = false;
+      return YES;
+    }
+    [self closeReadStream];
+    [self setState:AS_WAITING_FOR_DATA];
+    free(oldBuffers);
+  }
+
+  processedPacketsCount = (UInt32)seekPacket;
+  audioPacketsReceived = (UInt64)seekPacket;
+
+  if (packetDuration > 0 && !vbr) {
+    seekPacket = (SInt64)floor(newSeekTime / packetDuration);
+  }
+
+  //
+  // Calculate the byte offset for seeking
+  //
+  seekByteOffset = dataOffset + (UInt64)((newSeekTime / duration) * (fileLength - dataOffset));
+
+  //
+  // Attempt to leave 1 useful packet at the end of the file (although in
+  // reality, this may still seek too far if the file has a long trailer).
+  //
+  if (seekByteOffset > fileLength - 2 * packetBufferSize) {
+    seekByteOffset = fileLength - 2 * packetBufferSize;
+  }
+
   if (packetDuration > 0 && bitrate > 0) {
     UInt32 ioFlags = 0;
     SInt64 packetAlignedByteOffset;
-    SInt64 seekPacket = (SInt64)floor(newSeekTime / packetDuration);
-    osErr = AudioFileStreamSeek(audioFileStream, seekPacket,
-                                &packetAlignedByteOffset, &ioFlags);
+    osErr = AudioFileStreamSeek(audioFileStream, seekPacket, &packetAlignedByteOffset, &ioFlags);
     if (!osErr && !(ioFlags & kAudioFileStreamSeekFlag_OffsetIsEstimated)) {
       if (!bitrateEstimated) {
         seekTime = packetAlignedByteOffset * 8.0 / bitrate;
@@ -407,19 +614,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   [self closeReadStream];
-
   [self setState:AS_WAITING_FOR_DATA];
 
-  /* Stop audio for now */
-  osErr = AudioQueueStop(audioQueue, true);
-  if (osErr) {
-    seeking = false;
-    [self failWithErrorCode:AS_AUDIO_QUEUE_STOP_FAILED reason:[[self class] descriptionforAQErrorCode:osErr]];
-    return NO;
-  }
   fillBufferIndex = 0;
   packetsFilled = 0;
   bytesFilled = 0;
+  audioBytesReceived = 0;
+  waitingOnBuffer = (queued_vbr_head != NULL || queued_cbr_head != NULL);
 
   /* Open a new stream with a new offset */
   BOOL ret = [self openReadStream];
@@ -458,6 +659,17 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
   lastProgress = progress;
   *ret = progress;
+  return YES;
+}
+
+- (BOOL)bufferProgress:(double*)ret {
+  if (state_ != AS_PLAYING && state_ != AS_PAUSED)
+    return NO;
+
+  double duration;
+  if (![self duration:&duration]) return NO;
+
+  *ret = (double)(audioBytesReceived + seekByteOffset) / (double)fileLength * duration;
   return YES;
 }
 
@@ -1251,7 +1463,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
                 AudioQueueStop(audioQueue, true);
                 if (buffers) {
                   for (UInt32 j = 0; j < _bufferCount; ++j) {
-                    AudioQueueFreeBuffer(audioQueue, buffers[j]);
+                    AudioQueueFreeBuffer(audioQueue, buffers[j]->ref);
                   }
                 }
 
@@ -1633,23 +1845,25 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (int)enqueueBuffer {
   assert(stream != NULL);
 
-  assert(!inuse[fillBufferIndex]);
-  inuse[fillBufferIndex] = true;    // set in use flag
+  assert(!buffers[fillBufferIndex]->inuse);
+  buffers[fillBufferIndex]->inuse = true;    // set in use flag
   buffersUsed++;
 
   // enqueue buffer
-  AudioQueueBufferRef fillBuf = buffers[fillBufferIndex];
+  AudioQueueBufferRef fillBuf = buffers[fillBufferIndex]->ref;
   fillBuf->mAudioDataByteSize = bytesFilled;
 
   OSStatus osErr;
-  if (packetsFilled) {
+  if (vbr) {
     osErr = AudioQueueEnqueueBuffer(audioQueue, fillBuf, packetsFilled,
-                                    packetDescs);
+                                    buffers[fillBufferIndex]->packetDescs);
   } else {
     osErr = AudioQueueEnqueueBuffer(audioQueue, fillBuf, 0, NULL);
   }
   CHECK_ERR(osErr, AS_AUDIO_QUEUE_ENQUEUE_FAILED, [[self class] descriptionforAQErrorCode:osErr], -1);
 
+  buffers[fillBufferIndex]->packetCount = packetsFilled;
+  buffers[fillBufferIndex]->packetStart -= (packetsFilled - 1);
   LOG_DEBUG(@"committed buffer %d", fillBufferIndex);
 
   if (state_ == AS_WAITING_FOR_DATA) {
@@ -1675,7 +1889,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     CHECK_ERR(osErr, AS_AUDIO_QUEUE_FLUSH_FAILED, [[self class] descriptionforAQErrorCode:osErr], -1);
   }
 
-  if (inuse[fillBufferIndex]) {
+  if (buffers[fillBufferIndex]->inuse) {
     LOG_DEBUG(@"waiting for buffer %d", fillBufferIndex);
     if (!_bufferInfinite) {
       CFReadStreamUnscheduleFromRunLoop(stream, CFRunLoopGetCurrent(),
@@ -1740,13 +1954,17 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   // allocate audio queue buffers
-  buffers = malloc(_bufferCount * sizeof(buffers[0]));
+  buffers = malloc(_bufferCount * sizeof(buffer_t*));
   CHECK_ERR(buffers == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
-  inuse = calloc(_bufferCount, sizeof(inuse[0]));
-  CHECK_ERR(inuse == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
   for (UInt32 i = 0; i < _bufferCount; ++i) {
+    buffers[i] = malloc(sizeof(buffer_t));
+    CHECK_ERR(buffers[i] == NULL, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, @"");
+    buffers[i]->inuse = false;
+    buffers[i]->packetStart = 0;
+    buffers[i]->packetCount = 0;
+
     osErr = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
-                                   &buffers[i]);
+                                     &(buffers[i]->ref));
     CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, [[self class] descriptionforAQErrorCode:osErr]);
   }
 
@@ -1974,6 +2192,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     if ([self isDone]) return; // Queue creation failed. Abort.
   }
 
+  audioBytesReceived += inNumberBytes;
+  audioPacketsReceived += inNumberPackets;
+
   if (inPacketDescriptions) {
     /* Place each packet into a buffer and then send each buffer into the audio
        queue */
@@ -2064,6 +2285,8 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
     assert(bytesFilled == 0);
   }
 
+  buffers[fillBufferIndex]->packetStart = processedPacketsCount;
+
   /* global statistics */
   processedPacketsSizeTotal += 8.0 * packetSize / (_streamDescription.mFramesPerPacket / _streamDescription.mSampleRate);
   processedPacketsCount++;
@@ -2080,13 +2303,13 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   }
 
   // copy data to the audio queue buffer
-  AudioQueueBufferRef buf = buffers[fillBufferIndex];
+  AudioQueueBufferRef buf = buffers[fillBufferIndex]->ref;
   memcpy(buf->mAudioData + bytesFilled, data, (size_t)packetSize);
 
   // fill out packet description to pass to enqueue() later on
-  packetDescs[packetsFilled] = *desc;
+  buffers[fillBufferIndex]->packetDescs[packetsFilled] = *desc;
   // Make sure the offset is relative to the start of the audio buffer
-  packetDescs[packetsFilled].mStartOffset = bytesFilled;
+  buffers[fillBufferIndex]->packetDescs[packetsFilled].mStartOffset = bytesFilled;
   // keep track of bytes filled and packets filled
   bytesFilled += packetSize;
   packetsFilled++;
@@ -2115,10 +2338,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   bufSpaceRemaining = packetBufferSize - bytesFilled;
   *copySize = MIN(bufSpaceRemaining, byteSize);
 
-  AudioQueueBufferRef buf = buffers[fillBufferIndex];
+  AudioQueueBufferRef buf = buffers[fillBufferIndex]->ref;
   memcpy(buf->mAudioData + bytesFilled, data, *copySize);
 
   bytesFilled += *copySize;
+  packetsFilled += *copySize;
+  processedPacketsCount += *copySize;
+
+  buffers[fillBufferIndex]->packetStart = processedPacketsCount;
 
   // Bitrate isn't estimated with these packets.
   // It's safe to calculate the bitrate as soon as we start getting audio.
@@ -2144,7 +2371,7 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 - (void)enqueueCachedData {
   if ([self isDone]) return;
   assert(!waitingOnBuffer);
-  assert(!inuse[fillBufferIndex]);
+  assert(!buffers[fillBufferIndex]->inuse);
   assert(stream != NULL);
   LOG_DEBUG(@"processing some cached data");
 
@@ -2202,15 +2429,15 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
      one of our own buffers */
   UInt32 idx;
   for (idx = 0; idx < _bufferCount; idx++) {
-    if (buffers[idx] == inBuffer) break;
+    if (buffers[idx]->ref == inBuffer) break;
   }
   CHECK_ERR(idx >= _bufferCount, AS_AUDIO_QUEUE_BUFFER_MISMATCH, @"");
-  assert(inuse[idx]);
+  assert(buffers[idx]->inuse);
 
   LOG_DEBUG(@"buffer %u finished", (unsigned int)idx);
 
   /* Signal the buffer is no longer in use */
-  inuse[idx] = false;
+  buffers[idx]->inuse = false;
   buffersUsed--;
 
   /* If we're done with the buffers because the stream is dying, then there's no
@@ -2221,8 +2448,9 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   /* If there is absolutely no more data which will ever come into the stream,
    * then we're done with the audio */
   } else if (buffersUsed == 0 && queued_vbr_head == NULL && queued_cbr_head == NULL &&
-      stream != nil && CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
+             !seeking && stream != nil && CFReadStreamGetStatus(stream) == kCFStreamStatusAtEnd) {
     assert(!waitingOnBuffer);
+    seekable = false;
     AudioQueueStop(audioQueue, false);
 
   /* If we are out of buffers then we need to reconnect or wait */
@@ -2268,14 +2496,14 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
 
       /* This can either fix or delay the problem
        * If it cannot fix it, the network is simply too slow */
-      if (defaultBufferSizeUsed && packetBufferSize < 65536) {
+      if (defaultBufferSizeUsed && packetBufferSize < 65536 && !seeking) {
         packetBufferSize = packetBufferSize * 2;
         for (UInt32 j = 0; j < _bufferCount; ++j) {
-          AudioQueueFreeBuffer(audioQueue, buffers[j]);
+          AudioQueueFreeBuffer(audioQueue, buffers[j]->ref);
         }
         for (UInt32 i = 0; i < _bufferCount; ++i) {
           osErr = AudioQueueAllocateBuffer(audioQueue, packetBufferSize,
-                                           &buffers[i]);
+                                           &(buffers[i]->ref));
           CHECK_ERR(osErr, AS_AUDIO_QUEUE_BUFFER_ALLOCATION_FAILED, [[self class] descriptionforAQErrorCode:osErr]);
         }
       }

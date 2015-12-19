@@ -196,6 +196,7 @@
 						<string key="NSFrame">{{20, 385}, {280, 55}}</string>
 						<reference key="NSSuperview" ref="774585933"/>
 						<reference key="NSWindow"/>
+						<reference key="NSNextKeyView"/>
 						<object class="NSColor" key="IBUIBackgroundColor">
 							<int key="NSColorSpace">3</int>
 							<bytes key="NSWhite">MSAwAA</bytes>
@@ -466,6 +467,7 @@
 				<string key="25.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="26.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="35.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="46.CustomClassName">UIBufferSlider</string>
 				<string key="46.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="49.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="50.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
@@ -480,6 +482,14 @@
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
+				<object class="IBPartialClassDescription">
+					<string key="className">UIBufferSlider</string>
+					<string key="superclassName">UISlider</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">../Classes/UIBufferSlider.h</string>
+					</object>
+				</object>
 				<object class="IBPartialClassDescription">
 					<string key="className">iPhoneStreamingPlayerViewController</string>
 					<string key="superclassName">UIViewController</string>
@@ -501,7 +511,7 @@
 						<string key="button">UIButton</string>
 						<string key="downloadSourceField">UITextField</string>
 						<string key="positionLabel">UILabel</string>
-						<string key="progressSlider">UISlider</string>
+						<string key="progressSlider">UIBufferSlider</string>
 						<string key="streamInfoBody">UILabel</string>
 						<string key="streamInfoTitle">UILabel</string>
 						<string key="volumeSlider">UIView</string>
@@ -521,7 +531,7 @@
 						</object>
 						<object class="IBToOneOutletInfo" key="progressSlider">
 							<string key="name">progressSlider</string>
-							<string key="candidateClassName">UISlider</string>
+							<string key="candidateClassName">UIBufferSlider</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="streamInfoBody">
 							<string key="name">streamInfoBody</string>
