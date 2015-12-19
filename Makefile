@@ -2,6 +2,8 @@ XCB           = xcodebuild
 CONFIGURATION = Release
 XCBFLAGS      = -configuration $(CONFIGURATION)
 
+.PHONY: dochtml docset
+
 all: framework mac iphonelib iphone
 
 framework:
