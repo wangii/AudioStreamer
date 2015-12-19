@@ -2,8 +2,6 @@ XCB           = xcodebuild
 CONFIGURATION = Release
 XCBFLAGS      = -configuration $(CONFIGURATION)
 
-.PHONY: doc
-
 all: framework mac iphonelib iphone
 
 framework:
@@ -20,10 +18,18 @@ iphone: XCBFLAGS += -sdk iphoneos
 iphone:
 	$(XCB) $(XCBFLAGS) -target 'iPhone Streaming Player'
 
-doc:
-	appledoc --project-name AudioStreamer --project-company '_' \
-		--company-id '_' --no-repeat-first-par -o doc \
-		--docset-install-path doc --ignore AudioStreamer.m AudioStreamer
+dochtml:
+	appledoc --project-name AudioStreamer --project-company ' ' \
+		--company-id ' ' --no-repeat-first-par -o dochtml \
+		--no-create-docset --explicit-crossref --ignore AudioStreamer.m \
+		--ignore ASPlaylist.m --ignore iOSStreamer.m AudioStreamer
+
+docset:
+	appledoc --project-name AudioStreamer --project-company ' ' \
+		--company-id ' ' --no-repeat-first-par -o docset \
+		--docset-install-path docset --explicit-crossref \
+		--ignore AudioStreamer.m --ignore ASPlaylist.m \
+		--ignore iOSStreamer.m AudioStreamer
 
 clean:
 	$(XCB) clean

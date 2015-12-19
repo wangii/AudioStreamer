@@ -508,6 +508,7 @@ struct queued_cbr_packet;
  * @brief Returns whether the stream can be seeked with the <seekToTime:> method
  *
  * @details The stream cannot be seeked if:
+ *
  * - The bitrate cannot be calculated
  * - The duration cannot be calculated
  * - The Accept-Ranges HTTP header does not return "bytes"
@@ -538,7 +539,7 @@ struct queued_cbr_packet;
 
 /**
  * @brief The error code the streamer threw
- * @deprecated Use the -code method from the <error> property instead
+ * @deprecated Use the -code method from the 'error' property instead
  *
  * @details If an error occurs on the stream, then this variable is set with the code
  * corresponding to the error
@@ -552,7 +553,7 @@ struct queued_cbr_packet;
 
 /**
  * @brief Converts an error code to a string
- * @deprecated Use the -localizedDescription method from the <error> property instead
+ * @deprecated Use the -localizedDescription method from the 'error' property instead
  *
  * @param anErrorCode The code to convert, usually from the <errorCode> property
  * @return The string description of the error code (as best as possible)
@@ -562,7 +563,7 @@ struct queued_cbr_packet;
 
 /**
  * @brief The network error the streamer threw
- * @deprecated Use the -localizedFailureReason method from <error> property instead
+ * @deprecated Use the -localizedFailureReason method from 'error' property instead
  *
  * On AS_NETWORK_CONNECTION_FAILED, this will contain the error details
  *
@@ -816,9 +817,9 @@ struct queued_cbr_packet;
 - (BOOL)seekByDelta:(double)seekTimeDelta;
 
 /**
- * Calculates the bit rate of the stream
+ * @brief Calculates the bit rate of the stream
  *
- * All packets received so far contribute to the calculation of the bit rate.
+ * @details All packets received so far contribute to the calculation of the bit rate.
  * This is used internally to determine other factors like duration and
  * progress.
  *
