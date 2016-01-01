@@ -34,6 +34,7 @@
 #define kDefaultNumAQBufsToStart 32
 #define kDefaultAudioFileType kAudioFileMP3Type
 
+/* CHECK_ERR */
 #define CHECK_ERR_NORET(err, code, reasonStr) {                                 \
     if (err) { [self failWithErrorCode:code reason:reasonStr]; return; }        \
 }
@@ -43,6 +44,7 @@
 #define CHECK_ERR_X(x, err, code, reasonStr, retVal, FUNC, ...) FUNC
 #define CHECK_ERR(...) CHECK_ERR_X(,##__VA_ARGS__, CHECK_ERR_RET(__VA_ARGS__), CHECK_ERR_NORET(__VA_ARGS__))
 
+/* Logging */
 #define LOG_LEVEL_NONE 0
 #define LOG_LEVEL_ERROR 1
 #define LOG_LEVEL_WARN 2
@@ -52,6 +54,9 @@
 
 #if defined(DEBUG)
 #define LOG_LEVEL LOG_LEVEL_DEBUG
+#else
+#define LOG_LEVEL LOG_LEVEL_ERROR
+#endif
 
 #define LOG(lvl, fmt, args...) if (lvl <= LOG_LEVEL) NSLog(@"%s " fmt, __PRETTY_FUNCTION__, ##args)
 #define LOG_ERROR(fmt, args...) LOG(LOG_LEVEL_ERROR, fmt, ##args)
@@ -59,16 +64,6 @@
 #define LOG_INFO(fmt, args...) LOG(LOG_LEVEL_INFO, fmt, ##args)
 #define LOG_DEBUG(fmt, args...) LOG(LOG_LEVEL_DEBUG, fmt, ##args)
 #define LOG_VERBOSE(fmt, args...) LOG(LOG_LEVEL_VERBOSE, fmt, ##args)
-#else
-#define LOG_LEVEL LOG_LEVEL_ERROR
-
-#define LOG(...)
-#define LOG_ERROR(...)
-#define LOG_WARN(...)
-#define LOG_INFO(...)
-#define LOG_DEBUG(...)
-#define LOG_VERBOSE(...)
-#endif
 
 typedef NS_ENUM(NSUInteger, AudioStreamerProxyType) {
   AS_PROXY_SYSTEM = 0,
