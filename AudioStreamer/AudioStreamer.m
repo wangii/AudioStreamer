@@ -318,18 +318,22 @@ static void ASReadStreamCallBack(CFReadStreamRef aStream, CFStreamEventType even
   if (audioFileStream && !isParsing) {
     [self closeFileStream];
   }
-  if (audioQueue) {
-    AudioQueueStop(audioQueue, true);
-    assert(!AudioQueueDispose(audioQueue, true));
-    audioQueue = nil;
-  }
+
   if (buffers != NULL) {
     for (UInt32 i = 0; i < _bufferCount; i++) {
+        AudioQueueFreeBuffer(audioQueue, buffers[i]->ref);
       free(buffers[i]);
     }
     free(buffers);
     buffers = NULL;
   }
+
+  if (audioQueue) {
+    AudioQueueStop(audioQueue, true);
+    assert(!AudioQueueDispose(audioQueue, true));
+    audioQueue = nil;
+  }
+
 
   _httpHeaders     = nil;
   bytesFilled      = 0;
